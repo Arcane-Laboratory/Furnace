@@ -220,12 +220,59 @@ config/
 
 ---
 
+## Enemy Parameters
+
+### Enemy Stats (Per Type)
+- **Basic Enemy Health**: Health value for Basic Enemy
+  - **Type**: Integer
+  - **Default**: [TBD]
+  
+- **Basic Enemy Speed**: Movement speed for Basic Enemy
+  - **Type**: Float/Integer (units per frame or units per second)
+  - **Default**: [TBD]
+
+- **Fast Enemy Health**: Health value for Fast Enemy
+  - **Type**: Integer
+  - **Default**: [TBD]
+  - **Notes**: Should be lower than Basic Enemy
+
+- **Fast Enemy Speed**: Movement speed for Fast Enemy
+  - **Type**: Float/Integer (same units as Basic Enemy Speed)
+  - **Default**: [TBD]
+  - **Notes**: Should be higher than Basic Enemy
+
+- **Tank Enemy Health**: Health value for Tank Enemy (if implemented)
+  - **Type**: Integer
+  - **Default**: [TBD]
+  - **Notes**: Should be higher than Basic Enemy
+
+- **Tank Enemy Speed**: Movement speed for Tank Enemy (if implemented)
+  - **Type**: Float/Integer (same units as Basic Enemy Speed)
+  - **Default**: [TBD]
+  - **Notes**: Should be lower than Basic Enemy
+
+### Enemy Wave Parameters (Per Level)
+- **Enemy Count**: Total number of enemies per level
+  - **Type**: Integer (per level)
+  - **Default**: [TBD per level]
+  - **Notes**: Varies by level difficulty
+
+- **Enemy Spawn Timing**: Timing/delays for staggered spawning
+  - **Type**: Float (seconds) or Integer (frames)
+  - **Default**: [TBD]
+  - **Notes**: Delay between enemy spawns, can vary per spawn point
+
+- **Spawn Point Locations**: Grid coordinates of spawn points
+  - **Type**: Array of tile coordinates (per level)
+  - **Default**: [TBD per level]
+  - **Notes**: Defined by level designers in level editor
+
+---
+
 ## Future Parameters (Post-MVP)
 
 These parameters may be added post-MVP:
-- Enemy health values (per enemy type)
-- Enemy movement speeds (per enemy type)
-- Enemy spawn rates/timing
+- Enemy power ups
 - Status Rune effects (if added)
 - Enemy Affector Rune effects (if added)
 - Upgrade costs (if upgrade system added)

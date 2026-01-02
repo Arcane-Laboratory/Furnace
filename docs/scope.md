@@ -98,12 +98,14 @@
 - Varied health values
 - Fixed damage from fireball
 - Destroy furnace on contact (one touch = game over)
+- **No Special Abilities**: Enemies have no power ups or special abilities in MVP
 
 #### ✅ Enemy Behavior
 - Follow pathfinding route to furnace
-- Spawn from designated spawn points
+- Spawn from designated spawn points (spawning tiles)
+- Staggered spawning from flexible number of spawn points
 - Multiple spawn points possible
-- Interact with enemy affector runes (if implemented)
+- No special abilities or power ups in MVP
 
 ### Resource System
 
@@ -124,8 +126,10 @@
 - Terrain types: Rock/Mountain (unbuildable), Open Terrain (buildable)
 
 #### ✅ Level Count
-- 3-5 levels for game jam
-- 1 tutorial level (teaches core mechanics)
+- **MVP**: 3 levels total
+  - Level 1: Tutorial level (teaches core mechanics)
+  - Level 2: Challenge level
+  - Level 3: Challenge level
 - Hand-crafted levels (not procedural)
 
 ### UI/UX (MVP Minimum)
@@ -214,6 +218,12 @@
 - **Status**: POST-MVP
 - **Reason**: Keep MVP simple
 
+#### Enemy Power Ups
+- Enemies with power ups or special modifiers
+- Enhanced enemy abilities
+- **Status**: POST-MVP (CONFIRMED)
+- **Reason**: Difficulty progression in MVP is handled through level design (more spawn points, more enemies, more enemy types). Enemy power ups add complexity and are not essential for MVP.
+
 ### Level Design Expansions
 
 #### More Levels
@@ -229,10 +239,10 @@
 - **Reason**: Hand-crafted better for game jam
 
 #### Terrain Types
-- Void Holes (enemies can cross, player can't build)
+- **Void Holes**: Uneditable terrain tiles that enemies can pass through but players cannot build on
 - Special terrain effects
 - **Status**: POST-MVP
-- **Reason**: Basic terrain sufficient for MVP
+- **Reason**: Basic terrain (Rock/Mountain, Open Terrain, Spawn Point) sufficient for MVP
 
 ### Progression Systems
 
@@ -240,15 +250,20 @@
 - Score based on enemies killed
 - Leaderboards
 - High score tracking
-- **Status**: POST-MVP
+- **Status**: POST-MVP (CONFIRMED - Cut from MVP)
 - **Reason**: Not essential for core gameplay
 
-#### Unlocks & Progression
-- Unlock new runes between levels
-- Unlock new abilities
-- Progression system
+#### Level Select Menu with Unlocks
+- Level select menu interface
+- Unlock system for levels
 - **Status**: POST-MVP
-- **Reason**: Just difficulty scaling sufficient for MVP
+- **Reason**: MVP uses gated linear progression (Level 1 → Level 2 → Level 3)
+
+#### MVP Progression System
+- **Gated Progression**: Start at Level 1, must clear to unlock next
+- **Rune Unlocks**: Runes have `unlocked_by_default` property (designer-configurable)
+- **Level-Specific Runes**: Levels can specify `allowed_runes` (which runes available)
+- **Status**: IN MVP
 
 ### UI/UX Enhancements
 
@@ -322,9 +337,9 @@
 - **Note**: Post-MVP feature
 
 ### Score System (in MVP)
-- **Status**: CUT FROM MVP
-- **Reason**: Not essential for core gameplay
-- **Note**: May add post-MVP
+- **Status**: CUT FROM MVP (CONFIRMED)
+- **Reason**: Not essential for core gameplay. Focus on core mechanics first.
+- **Note**: Post-MVP feature - can add if needed
 
 ### Status Runes (in MVP)
 - **Status**: CUT FROM MVP
@@ -337,9 +352,18 @@
 - **Note**: Consider for post-MVP
 
 ### Void Holes Terrain
-- **Status**: CUT FROM MVP
-- **Reason**: Not essential, can add later
-- **Note**: May add post-MVP if needed
+- **Status**: CUT FROM MVP (CONFIRMED)
+- **Purpose**: Uneditable terrain tiles that:
+  - Players cannot place/build walls or runes on
+  - Enemies can pass through
+  - Prevent player construction
+- **Reason**: Not essential for MVP, adds complexity to pathfinding and level design
+- **Note**: Post-MVP feature - can add if needed for level design variety
+
+### Enemy Power Ups
+- **Status**: CUT FROM MVP (CONFIRMED)
+- **Reason**: Difficulty progression handled through level design (more spawn points, enemies, enemy types). Enemy power ups add complexity and are not essential for MVP.
+- **Note**: Post-MVP feature
 
 ### Slow-Mo/Aiming Mechanics
 - **Status**: CUT (already resolved)
