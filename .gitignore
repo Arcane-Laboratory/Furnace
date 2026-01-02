@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.next/
+out/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Godot
+.godot/
+*.import
+*.uid
+
+# Godot exports (keep structure, ignore generated files)
+web/public/game/*.js
+web/public/game/*.wasm
+web/public/game/*.pck
+web/public/game/*.html
+web/public/game/*.png
+web/public/game/*.json
+web/public/game/*.worker.js
+web/public/game/*.worklet.js
+!web/public/game/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Misc
+*.log

@@ -1,0 +1,56 @@
+# Web Client Rules
+
+globs: web/**
+
+## Framework
+
+- Use Next.js 14 with App Router
+- Use Material-UI (MUI) for components and styling
+- Use TypeScript with strict mode
+
+## Styling
+
+- Prefer Material-UI defaults; minimal customization
+- Centralize custom styles in `app/theme.ts`
+- Avoid one-off untyped CSS or duplicated `sx`; prefer theme and MUI props
+- Use `rem` units for font sizes
+- Abstract responsive breakpoints via a single custom hook (useIsMobile)
+
+## Colors and Spacing
+
+- Do not hardcode hex colors in components
+- Use theme tokens like `primary.main`, `text.secondary`, `divider`
+- Avoid hardcoded pixel values
+- Prefer `theme.spacing(n)` or responsive `sx` objects
+
+## Layout
+
+- Pages and major sections should render content inside a single `Container` provided by the layout (default `maxWidth="md"`)
+- Avoid nested `Container` components inside pages when the layout already provides one
+- Prefer `Stack` for simple row/column layouts instead of hardcoding `Box` flex props
+- Reserve `Grid` for multi-row/column responsive layouts
+
+## Responsiveness
+
+- Do not inline media queries
+- Prefer `sx` responsive values or the `useIsMobile` hook
+- Use the Drawer pattern: `permanent` on desktop, `SwipeableDrawer` on mobile
+
+## Navigation
+
+- Drive nav from a typed route config
+- Use `next/link` via `ListItemButton component={Link}`
+- Indicate selected state via `usePathname()`
+
+## Component Guidelines
+
+- Keep individual components under 500 lines; extract subcomponents when needed
+- Avoid bespoke CSS; rely on MUI props and centralized theme overrides
+- Use TypeScript interfaces for all props
+- Prefer named exports over default exports
+
+## Godot Embed
+
+- Host Godot web exports in `public/game/`
+- Use iframe for embedding Godot content
+- Handle JavaScript bridge communication for auth tokens

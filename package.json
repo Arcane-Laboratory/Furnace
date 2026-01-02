@@ -1,0 +1,16 @@
+{
+  "name": "one-shot",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web",
+    "server"
+  ],
+  "scripts": {
+    "dev": "yarn workspace web dev",
+    "dev:server": "yarn workspace server dev",
+    "build": "yarn workspace web build && yarn workspace server build",
+    "lint": "yarn workspace web lint && yarn workspace server lint"
+  },
+  "packageManager": "yarn@1.22.22"
+}

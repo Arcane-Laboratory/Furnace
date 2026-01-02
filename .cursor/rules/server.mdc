@@ -1,0 +1,42 @@
+# Server Rules
+
+globs: server/**
+
+## Framework
+
+- Use Express.js with TypeScript
+- Use strict TypeScript configuration
+
+## Code Style
+
+- Use explicit type annotations for all function parameters and return types
+- Prefer async/await over raw Promises or callbacks
+- Use early returns to reduce nesting
+- Keep functions focused and under 50 lines when possible
+
+## Error Handling
+
+- Always wrap async route handlers with try/catch
+- Return appropriate HTTP status codes
+- Log errors with sufficient context for debugging
+- Never expose internal error details to clients in production
+
+## Structure
+
+- Organize code by feature/domain, not by type
+- Keep route handlers thin; delegate to service functions
+- Use middleware for cross-cutting concerns (auth, logging, validation)
+
+## Environment
+
+- Use dotenv for environment variable management
+- Never commit secrets or .env files
+- Provide env.example with all required variables documented
+- Validate required environment variables at startup
+
+## API Design
+
+- Use consistent response formats
+- Validate request bodies and parameters
+- Use meaningful HTTP methods (GET, POST, PUT, DELETE)
+- Document endpoints with comments or separate docs

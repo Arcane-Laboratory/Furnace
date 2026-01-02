@@ -1,0 +1,31 @@
+# Global Project Rules
+
+## Code Philosophy
+
+- Less code > more code. Reduce, reuse, recycle. More LOC, more problems.
+- Only make changes that are directly requested or clearly necessary
+- Do not add features, refactor code, or make "improvements" beyond what was asked
+- Reuse existing abstractions where possible and follow the DRY principle
+
+## Package Management
+
+- Use Yarn Workspaces exclusively; do not use npm
+- Run workspace commands via `yarn workspace <name> <command>`
+
+## Documentation
+
+- Prefer `docs/` for plans, architecture, and design documents
+- Do not proactively create README or markdown files unless explicitly requested
+
+## Code Style
+
+- No emojis anywhere: code, logs, commits, comments
+- Follow strict TypeScript configs from `tsconfig.json`
+- Follow ESLint configs from `.eslintrc.json`
+- Maintain consistent naming, structure, and patterns across services
+
+## Commits
+
+- Write clear, concise commit messages
+- No emojis in commit messages
+- Use conventional commit format when appropriate
