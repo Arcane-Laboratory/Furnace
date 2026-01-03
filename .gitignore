@@ -53,3 +53,8 @@ coverage/
 
 # Misc
 *.log
+
+# cursor integration
+cursor-integration/.godot-watcher.pid
+cursor-integration/.godot-watcher.log
+/tmp/godot-error-*.txt

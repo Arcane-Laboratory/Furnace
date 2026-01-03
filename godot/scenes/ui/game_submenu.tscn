@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://dxuiv0flwd2jt"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_fa1kw"]
-[ext_resource type="Script" uid="uid://bsku6m1ik0xko" path="res://scripts/ui/game_submenu.gd" id="2_submenu"]
-[ext_resource type="Texture2D" uid="uid://bbn1cc3p4k1jm" path="res://icon.svg" id="3_icon"]
+[ext_resource type="Script" path="res://scripts/ui/game_submenu.gd" id="2_submenu"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="3_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hksn4"]
 bg_color = Color(0, 0, 0, 1)

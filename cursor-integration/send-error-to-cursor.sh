@@ -1,0 +1,1 @@
+/home/wiz/Agent/furnace/send-error-to-cursor.sh

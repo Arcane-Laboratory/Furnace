@@ -1,0 +1,1 @@
+/home/wiz/Agent/furnace/godot-dev.sh

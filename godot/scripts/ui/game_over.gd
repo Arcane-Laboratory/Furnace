@@ -3,8 +3,8 @@ extends Control
 
 
 @onready var title_label: Label = $CenterContainer/VBoxContainer/TitleLabel
-@onready var retry_button: Button = $CenterContainer/VBoxContainer/RetryButton
-@onready var menu_button: Button = $CenterContainer/VBoxContainer/MenuButton
+@onready var retry_button: Button = $CenterContainer/VBoxContainer/HBoxContainer/RetryButton
+@onready var menu_button: Button = $CenterContainer/VBoxContainer/HBoxContainer/MenuButton
 
 
 func _ready() -> void:
