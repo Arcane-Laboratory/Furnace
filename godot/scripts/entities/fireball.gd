@@ -15,9 +15,13 @@ var is_active: bool = false
 ## Track which tiles we've already activated (to prevent double-activation)
 var activated_tiles: Array[Vector2i] = []
 
+## Track current grid position for collision detection
+var current_grid_pos: Vector2i = Vector2i(-1, -1)
+
 signal fireball_destroyed
 signal enemy_hit(enemy: Node2D, damage: int)
 signal rune_ignited(rune: RuneBase)
+signal fireball_bounced
 
 
 func _ready() -> void:
@@ -29,14 +33,29 @@ func _physics_process(delta: float) -> void:
 	if not is_active:
 		return
 	
-	# Move in current direction
-	position += direction * current_speed * delta
+	# Calculate next position
+	var next_pos := position + direction * current_speed * delta
+	var next_grid_pos := _world_to_grid(next_pos)
+	
+	# Check for boundary collision (bounce at grid edges)
+	# Only bounce if we're currently IN bounds and about to go OUT
+	# This allows the fireball to enter the grid from outside (spawn position)
+	var current_in_bounds := not _is_out_of_bounds(current_grid_pos)
+	if current_in_bounds and _is_out_of_bounds(next_grid_pos):
+		_bounce()
+		return
+	
+	# Check for wall collision (bounce at walls)
+	if _has_wall_at(next_grid_pos) and next_grid_pos != current_grid_pos:
+		_bounce()
+		return
+	
+	# Move to next position
+	position = next_pos
+	current_grid_pos = _world_to_grid(position)
 	
 	# Check for tile center crossing (for rune activation)
 	_check_tile_activation()
-	
-	# Check for boundary collision
-	_check_boundaries()
 
 
 ## Launch the fireball from the furnace
@@ -46,6 +65,7 @@ func launch(start_position: Vector2) -> void:
 	current_speed = GameConfig.fireball_speed
 	is_active = true
 	activated_tiles.clear()
+	current_grid_pos = _world_to_grid(position)
 
 
 ## Set a new direction (called by redirect runes)
@@ -63,7 +83,6 @@ func accelerate(amount: float) -> void:
 ## Check if we've crossed a tile center and should activate runes
 func _check_tile_activation() -> void:
 	# Convert world position to grid position
-	# Note: This assumes GameBoard is at a known offset - adjust as needed
 	var grid_pos := _world_to_grid(position)
 	
 	if grid_pos in activated_tiles:
@@ -99,20 +118,29 @@ func _hit_enemy(enemy: Node2D) -> void:
 		enemy_hit.emit(enemy, GameConfig.fireball_damage)
 
 
-## Check if fireball has left the play area
-func _check_boundaries() -> void:
-	var grid_bounds := Rect2(
-		0, 0,
-		GameConfig.GRID_WIDTH,
-		GameConfig.GRID_HEIGHT
-	)
+## Check if a grid position is out of bounds
+func _is_out_of_bounds(grid_pos: Vector2i) -> bool:
+	return (grid_pos.x < 0 or grid_pos.x >= GameConfig.GRID_COLUMNS or
+			grid_pos.y < 0 or grid_pos.y >= GameConfig.GRID_ROWS)
+
+
+## Check if there is a wall at the given grid position
+func _has_wall_at(grid_pos: Vector2i) -> bool:
+	# Use TileManager to check for walls
+	var tile := TileManager.get_tile(grid_pos)
+	if tile:
+		return tile.occupancy == TileBase.OccupancyType.WALL
+	return false
+
+
+## Bounce the fireball (180-degree turn)
+func _bounce() -> void:
+	direction = -direction  # Reverse direction
+	fireball_bounced.emit()
 	
-	# Add some margin for the fireball to fully exit
-	var margin := 32.0
-	var expanded_bounds := grid_bounds.grow(margin)
-	
-	if not expanded_bounds.has_point(position):
-		_destroy()
+	# Clear activated tiles when bouncing to allow re-activation
+	# This prevents getting stuck in loops where runes can't activate again
+	activated_tiles.clear()
 
 
 ## Destroy the fireball
@@ -124,9 +152,11 @@ func _destroy() -> void:
 
 ## Convert world position to grid position
 func _world_to_grid(world_pos: Vector2) -> Vector2i:
+	# Use floori to correctly handle negative positions (left/top of grid)
+	# int() truncates toward zero, so int(-0.5) = 0, but we need -1
 	return Vector2i(
-		int(world_pos.x / GameConfig.TILE_SIZE),
-		int(world_pos.y / GameConfig.TILE_SIZE)
+		floori(world_pos.x / GameConfig.TILE_SIZE),
+		floori(world_pos.y / GameConfig.TILE_SIZE)
 	)
 
 

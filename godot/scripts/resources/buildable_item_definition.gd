@@ -11,6 +11,8 @@ class_name BuildableItemDefinition
 @export var icon_color: Color = Color.WHITE
 @export var scene_path: String = ""  # Path to the scene file for this item (e.g., "res://scenes/entities/runes/redirect_rune.tscn")
 @export var blocks_path: bool = false  # Whether this item blocks enemy/fireball pathfinding (walls = true, runes = false)
+@export var has_direction: bool = false  # Whether this item can be rotated (e.g., redirect rune)
+@export var default_direction: String = "south"  # Default direction: "north", "south", "east", "west"
 
 
 func _init(
@@ -20,7 +22,9 @@ func _init(
 	p_unlocked_by_default: bool = false,
 	p_icon_color: Color = Color.WHITE,
 	p_scene_path: String = "",
-	p_blocks_path: bool = false
+	p_blocks_path: bool = false,
+	p_has_direction: bool = false,
+	p_default_direction: String = "south"
 ) -> void:
 	item_type = p_item_type
 	display_name = p_display_name
@@ -29,3 +33,5 @@ func _init(
 	icon_color = p_icon_color
 	scene_path = p_scene_path
 	blocks_path = p_blocks_path
+	has_direction = p_has_direction
+	default_direction = p_default_direction

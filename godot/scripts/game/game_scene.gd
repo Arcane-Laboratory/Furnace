@@ -486,8 +486,40 @@ func _start_active_phase() -> void:
 
 
 func _launch_fireball() -> void:
-	# Placeholder - will spawn and launch fireball from furnace
-	print("Fireball launched!")
+	# Wait 1 second before launching
+	await get_tree().create_timer(1.0).timeout
+	
+	# Don't launch if game state changed (e.g., paused or game over)
+	if GameManager.current_state != GameManager.GameState.ACTIVE_PHASE:
+		return
+	
+	# Load fireball scene
+	var fireball_scene := load("res://scenes/entities/fireball.tscn") as PackedScene
+	if not fireball_scene:
+		push_error("GameScene: Failed to load fireball scene")
+		return
+	
+	var fireball := fireball_scene.instantiate() as Fireball
+	if not fireball:
+		push_error("GameScene: Failed to instantiate fireball")
+		return
+	
+	# Calculate spawn position (above furnace tile)
+	var furnace_pos := current_level_data.furnace_position
+	var spawn_world_pos := Vector2(
+		furnace_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+		-GameConfig.TILE_SIZE / 2.0  # Above the grid
+	)
+	
+	# Add to game board and launch
+	game_board.add_child(fireball)
+	fireball.launch(spawn_world_pos)
+	
+	# Connect fireball signals
+	fireball.fireball_destroyed.connect(_on_fireball_destroyed)
+	fireball.enemy_hit.connect(_on_fireball_enemy_hit)
+	
+	print("Fireball launched from position: %s" % spawn_world_pos)
 
 
 func _on_start_pressed() -> void:
@@ -665,6 +697,17 @@ func _show_tile_tooltip(grid_pos: Vector2i) -> void:
 	if not definition:
 		return
 	
+	# Get the tile and its structure (rune) if any
+	var tile := TileManager.get_tile(grid_pos)
+	var structure: Node = null
+	var has_direction: bool = false
+	
+	if tile:
+		structure = tile.structure
+	
+	if definition.has_method("get") or "has_direction" in definition:
+		has_direction = definition.has_direction
+	
 	# Calculate screen position (tile position + game board offset)
 	var tile_screen_pos := Vector2(
 		grid_pos.x * GameConfig.TILE_SIZE + game_board.position.x,
@@ -672,12 +715,17 @@ func _show_tile_tooltip(grid_pos: Vector2i) -> void:
 	)
 	
 	# Position above the tile, centered horizontally
+	# Adjust position based on whether direction controls are shown
+	var tooltip_height := 26  # Base height
+	if has_direction:
+		tooltip_height = 70  # Taller with direction buttons
+	
 	var tooltip_pos := Vector2(
 		tile_screen_pos.x + GameConfig.TILE_SIZE / 2.0 - 30,  # Center the ~60px button
-		tile_screen_pos.y - 26  # Just above the tile
+		tile_screen_pos.y - tooltip_height  # Above the tile
 	)
 	
-	tile_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos)
+	tile_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos, has_direction, structure)
 
 
 ## Hide the sell tooltip
@@ -722,6 +770,17 @@ func _on_item_sold(_item_type: String, _grid_pos: Vector2i, _refund_amount: int)
 func _on_selection_changed(_item_type: String) -> void:
 	# Selection changed - hide sell tooltip when selecting an item
 	_hide_tile_tooltip()
+
+
+## Handle fireball destroyed signal
+func _on_fireball_destroyed() -> void:
+	print("GameScene: Fireball destroyed")
+	# Could respawn fireball or end level here if needed
+
+
+## Handle fireball enemy hit signal
+func _on_fireball_enemy_hit(enemy: Node2D, damage: int) -> void:
+	print("GameScene: Fireball hit enemy for %d damage" % damage)
 
 
 ## Create drop target overlay for drag-and-drop
