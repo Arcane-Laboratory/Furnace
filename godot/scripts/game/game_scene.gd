@@ -378,6 +378,11 @@ func _update_hover_highlight() -> void:
 	if not hover_highlight:
 		return
 	
+	# Skip hover highlight updates when in debug placement mode (let debug highlights stay)
+	if debug_controller and debug_controller.is_in_placement_mode():
+		hover_highlight.color.a = 0.0
+		return
+	
 	if GameManager.current_state != GameManager.GameState.BUILD_PHASE:
 		hover_highlight.color.a = 0.0
 		# Clear tile highlights and ghost preview
@@ -608,7 +613,7 @@ func _input(event: InputEvent) -> void:
 	
 	# Handle mouse clicks during build phase
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Handle debug placement mode clicks first
+		# Handle debug placement mode clicks first (left click = place)
 		if debug_controller and debug_controller.is_in_placement_mode():
 			var grid_pos := _get_grid_pos_from_mouse()
 			if grid_pos != Vector2i(-1, -1):
@@ -625,6 +630,14 @@ func _input(event: InputEvent) -> void:
 			if _is_mouse_over_tile_tooltip():
 				return
 			_handle_active_phase_click()
+	
+	# Handle right-click for debug placement mode (right click = remove)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		if debug_controller and debug_controller.is_in_placement_mode():
+			var grid_pos := _get_grid_pos_from_mouse()
+			if grid_pos != Vector2i(-1, -1):
+				debug_controller.handle_removal_click(grid_pos)
+			return
 
 
 func _toggle_pause() -> void:
