@@ -7,6 +7,7 @@ signal enemy_died(enemy: EnemyBase)
 signal enemy_reached_furnace(enemy: EnemyBase)
 signal all_enemies_defeated()
 signal furnace_destroyed()
+signal debug_wave_restarted()  # Emitted in debug mode when wave restarts
 
 ## Current level data
 var current_level_data: LevelData = null
@@ -243,6 +244,9 @@ func _restart_wave_debug() -> void:
 	
 	# Wait a moment before respawning
 	await get_tree().create_timer(2.0).timeout
+	
+	# Emit signal so game_scene can respawn fireball
+	debug_wave_restarted.emit()
 	
 	# Respawn all enemies from the wave
 	for i in range(current_level_data.enemy_waves.size()):

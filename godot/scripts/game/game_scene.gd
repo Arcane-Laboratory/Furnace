@@ -26,6 +26,9 @@ var placement_manager: PlacementManager = null
 ## Error snackbar for showing placement errors
 var error_snackbar: Control = null
 
+## Info snackbar for showing portal placement messages
+var info_snackbar: Control = null
+
 ## Tile tooltip for tile actions (sell, etc.)
 var tile_tooltip: TileTooltip = null
 
@@ -105,6 +108,11 @@ func _setup_placement_manager() -> void:
 	placement_manager.placement_succeeded.connect(_on_placement_succeeded)
 	placement_manager.item_sold.connect(_on_item_sold)
 	placement_manager.selection_changed.connect(_on_selection_changed)
+	
+	# Connect portal placement signals
+	placement_manager.portal_placement_started.connect(_on_portal_placement_started)
+	placement_manager.portal_placement_completed.connect(_on_portal_placement_completed)
+	placement_manager.portal_placement_cancelled.connect(_on_portal_placement_cancelled)
 
 
 func _process(_delta: float) -> void:
@@ -193,6 +201,7 @@ func _initialize_tile_system() -> void:
 	# Connect EnemyManager signals
 	EnemyManager.all_enemies_defeated.connect(_on_all_enemies_defeated)
 	EnemyManager.furnace_destroyed.connect(_on_furnace_destroyed)
+	EnemyManager.debug_wave_restarted.connect(_on_debug_wave_restarted)
 	
 	# Update build menu with level data
 	_update_build_menu()
@@ -420,6 +429,12 @@ func _on_furnace_destroyed() -> void:
 	lose_level()
 
 
+# Called when debug wave restarts (debug mode only)
+func _on_debug_wave_restarted() -> void:
+	print("GameScene: [DEBUG] Wave restarted - respawning fireball...")
+	_launch_fireball()
+
+
 func _input(event: InputEvent) -> void:
 	# Toggle path preview with 'P' key (only in build phase)
 	if event is InputEventKey and event.pressed and event.keycode == KEY_P:
@@ -430,13 +445,25 @@ func _input(event: InputEvent) -> void:
 	# Handle escape key - cancel selection or open pause menu
 	if event.is_action_pressed("ui_cancel"):
 		if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
-			# First, try to cancel any active selection
+			# First, check if we're in portal exit placement mode
+			if placement_manager and placement_manager.is_in_portal_exit_mode():
+				placement_manager.cancel_portal_placement()
+				_hide_tile_tooltip()
+				get_viewport().set_input_as_handled()
+				return
+			# Next, try to cancel any active selection
 			if placement_manager and placement_manager.has_selection():
 				placement_manager.clear_selection()
 				_hide_tile_tooltip()
 				get_viewport().set_input_as_handled()
 				return
 			# If sell tooltip is visible, hide it
+			if tile_tooltip and tile_tooltip.visible:
+				_hide_tile_tooltip()
+				get_viewport().set_input_as_handled()
+				return
+		elif GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
+			# In active phase, just hide tile tooltip if visible
 			if tile_tooltip and tile_tooltip.visible:
 				_hide_tile_tooltip()
 				get_viewport().set_input_as_handled()
@@ -451,6 +478,11 @@ func _input(event: InputEvent) -> void:
 			if _is_mouse_over_tile_tooltip():
 				return
 			_handle_build_phase_click()
+		elif GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
+			# Skip if click is over the tile tooltip (let button handle it)
+			if _is_mouse_over_tile_tooltip():
+				return
+			_handle_active_phase_click()
 
 
 func _toggle_pause() -> void:
@@ -610,6 +642,57 @@ func _handle_build_phase_click() -> void:
 			_show_tile_tooltip(grid_pos)
 
 
+## Handle clicks during active phase (for advanced redirect runes only)
+func _handle_active_phase_click() -> void:
+	# Check if click is on the game board
+	var mouse_pos := get_global_mouse_position()
+	var grid_pos_local := mouse_pos - game_board.global_position
+	
+	# Check if within grid bounds
+	var cell_x := int(grid_pos_local.x / GameConfig.TILE_SIZE)
+	var cell_y := int(grid_pos_local.y / GameConfig.TILE_SIZE)
+	
+	if cell_x < 0 or cell_x >= GameConfig.GRID_COLUMNS or cell_y < 0 or cell_y >= GameConfig.GRID_ROWS:
+		_hide_tile_tooltip()
+		return
+	
+	var grid_pos := Vector2i(cell_x, cell_y)
+	
+	# Hide any existing tooltip first
+	_hide_tile_tooltip()
+	
+	# Check if there's an advanced redirect rune at this position
+	var tile := TileManager.get_tile(grid_pos)
+	if not tile or not tile.structure:
+		return
+	
+	# Check if the structure is an AdvancedRedirectRune
+	if tile.structure is AdvancedRedirectRune:
+		_show_tile_tooltip_active_phase(grid_pos, tile.structure)
+
+
+## Show tile tooltip during active phase (direction controls only, no sell button)
+func _show_tile_tooltip_active_phase(grid_pos: Vector2i, structure: Node) -> void:
+	if not tile_tooltip:
+		return
+	
+	# Calculate screen position (tile position + game board offset)
+	var tile_screen_pos := Vector2(
+		grid_pos.x * GameConfig.TILE_SIZE + game_board.position.x,
+		grid_pos.y * GameConfig.TILE_SIZE + game_board.position.y
+	)
+	
+	# Position above the tile, with height for direction controls only
+	var tooltip_height := 50  # Shorter since no sell button
+	var tooltip_pos := Vector2(
+		tile_screen_pos.x + GameConfig.TILE_SIZE / 2.0 - 30,
+		tile_screen_pos.y - tooltip_height
+	)
+	
+	# Show tooltip with direction controls but NO sell button
+	tile_tooltip.show_for_tile(grid_pos, 0, tooltip_pos, true, structure, false)
+
+
 ## Create the error snackbar
 func _create_error_snackbar() -> void:
 	# Create a simple error snackbar (can be replaced with scene later)
@@ -639,6 +722,72 @@ func _create_error_snackbar() -> void:
 	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
 	if ui_layer:
 		ui_layer.add_child(error_snackbar)
+	
+	# Also create the info snackbar
+	_create_info_snackbar()
+
+
+## Create the info snackbar (for portal placement messages)
+func _create_info_snackbar() -> void:
+	info_snackbar = PanelContainer.new()
+	info_snackbar.name = "InfoSnackbar"
+	
+	var label := Label.new()
+	label.name = "Label"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	info_snackbar.add_child(label)
+	
+	# Style (blue/info color)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.5, 0.8, 0.9)
+	style.set_corner_radius_all(4)
+	style.set_content_margin_all(8)
+	info_snackbar.add_theme_stylebox_override("panel", style)
+	
+	# Position at top center (above game board)
+	info_snackbar.position = Vector2(GameConfig.VIEWPORT_WIDTH / 2.0 - 100, 10)
+	info_snackbar.custom_minimum_size = Vector2(200, 30)
+	info_snackbar.visible = false
+	
+	# Add to UI layer
+	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
+	if ui_layer:
+		ui_layer.add_child(info_snackbar)
+
+
+## Show info snackbar with message (stays visible until hidden)
+func _show_info_snackbar(message: String) -> void:
+	if not info_snackbar:
+		return
+	
+	var label := info_snackbar.get_node_or_null("Label") as Label
+	if label:
+		label.text = message
+	
+	info_snackbar.modulate.a = 1.0
+	info_snackbar.visible = true
+
+
+## Hide info snackbar
+func _hide_info_snackbar() -> void:
+	if info_snackbar:
+		info_snackbar.visible = false
+
+
+## Handle portal placement started
+func _on_portal_placement_started() -> void:
+	_show_info_snackbar("Place portal exit (ESC to cancel)")
+
+
+## Handle portal placement completed
+func _on_portal_placement_completed() -> void:
+	_hide_info_snackbar()
+
+
+## Handle portal placement cancelled
+func _on_portal_placement_cancelled() -> void:
+	_hide_info_snackbar()
 
 
 ## Show error snackbar with message
@@ -831,5 +980,7 @@ func _on_drop_received(data: Dictionary, at_position: Vector2) -> void:
 	placement_manager.set_selected_item(item_type)
 	placement_manager.try_place_item(grid_pos)
 	
-	# Clear selection after drop
-	placement_manager.clear_selection()
+	# Clear selection after drop, BUT NOT if we're now in portal exit placement mode
+	# (Portal placement is a two-step process - entrance then exit)
+	if not placement_manager.is_in_portal_exit_mode():
+		placement_manager.clear_selection()

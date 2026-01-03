@@ -3,7 +3,7 @@ extends Node
 
 ## Developer debug mode - when true, starts at debug level with all items unlocked
 ## Set to true in editor for testing, leave false for production
-var debug_mode: bool = false
+var debug_mode: bool = true
 
 # Grid Configuration
 const GRID_COLUMNS: int = 13

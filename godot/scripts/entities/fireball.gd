@@ -21,7 +21,8 @@ var current_grid_pos: Vector2i = Vector2i(-1, -1)
 signal fireball_destroyed
 signal enemy_hit(enemy: Node2D, damage: int)
 signal rune_ignited(rune: RuneBase)
-signal fireball_bounced
+signal fireball_reflected
+signal fireball_teleported(from_pos: Vector2, to_pos: Vector2)
 
 
 func _ready() -> void:
@@ -37,17 +38,17 @@ func _physics_process(delta: float) -> void:
 	var next_pos := position + direction * current_speed * delta
 	var next_grid_pos := _world_to_grid(next_pos)
 	
-	# Check for boundary collision (bounce at grid edges)
-	# Only bounce if we're currently IN bounds and about to go OUT
+	# Check for boundary collision (destroy at grid edges)
+	# Only destroy if we're currently IN bounds and about to go OUT
 	# This allows the fireball to enter the grid from outside (spawn position)
 	var current_in_bounds := not _is_out_of_bounds(current_grid_pos)
 	if current_in_bounds and _is_out_of_bounds(next_grid_pos):
-		_bounce()
+		_destroy()
 		return
 	
-	# Check for wall collision (bounce at walls)
+	# Check for wall collision (destroy at walls)
 	if _has_wall_at(next_grid_pos) and next_grid_pos != current_grid_pos:
-		_bounce()
+		_destroy()
 		return
 	
 	# Move to next position
@@ -133,14 +134,30 @@ func _has_wall_at(grid_pos: Vector2i) -> bool:
 	return false
 
 
-## Bounce the fireball (180-degree turn)
-func _bounce() -> void:
+## Reflect the fireball (180-degree turn) - called by Reflect Rune
+func reflect() -> void:
 	direction = -direction  # Reverse direction
-	fireball_bounced.emit()
+	fireball_reflected.emit()
 	
-	# Clear activated tiles when bouncing to allow re-activation
+	# Clear activated tiles when reflecting to allow re-activation
 	# This prevents getting stuck in loops where runes can't activate again
 	activated_tiles.clear()
+
+
+## Teleport the fireball to a new position with a new direction - called by Portal Rune
+func teleport_to(new_position: Vector2, new_direction: Vector2) -> void:
+	var old_position := position
+	position = new_position
+	current_grid_pos = _world_to_grid(position)
+	
+	# Set new direction (must be cardinal)
+	if new_direction in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+		direction = new_direction
+	
+	# Clear activated tiles to allow activation at new location
+	activated_tiles.clear()
+	
+	fireball_teleported.emit(old_position, new_position)
 
 
 ## Destroy the fireball

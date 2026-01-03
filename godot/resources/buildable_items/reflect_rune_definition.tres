@@ -9,4 +9,4 @@ display_name = "Reflect"
 cost = 12
 unlocked_by_default = false
 icon_color = Color(0.2, 0.8, 0.9, 1)
-scene_path = ""
+scene_path = "res://scenes/entities/runes/reflect_rune.tscn"

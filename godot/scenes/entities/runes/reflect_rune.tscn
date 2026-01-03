@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://c3reflect_rune"]
+
+[ext_resource type="Script" uid="uid://creflect_script" path="res://scripts/entities/runes/reflect_rune.gd" id="1_reflect"]
+
+[node name="ReflectRune" type="Node2D"]
+script = ExtResource("1_reflect")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="RuneVisual" type="ColorRect" parent="."]
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+color = Color(0.2, 0.8, 0.9, 1)
+
+[node name="ReflectIcon" type="ColorRect" parent="."]
+offset_left = -6.0
+offset_top = -2.0
+offset_right = 6.0
+offset_bottom = 2.0
+color = Color(0.1, 0.4, 0.5, 1)

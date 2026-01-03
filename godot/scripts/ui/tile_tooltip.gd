@@ -50,13 +50,15 @@ func _ready() -> void:
 
 
 ## Show the tooltip for a specific tile
-func show_for_tile(grid_pos: Vector2i, refund_amount: int, screen_pos: Vector2, has_direction: bool = false, structure: Node = null) -> void:
+## show_sell: Whether to show the sell button (set to false during active phase)
+func show_for_tile(grid_pos: Vector2i, refund_amount: int, screen_pos: Vector2, has_direction: bool = false, structure: Node = null, show_sell: bool = true) -> void:
 	current_grid_pos = grid_pos
 	current_structure = structure
 	
-	# Update button text with refund amount
+	# Update button text with refund amount and visibility
 	if sell_button:
 		sell_button.text = "Sell %d" % refund_amount
+		sell_button.visible = show_sell
 	
 	# Show/hide direction controls based on item type
 	if direction_container:
