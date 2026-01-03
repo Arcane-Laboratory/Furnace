@@ -2,12 +2,18 @@ extends Control
 ## Build submenu - populates and displays available buildable items
 
 
+## Emitted when selection changes (empty string means deselected)
+signal item_selection_changed(item_type: String)
+
 ## Available buildable items (runes + wall)
 ## Array of Resource (BuildableItemDefinition) resources
 var available_items: Array = []
 
 ## Current level data (set by game_scene)
 var current_level_data: LevelData = null
+
+## Currently selected item type (empty string if none selected)
+var selected_item_type: String = ""
 
 ## Reference to grid containers
 @onready var grid_container_1: GridContainer = $VBoxContainer/CenterContainer/GridContainer
@@ -24,6 +30,21 @@ func _ready() -> void:
 func set_level_data(level_data: LevelData) -> void:
 	current_level_data = level_data
 	_populate_menu()
+
+
+## Get the currently selected item type
+func get_selected_item_type() -> String:
+	return selected_item_type
+
+
+## Clear the current selection
+func clear_selection() -> void:
+	if selected_item_type.is_empty():
+		return
+	
+	selected_item_type = ""
+	_update_menu_item_selection_visuals()
+	item_selection_changed.emit("")
 
 
 ## Check if an item definition is available in the current level
@@ -115,8 +136,7 @@ func _populate_menu() -> void:
 					definition.cost,
 					definition.icon_color
 				)
-				if item1.has_signal("item_selected") and not item1.item_selected.is_connected(_on_item_selected):
-					item1.item_selected.connect(_on_item_selected)
+				_connect_menu_item_signals(item1)
 			item_index += 1
 		
 		# Configure second placeholder
@@ -131,8 +151,7 @@ func _populate_menu() -> void:
 					definition.cost,
 					definition.icon_color
 				)
-				if item2.has_signal("item_selected") and not item2.item_selected.is_connected(_on_item_selected):
-					item2.item_selected.connect(_on_item_selected)
+				_connect_menu_item_signals(item2)
 			item_index += 1
 	
 	# Hide unused grid containers
@@ -143,8 +162,60 @@ func _populate_menu() -> void:
 			grid_container_3.get_parent().visible = false
 
 
-## Handle item selection
+## Connect signals from a menu item
+func _connect_menu_item_signals(item: Control) -> void:
+	if item.has_signal("item_selected") and not item.item_selected.is_connected(_on_item_selected):
+		item.item_selected.connect(_on_item_selected)
+	if item.has_signal("item_drag_started") and not item.item_drag_started.is_connected(_on_item_drag_started):
+		item.item_drag_started.connect(_on_item_drag_started)
+
+
+## Get all menu item controls
+func _get_all_menu_items() -> Array[Control]:
+	var items: Array[Control] = []
+	var grid_containers: Array[GridContainer] = [
+		grid_container_1,
+		grid_container_2,
+		grid_container_3,
+	]
+	
+	for grid in grid_containers:
+		if not grid:
+			continue
+		for child in grid.get_children():
+			if child is Control and child.has_method("set_selected"):
+				items.append(child as Control)
+	
+	return items
+
+
+## Update visual selection state on all menu items
+func _update_menu_item_selection_visuals() -> void:
+	for item in _get_all_menu_items():
+		if item.has_method("set_selected") and "item_type" in item:
+			var item_type_value: String = item.get("item_type")
+			var is_this_selected: bool = (item_type_value == selected_item_type)
+			item.set_selected(is_this_selected)
+
+
+## Handle item selection from menu item click
 func _on_item_selected(item_type: String) -> void:
-	print("BuildSubmenu: Item selected: %s" % item_type)
-	# Emit signal or call game_scene to handle selection
-	# This will be connected to game_scene for placement logic
+	# Toggle selection: clicking same item deselects, clicking different item selects
+	if selected_item_type == item_type:
+		# Deselect
+		selected_item_type = ""
+	else:
+		# Select new item
+		selected_item_type = item_type
+	
+	_update_menu_item_selection_visuals()
+	item_selection_changed.emit(selected_item_type)
+
+
+## Handle item drag started
+func _on_item_drag_started(item_type: String) -> void:
+	# Select the item being dragged
+	if selected_item_type != item_type:
+		selected_item_type = item_type
+		_update_menu_item_selection_visuals()
+		item_selection_changed.emit(selected_item_type)

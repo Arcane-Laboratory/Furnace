@@ -29,13 +29,19 @@ var occupancy: OccupancyType = OccupancyType.EMPTY
 ## Reference to the structure on this tile (rune, wall, etc.)
 var structure: Node = null
 
+## Whether this structure was placed by the player (vs preset by level designer)
+var is_player_placed: bool = false
+
+## The item type placed on this tile (for selling/refund lookup)
+var placed_item_type: String = ""
+
 ## Visual elements
 var terrain_visual: ColorRect
 var overlay: ColorRect
 
 ## Highlight state
 var is_highlighted: bool = false
-var highlight_type: String = ""  # "buildable", "invalid", "hover"
+var highlight_type: String = ""  # "buildable", "invalid", "hover", "valid_placement"
 
 
 func _ready() -> void:
@@ -67,9 +73,24 @@ func set_terrain_type(type: TerrainType) -> void:
 
 
 ## Set the occupancy state
-func set_occupancy(type: OccupancyType, structure_node: Node = null) -> void:
+func set_occupancy(type: OccupancyType, structure_node: Node = null, player_placed: bool = false, item_type: String = "") -> void:
 	occupancy = type
 	structure = structure_node
+	is_player_placed = player_placed
+	placed_item_type = item_type
+	_update_visuals()
+
+
+## Clear the occupancy (for selling items)
+func clear_occupancy() -> void:
+	# Remove the structure node if it exists
+	if structure and is_instance_valid(structure):
+		structure.queue_free()
+	
+	occupancy = OccupancyType.EMPTY
+	structure = null
+	is_player_placed = false
+	placed_item_type = ""
 	_update_visuals()
 
 
@@ -134,6 +155,8 @@ func _update_visuals() -> void:
 			match highlight_type:
 				"buildable":
 					overlay.color = Color(1.0, 1.0, 0.5, 0.3)  # Yellow tint
+				"valid_placement":
+					overlay.color = Color(0.3, 1.0, 0.3, 0.35)  # Green tint for valid placement
 				"invalid":
 					overlay.color = Color(1.0, 0.3, 0.3, 0.3)  # Red tint
 				"hover":

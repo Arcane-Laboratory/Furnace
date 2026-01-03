@@ -1,12 +1,14 @@
 [gd_scene load_steps=4 format=3 uid="uid://dxuiv0flwd2jt"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_fa1kw"]
-[ext_resource type="Texture2D" uid="uid://bbn1cc3p4k1jm" path="res://icon.svg" id="2_m07ah"]
+[ext_resource type="Script" path="res://scripts/ui/game_submenu.gd" id="2_submenu"]
+[ext_resource type="Texture2D" uid="uid://bbn1cc3p4k1jm" path="res://icon.svg" id="3_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hksn4"]
 bg_color = Color(0, 0, 0, 1)
 
 [node name="GameSubmenu" type="Control"]
+script = ExtResource("2_submenu")
 custom_minimum_size = Vector2(128, 80)
 layout_mode = 3
 anchors_preset = 8
@@ -46,7 +48,8 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="Button" type="Button" parent="MarginContainer2"]
+[node name="StartButton" type="Button" parent="MarginContainer2"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Start"
 
@@ -69,80 +72,83 @@ layout_mode = 2
 size_flags_horizontal = 4
 alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="LevelRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="Panel" type="Panel" parent="MarginContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(24, 0)
+[node name="Panel" type="Panel" parent="MarginContainer/VBoxContainer/LevelRow"]
+custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_hksn4")
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer/Panel"]
+[node name="LevelValue" type="Label" parent="MarginContainer/VBoxContainer/LevelRow/Panel"]
+unique_name_in_owner = true
 layout_mode = 0
 offset_left = 8.0
 offset_right = 24.0
 offset_bottom = 9.0
-text = "10"
+text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Icon" type="Sprite2D" parent="MarginContainer/VBoxContainer/HBoxContainer/Panel"]
+[node name="Icon" type="Sprite2D" parent="MarginContainer/VBoxContainer/LevelRow/Panel"]
 position = Vector2(5, 4.5)
 scale = Vector2(0.054687638, 0.054687638)
-texture = ExtResource("2_m07ah")
+texture = ExtResource("3_icon")
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/LevelRow"]
 layout_mode = 2
 text = "Level"
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="MoneyRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="Panel" type="Panel" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
-custom_minimum_size = Vector2(24, 0)
+[node name="Panel" type="Panel" parent="MarginContainer/VBoxContainer/MoneyRow"]
+custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_hksn4")
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer2/Panel"]
+[node name="MoneyValue" type="Label" parent="MarginContainer/VBoxContainer/MoneyRow/Panel"]
+unique_name_in_owner = true
 layout_mode = 0
 offset_left = 8.0
 offset_right = 24.0
 offset_bottom = 9.0
-text = "10"
+text = "100"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Icon" type="Sprite2D" parent="MarginContainer/VBoxContainer/HBoxContainer2/Panel"]
+[node name="Icon" type="Sprite2D" parent="MarginContainer/VBoxContainer/MoneyRow/Panel"]
 position = Vector2(5, 4.5)
 scale = Vector2(0.054687638, 0.054687638)
-texture = ExtResource("2_m07ah")
+texture = ExtResource("3_icon")
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/MoneyRow"]
 layout_mode = 2
 text = "Money"
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="HeatRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="Panel" type="Panel" parent="MarginContainer/VBoxContainer/HBoxContainer3"]
-custom_minimum_size = Vector2(24, 0)
+[node name="Panel" type="Panel" parent="MarginContainer/VBoxContainer/HeatRow"]
+custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_hksn4")
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer3/Panel"]
+[node name="HeatValue" type="Label" parent="MarginContainer/VBoxContainer/HeatRow/Panel"]
+unique_name_in_owner = true
 layout_mode = 0
 offset_left = 8.0
 offset_right = 24.0
 offset_bottom = 9.0
-text = "10"
+text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Icon" type="Sprite2D" parent="MarginContainer/VBoxContainer/HBoxContainer3/Panel"]
+[node name="Icon" type="Sprite2D" parent="MarginContainer/VBoxContainer/HeatRow/Panel"]
 position = Vector2(5, 4.5)
 scale = Vector2(0.054687638, 0.054687638)
-texture = ExtResource("2_m07ah")
+texture = ExtResource("3_icon")
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer3"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HeatRow"]
 layout_mode = 2
 text = "Heat"

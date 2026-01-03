@@ -172,6 +172,40 @@ Implement Godot drag-and-drop:
 - `game_scene.gd._can_drop_data()`: check if target tile is buildable
 - `game_scene.gd._drop_data()`: execute placement
 
+### 12. Currency Change Animation
+
+Add subtle animation to the money display in GameSubmenu when currency changes:
+
+- **On spend (decrease)**: Brief red flash/pulse, scale down slightly then back
+- **On gain (refund)**: Brief green flash/pulse, scale up slightly then back
+- Connect to `GameManager.resources_changed` signal
+- Track previous value to determine if increase or decrease
+- Use Tween for smooth animation (~0.3s duration)
+
+Example implementation in game_submenu or a new `currency_display.gd`:
+
+```gdscript
+var previous_resources: int = 0
+
+func _on_resources_changed(new_amount: int) -> void:
+    var delta := new_amount - previous_resources
+    previous_resources = new_amount
+    money_label.text = "$%d" % new_amount
+    _animate_currency_change(delta)
+
+func _animate_currency_change(delta: int) -> void:
+    var tween := create_tween()
+    var flash_color := Color.GREEN if delta > 0 else Color.RED
+    
+    # Flash color
+    tween.tween_property(money_label, "modulate", flash_color, 0.1)
+    tween.tween_property(money_label, "modulate", Color.WHITE, 0.2)
+    
+    # Scale pulse
+    tween.parallel().tween_property(money_label, "scale", Vector2(1.15, 1.15), 0.1)
+    tween.tween_property(money_label, "scale", Vector2(1.0, 1.0), 0.2).set_ease(Tween.EASE_OUT)
+```
+
 ---
 
 ## File Changes Summary
@@ -193,6 +227,8 @@ Implement Godot drag-and-drop:
 | `build_submenu.gd` | Modify | Add selection tracking, emit signals |
 
 | `game_submenu.tscn` | Modify | Fix node structure for game_scene.gd |
+
+| `game_submenu.gd` | Create | Script for currency animation and submenu logic |
 
 | `placement_manager.gd` | Create | Central placement logic |
 

@@ -12,23 +12,38 @@ extends Node2D
 @onready var tiles_container: Node2D = $GameBoard/Tiles
 @onready var spawn_points_container: Node2D = $GameBoard/SpawnPoints
 @onready var enemies_container: Node2D = $GameBoard/Enemies
+@onready var runes_container: Node2D = $GameBoard/Runes
 
-# Stats labels (optional - may not exist if UI structure changed)
-@onready var level_value: Label = get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameSubmenu/StatsContainer/LevelRow/LevelValue") as Label
-@onready var money_value: Label = get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameSubmenu/StatsContainer/MoneyRow/MoneyValue") as Label
-@onready var heat_value: Label = get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameSubmenu/StatsContainer/HeatRow/HeatValue") as Label
-@onready var start_button: Button = get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameSubmenu/StartButton") as Button
+## Reference to the game submenu (handles stats display and start button)
+var game_submenu: GameSubmenu = null
+
+## Reference to the build submenu
+var build_submenu: Control = null
+
+## Placement manager for handling item placement
+var placement_manager: PlacementManager = null
+
+## Error snackbar for showing placement errors
+var error_snackbar: Control = null
+
+## Sell tooltip for selling items
+var sell_tooltip: Control = null
 
 var is_paused: bool = false
-var selected_rune_type: String = ""
 
-# Level data
+## Level data
 var current_level_data: LevelData = null
 
-# Hover highlight
+## Hover highlight
 var hover_highlight: ColorRect
 var current_hover_cell: Vector2i = Vector2i(-1, -1)
 var highlight_tween: Tween
+
+## Drop target control for drag-and-drop
+var drop_target: Control = null
+
+## Track if we're currently dragging
+var is_dragging: bool = false
 
 
 func _ready() -> void:
@@ -43,11 +58,53 @@ func _ready() -> void:
 	GameManager.resources_changed.connect(_on_resources_changed)
 	GameManager.state_changed.connect(_on_state_changed)
 	
-	if start_button:
-		start_button.pressed.connect(_on_start_pressed)
+	# Find and connect to GameSubmenu and BuildSubmenu
+	_setup_ui_references()
+	
+	# Initialize placement manager
+	_setup_placement_manager()
+	
+	# Create error snackbar
+	_create_error_snackbar()
+	
+	# Create sell tooltip
+	_create_sell_tooltip()
+	
+	# Create drop target for drag-and-drop
+	_create_drop_target()
 	
 	_update_ui()
 	_start_build_phase()
+
+
+## Find and setup UI references (GameSubmenu, BuildSubmenu)
+func _setup_ui_references() -> void:
+	# Path: UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu/ColorRect/CenterContainer/VBoxContainer/...
+	var game_menu := get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu") as Control
+	if game_menu:
+		game_submenu = game_menu.get_node_or_null("ColorRect/CenterContainer/VBoxContainer/GameSubmenu") as GameSubmenu
+		if game_submenu:
+			game_submenu.start_pressed.connect(_on_start_pressed)
+			game_submenu.set_level(GameManager.current_level)
+		else:
+			push_warning("GameScene: GameSubmenu not found")
+		
+		build_submenu = game_menu.get_node_or_null("ColorRect/CenterContainer/VBoxContainer/BuildSubmenu") as Control
+		if not build_submenu:
+			push_warning("GameScene: BuildSubmenu not found")
+
+
+## Setup the placement manager
+func _setup_placement_manager() -> void:
+	placement_manager = PlacementManager.new()
+	add_child(placement_manager)
+	placement_manager.initialize(game_board, build_submenu, runes_container, current_level_data)
+
+	# Connect placement manager signals
+	placement_manager.placement_failed.connect(_on_placement_failed)
+	placement_manager.placement_succeeded.connect(_on_placement_succeeded)
+	placement_manager.item_sold.connect(_on_item_sold)
+	placement_manager.selection_changed.connect(_on_selection_changed)
 
 
 func _process(_delta: float) -> void:
@@ -174,12 +231,14 @@ func _update_hover_highlight() -> void:
 	
 	if GameManager.current_state != GameManager.GameState.BUILD_PHASE:
 		hover_highlight.color.a = 0.0
-		# Clear tile highlights
+		# Clear tile highlights and ghost preview
 		if current_hover_cell != Vector2i(-1, -1):
 			var tile := TileManager.get_tile(current_hover_cell)
 			if tile:
 				tile.set_highlight(false)
 			current_hover_cell = Vector2i(-1, -1)
+		if placement_manager:
+			placement_manager.hide_ghost_preview()
 		return
 	
 	var mouse_pos := get_global_mouse_position()
@@ -205,13 +264,14 @@ func _update_hover_highlight() -> void:
 			# Update hover highlight position
 			_animate_highlight_to_cell(cell_x, cell_y)
 			
-			# Update tile highlight based on buildability
+			# Update tile highlight based on context
 			var tile := TileManager.get_tile(new_cell)
 			if tile:
-				if TileManager.is_buildable(new_cell):
-					tile.set_highlight(true, "hover")
-				else:
-					tile.set_highlight(true, "invalid")
+				_update_tile_highlight(tile, new_cell)
+		
+		# Update ghost preview position (even if cell hasn't changed, for smooth movement)
+		if placement_manager and placement_manager.has_selection():
+			placement_manager.update_ghost_preview(new_cell)
 	else:
 		# Mouse outside grid
 		if current_hover_cell != Vector2i(-1, -1):
@@ -220,6 +280,34 @@ func _update_hover_highlight() -> void:
 				tile.set_highlight(false)
 			current_hover_cell = Vector2i(-1, -1)
 			_fade_out_highlight()
+		if placement_manager:
+			placement_manager.hide_ghost_preview()
+
+
+## Update tile highlight based on selection state and buildability
+func _update_tile_highlight(tile: TileBase, grid_pos: Vector2i) -> void:
+	if not placement_manager:
+		# Fallback to basic highlight
+		if TileManager.is_buildable(grid_pos):
+			tile.set_highlight(true, "hover")
+		else:
+			tile.set_highlight(true, "invalid")
+		return
+	
+	# If an item is selected, show placement-specific highlights
+	if placement_manager.has_selection():
+		if placement_manager.can_place_at(grid_pos):
+			tile.set_highlight(true, "valid_placement")
+		else:
+			tile.set_highlight(true, "invalid")
+	else:
+		# No item selected - basic hover
+		if TileManager.is_buildable(grid_pos):
+			tile.set_highlight(true, "hover")
+		elif TileManager.can_sell_tile(grid_pos):
+			tile.set_highlight(true, "hover")  # Sellable item
+		else:
+			tile.set_highlight(true, "invalid")
 
 
 func _animate_highlight_to_cell(cell_x: int, cell_y: int) -> void:
@@ -328,9 +416,30 @@ func _input(event: InputEvent) -> void:
 			path_preview.visible = not path_preview.visible
 			path_preview.queue_redraw()
 	
-	# Handle pause menu
+	# Handle escape key - cancel selection or open pause menu
 	if event.is_action_pressed("ui_cancel"):
+		if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+			# First, try to cancel any active selection
+			if placement_manager and placement_manager.has_selection():
+				placement_manager.clear_selection()
+				_hide_sell_tooltip()
+				get_viewport().set_input_as_handled()
+				return
+			# If sell tooltip is visible, hide it
+			if sell_tooltip and sell_tooltip.visible:
+				_hide_sell_tooltip()
+				get_viewport().set_input_as_handled()
+				return
+		# Otherwise, toggle pause menu
 		_toggle_pause()
+	
+	# Handle mouse clicks during build phase
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+			# Skip if click is over the sell tooltip (let button handle it)
+			if _is_mouse_over_sell_tooltip():
+				return
+			_handle_build_phase_click()
 
 
 func _toggle_pause() -> void:
@@ -397,21 +506,18 @@ func _on_state_changed(new_state: GameManager.GameState) -> void:
 
 
 func _update_ui() -> void:
-	if level_value:
-		level_value.text = str(GameManager.current_level)
-	if money_value:
-		money_value.text = str(GameManager.resources)
-	if heat_value:
-		heat_value.text = "3"  # Placeholder - heat system TBD
+	# GameSubmenu handles its own updates via GameManager signals
+	# This is now just for any other UI elements that need updating
+	if game_submenu:
+		game_submenu.set_level(GameManager.current_level)
 
 
 ## Handle tile occupancy changes - update path preview
 func _on_tile_occupancy_changed(_grid_pos: Vector2i) -> void:
-	# Update path preview when tiles change (debounced for performance)
+	# Update path preview when tiles change
 	if path_preview and GameManager.current_state == GameManager.GameState.BUILD_PHASE:
-		# Use call_deferred to batch updates and avoid excessive recalculations
-		if not has_method("_update_path_preview_deferred"):
-			call_deferred("_update_path_preview_deferred")
+		# Use call_deferred to batch updates within the same frame
+		call_deferred("_update_path_preview_deferred")
 
 
 func _update_path_preview_deferred() -> void:
@@ -419,11 +525,267 @@ func _update_path_preview_deferred() -> void:
 		path_preview.update_paths(current_level_data)
 
 
-# Called when level is won
+## Called when level is won
 func win_level() -> void:
 	GameManager.end_game(true)
 
 
-# Called when furnace is destroyed
+## Called when furnace is destroyed
 func lose_level() -> void:
 	GameManager.end_game(false)
+
+
+## Handle clicks during build phase
+func _handle_build_phase_click() -> void:
+	if not placement_manager:
+		return
+	
+	# Check if click is on the game board (not UI)
+	var mouse_pos := get_global_mouse_position()
+	var grid_pos_local := mouse_pos - game_board.global_position
+	
+	# Check if within grid bounds
+	var cell_x := int(grid_pos_local.x / GameConfig.TILE_SIZE)
+	var cell_y := int(grid_pos_local.y / GameConfig.TILE_SIZE)
+	
+	if cell_x < 0 or cell_x >= GameConfig.GRID_COLUMNS or cell_y < 0 or cell_y >= GameConfig.GRID_ROWS:
+		# Click outside grid - hide sell tooltip
+		_hide_sell_tooltip()
+		return
+	
+	var grid_pos := Vector2i(cell_x, cell_y)
+	
+	# Hide sell tooltip on any click
+	_hide_sell_tooltip()
+	
+	# If item is selected, try to place it
+	if placement_manager.has_selection():
+		placement_manager.try_place_item(grid_pos)
+	else:
+		# No item selected - check if clicking on a sellable tile
+		if TileManager.can_sell_tile(grid_pos):
+			_show_sell_tooltip(grid_pos)
+
+
+## Create the error snackbar
+func _create_error_snackbar() -> void:
+	# Create a simple error snackbar (can be replaced with scene later)
+	error_snackbar = PanelContainer.new()
+	error_snackbar.name = "ErrorSnackbar"
+	
+	var label := Label.new()
+	label.name = "Label"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	error_snackbar.add_child(label)
+	
+	# Style
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.8, 0.2, 0.2, 0.9)
+	style.set_corner_radius_all(4)
+	style.set_content_margin_all(8)
+	error_snackbar.add_theme_stylebox_override("panel", style)
+	
+	# Position at bottom center
+	error_snackbar.anchors_preset = Control.PRESET_CENTER_BOTTOM
+	error_snackbar.position = Vector2(GameConfig.VIEWPORT_WIDTH / 2.0 - 100, GameConfig.VIEWPORT_HEIGHT - 50)
+	error_snackbar.custom_minimum_size = Vector2(200, 30)
+	error_snackbar.visible = false
+	
+	# Add to UI layer
+	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
+	if ui_layer:
+		ui_layer.add_child(error_snackbar)
+
+
+## Show error snackbar with message
+func _show_error_snackbar(message: String) -> void:
+	if not error_snackbar:
+		return
+	
+	var label := error_snackbar.get_node_or_null("Label") as Label
+	if label:
+		label.text = message
+	
+	error_snackbar.visible = true
+	
+	# Auto-hide after 2 seconds
+	var tween := create_tween()
+	tween.tween_interval(2.0)
+	tween.tween_property(error_snackbar, "modulate:a", 0.0, 0.3)
+	tween.tween_callback(func(): 
+		error_snackbar.visible = false
+		error_snackbar.modulate.a = 1.0
+	)
+
+
+## Create the sell tooltip
+func _create_sell_tooltip() -> void:
+	sell_tooltip = PanelContainer.new()
+	sell_tooltip.name = "SellTooltip"
+	
+	# Just the sell button, no extra containers or labels
+	var sell_button := Button.new()
+	sell_button.name = "SellButton"
+	sell_button.text = "Sell $0"
+	sell_button.pressed.connect(_on_sell_button_pressed)
+	sell_button.custom_minimum_size = Vector2(60, 20)
+	sell_tooltip.add_child(sell_button)
+	
+	# Compact style with minimal padding
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.2, 0.25, 0.95)
+	style.set_corner_radius_all(3)
+	style.set_content_margin_all(2)
+	sell_tooltip.add_theme_stylebox_override("panel", style)
+	
+	# Ensure tooltip is on top and receives input
+	sell_tooltip.mouse_filter = Control.MOUSE_FILTER_STOP
+	sell_tooltip.z_index = 100
+	
+	sell_tooltip.visible = false
+	
+	# Add to UILayer so it's above game board and handles input correctly
+	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
+	if ui_layer:
+		ui_layer.add_child(sell_tooltip)
+	else:
+		# Fallback to game_board with high z_index
+		game_board.add_child(sell_tooltip)
+
+
+## Show sell tooltip at tile position
+func _show_sell_tooltip(grid_pos: Vector2i) -> void:
+	if not sell_tooltip:
+		return
+	
+	var item_type := TileManager.get_placed_item_type(grid_pos)
+	var definition := GameConfig.get_item_definition(item_type)
+	
+	if not definition:
+		return
+	
+	# Store the grid position for the sell action
+	sell_tooltip.set_meta("grid_pos", grid_pos)
+	
+	# Update sell button text
+	var sell_button := sell_tooltip.get_node_or_null("SellButton") as Button
+	if sell_button:
+		sell_button.text = "Sell $%d" % definition.cost
+	
+	# Calculate screen position (tile position + game board offset)
+	var tile_screen_pos := Vector2(
+		grid_pos.x * GameConfig.TILE_SIZE + game_board.position.x,
+		grid_pos.y * GameConfig.TILE_SIZE + game_board.position.y
+	)
+	
+	# Position above the tile, centered horizontally
+	sell_tooltip.position = Vector2(
+		tile_screen_pos.x + GameConfig.TILE_SIZE / 2.0 - 30,  # Center the ~60px button
+		tile_screen_pos.y - 26  # Just above the tile
+	)
+	
+	sell_tooltip.visible = true
+
+
+## Hide the sell tooltip
+func _hide_sell_tooltip() -> void:
+	if sell_tooltip:
+		sell_tooltip.visible = false
+
+
+## Check if mouse is over the sell tooltip
+func _is_mouse_over_sell_tooltip() -> bool:
+	if not sell_tooltip or not sell_tooltip.visible:
+		return false
+	
+	var mouse_pos := get_viewport().get_mouse_position()
+	var tooltip_rect := Rect2(sell_tooltip.global_position, sell_tooltip.size)
+	return tooltip_rect.has_point(mouse_pos)
+
+
+## Handle sell button pressed
+func _on_sell_button_pressed() -> void:
+	if not sell_tooltip or not placement_manager:
+		return
+	
+	var grid_pos: Vector2i = sell_tooltip.get_meta("grid_pos", Vector2i(-1, -1))
+	if grid_pos != Vector2i(-1, -1):
+		placement_manager.try_sell_item(grid_pos)
+	
+	_hide_sell_tooltip()
+
+
+## Handle placement failed signal
+func _on_placement_failed(reason: String) -> void:
+	_show_error_snackbar(reason)
+
+
+## Handle placement succeeded signal
+func _on_placement_succeeded(_item_type: String, _grid_pos: Vector2i) -> void:
+	# Placement successful - could add sound effect here
+	pass
+
+
+## Handle item sold signal
+func _on_item_sold(_item_type: String, _grid_pos: Vector2i, _refund_amount: int) -> void:
+	# Item sold - could add sound effect here
+	pass
+
+
+## Handle selection changed signal
+func _on_selection_changed(_item_type: String) -> void:
+	# Selection changed - hide sell tooltip when selecting an item
+	_hide_sell_tooltip()
+
+
+## Create drop target overlay for drag-and-drop
+func _create_drop_target() -> void:
+	drop_target = Control.new()
+	drop_target.name = "DropTarget"
+	drop_target.position = game_board.position
+	drop_target.size = Vector2(
+		GameConfig.GRID_COLUMNS * GameConfig.TILE_SIZE,
+		GameConfig.GRID_ROWS * GameConfig.TILE_SIZE
+	)
+	drop_target.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass through but receive drops
+	
+	# Load and set the script for drop handling
+	var drop_script := load("res://scripts/game/drop_target.gd")
+	if drop_script:
+		drop_target.set_script(drop_script)
+		drop_target.drop_received.connect(_on_drop_received)
+	
+	# Add to scene
+	add_child(drop_target)
+
+
+## Handle drop received from drop target
+func _on_drop_received(data: Dictionary, at_position: Vector2) -> void:
+	if GameManager.current_state != GameManager.GameState.BUILD_PHASE:
+		return
+	
+	if not placement_manager:
+		return
+	
+	# at_position is already in drop_target local coordinates, which matches game_board
+	var cell_x := int(at_position.x / GameConfig.TILE_SIZE)
+	var cell_y := int(at_position.y / GameConfig.TILE_SIZE)
+	
+	# Check bounds
+	if cell_x < 0 or cell_x >= GameConfig.GRID_COLUMNS or cell_y < 0 or cell_y >= GameConfig.GRID_ROWS:
+		return
+	
+	var grid_pos := Vector2i(cell_x, cell_y)
+	
+	# Get item type from drag data
+	var item_type: String = data.get("item_type", "")
+	if item_type.is_empty():
+		return
+	
+	# Temporarily set selection and try to place
+	placement_manager.set_selected_item(item_type)
+	placement_manager.try_place_item(grid_pos)
+	
+	# Clear selection after drop
+	placement_manager.clear_selection()
