@@ -11,11 +11,11 @@ extends Node2D
 @onready var tiles_container: Node2D = $GameBoard/Tiles
 @onready var spawn_points_container: Node2D = $GameBoard/SpawnPoints
 
-# Stats labels
-@onready var level_value: Label = $UILayer/RightPanel/VBoxContainer/StatsContainer/LevelRow/LevelValue
-@onready var money_value: Label = $UILayer/RightPanel/VBoxContainer/StatsContainer/MoneyRow/MoneyValue
-@onready var heat_value: Label = $UILayer/RightPanel/VBoxContainer/StatsContainer/HeatRow/HeatValue
-@onready var start_button: Button = $UILayer/RightPanel/VBoxContainer/StartButton
+# Stats labels (optional - may not exist if UI structure changed)
+@onready var level_value: Label = get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameSubmenu/StatsContainer/LevelRow/LevelValue") as Label
+@onready var money_value: Label = get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameSubmenu/StatsContainer/MoneyRow/MoneyValue") as Label
+@onready var heat_value: Label = get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameSubmenu/StatsContainer/HeatRow/HeatValue") as Label
+@onready var start_button: Button = get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameSubmenu/StartButton") as Button
 
 var is_paused: bool = false
 var selected_rune_type: String = ""
@@ -41,7 +41,8 @@ func _ready() -> void:
 	GameManager.resources_changed.connect(_on_resources_changed)
 	GameManager.state_changed.connect(_on_state_changed)
 	
-	start_button.pressed.connect(_on_start_pressed)
+	if start_button:
+		start_button.pressed.connect(_on_start_pressed)
 	
 	_update_ui()
 	_start_build_phase()
@@ -107,6 +108,9 @@ func _initialize_tile_system() -> void:
 				tiles_container.add_child(tile)
 				# Set grid position after adding to tree (ensures node is ready)
 				tile.set_grid_position(grid_pos)
+	
+	# Test pathfinding for all spawn points
+	_test_pathfinding()
 
 
 func _draw_grid() -> void:
@@ -230,6 +234,24 @@ func _fade_out_highlight() -> void:
 	highlight_tween.tween_property(hover_highlight, "color", Color(1.0, 0.9, 0.5, 0.0), 0.15)
 
 
+func _test_pathfinding() -> void:
+	# Test pathfinding from each spawn point to furnace
+	if not current_level_data:
+		return
+	
+	var furnace_pos := current_level_data.furnace_position
+	print("Testing pathfinding to furnace at: ", furnace_pos)
+	
+	for i in range(current_level_data.spawn_points.size()):
+		var spawn_pos := current_level_data.spawn_points[i]
+		var path := PathfindingManager.find_path(spawn_pos, furnace_pos)
+		
+		if path.is_empty():
+			push_warning("No path found from spawn point %d (%s) to furnace (%s)" % [i, spawn_pos, furnace_pos])
+		else:
+			print("Path found from spawn %d (%s): %d tiles" % [i, spawn_pos, path.size()])
+
+
 func _create_spawn_point_markers() -> void:
 	if not current_level_data:
 		return
@@ -312,9 +334,12 @@ func _on_state_changed(new_state: GameManager.GameState) -> void:
 
 
 func _update_ui() -> void:
-	level_value.text = str(GameManager.current_level)
-	money_value.text = str(GameManager.resources)
-	heat_value.text = "3"  # Placeholder - heat system TBD
+	if level_value:
+		level_value.text = str(GameManager.current_level)
+	if money_value:
+		money_value.text = str(GameManager.resources)
+	if heat_value:
+		heat_value.text = "3"  # Placeholder - heat system TBD
 
 
 # Called when level is won
