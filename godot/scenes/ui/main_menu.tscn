@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://btk68wmm8weex"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_fe2o3"]
-[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" uid="uid://da74dc6nxpp8r" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -41,20 +41,23 @@ theme_override_font_sizes/font_size = 48
 text = "FURNACE"
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+[node name="CenterContainer" type="CenterContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer/CenterContainer"]
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer/CenterContainer/HBoxContainer"]
 custom_minimum_size = Vector2(64, 16)
 layout_mode = 2
 text = "Start Game"
 
-[node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+[node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer/CenterContainer/HBoxContainer"]
 custom_minimum_size = Vector2(64, 16)
 layout_mode = 2
 text = "Settings"
 
-[node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+[node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer/CenterContainer/HBoxContainer"]
 custom_minimum_size = Vector2(64, 16)
 layout_mode = 2
 text = "Quit"
