@@ -1,43 +1,26 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="LevelData" load_steps=3 format=3 uid="uid://ul93g6n8spm9"]
 
-[ext_resource type="Script" path="res://scripts/resources/level_data.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
+[ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://oi70e4rojnys" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
 
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_1"]
+[sub_resource type="Resource" id="Resource_wave1"]
 script = ExtResource("2")
 enemy_type = 0
 spawn_point = 0
 delay = 0.0
-
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_2"]
-script = ExtResource("2")
-enemy_type = 1
-spawn_point = 0
-delay = 1.5
-
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_3"]
-script = ExtResource("2")
-enemy_type = 0
-spawn_point = 1
-delay = 2.0
-
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_4"]
-script = ExtResource("2")
-enemy_type = 1
-spawn_point = 1
-delay = 3.5
+metadata/_custom_type_script = "uid://oi70e4rojnys"
 
 [resource]
 script = ExtResource("1")
 level_number = 2
-level_name = "Challenge"
-starting_resources = 120
-spawn_points = [Vector2i(3, 6), Vector2i(9, 6)]
+level_name = "Level 2 Test"
+starting_resources = 100
+spawn_points = Array[Vector2i]([Vector2i(6, 6), Vector2i(12, 6)])
 furnace_position = Vector2i(6, 0)
-terrain_blocked = []
-preset_walls = []
-preset_runes = []
-enemy_waves = [SubResource("EnemyWaveEntry_1"), SubResource("EnemyWaveEntry_2"), SubResource("EnemyWaveEntry_3"), SubResource("EnemyWaveEntry_4")]
-allowed_runes = [0, 2, 3]
-hint_text = "Fast enemies move quickly! Use reflect runes to bounce the fireball back at them."
-par_time_seconds = 90.0
+terrain_blocked = Array[Vector2i]([])
+preset_walls = Array[Vector2i]([Vector2i(0, 4), Vector2i(1, 4), Vector2i(2, 1), Vector2i(2, 4), Vector2i(3, 4), Vector2i(4, 2), Vector2i(4, 4), Vector2i(9, 2), Vector2i(9, 4), Vector2i(10, 4), Vector2i(11, 4), Vector2i(12, 4)])
+preset_runes = Array[Dictionary]([])
+enemy_waves = Array[ExtResource("2")]([SubResource("Resource_wave1")])
+allowed_runes = Array[int]([])
+hint_text = "Hello world"
+par_time_seconds = 60.0
