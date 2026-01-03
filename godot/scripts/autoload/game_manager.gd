@@ -12,6 +12,7 @@ enum GameState {
 }
 
 var current_state: GameState = GameState.TITLE
+var _state_before_pause: GameState = GameState.BUILD_PHASE
 var current_level: int = 1
 var resources: int = 0
 var game_won: bool = false
@@ -59,6 +60,7 @@ func start_active_phase() -> void:
 
 func pause_game() -> void:
 	if current_state == GameState.BUILD_PHASE or current_state == GameState.ACTIVE_PHASE:
+		_state_before_pause = current_state
 		set_state(GameState.PAUSED)
 		get_tree().paused = true
 
@@ -66,7 +68,7 @@ func pause_game() -> void:
 func resume_game() -> void:
 	if current_state == GameState.PAUSED:
 		get_tree().paused = false
-		set_state(GameState.BUILD_PHASE)  # Or restore previous state
+		set_state(_state_before_pause)
 
 
 func end_game(won: bool) -> void:
