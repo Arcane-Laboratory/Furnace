@@ -1,11 +1,47 @@
 # Furnace - Systems Integration Plan
 
-**Version**: 1.0  
-**Last Updated**: [Current Date]  
+**Version**: 1.1  
+**Last Updated**: January 2, 2025  
 **Purpose**: Detailed plan for integrating all game systems into Godot following best practices
 
 **Builds On**: `initial_scaffold.md`  
-**References**: GDD, content design docs (RUNES.md, ENEMIES.md, LEVELS.md, TILES.md)
+**References**: GDD, content design docs (RUNES.md, ENEMIES.md, LEVELS.md, TILES.md)  
+**Status**: See `implementation-status.md` for current implementation status
+
+---
+
+## Implementation Status
+
+**Last Review**: January 2, 2025
+
+### ✅ Completed Systems
+- **Scaffold**: All Phase 0 tasks complete
+- **Fireball System**: Fully implemented with movement, activation, collision
+- **Rune Base**: Base class implemented and extensible
+- **Redirect Rune**: One working rune type
+- **Level Data Resource**: Structure defined and ready
+- **Basic Grid**: Grid visualization and state tracking in game_scene
+- **Phase Management**: Build/Active phase switching functional
+- **UI Scenes**: All menu screens exist
+
+### 🟡 Partially Implemented
+- **Grid System**: Logic embedded in game_scene (not separate GridManager)
+- **Resource System**: In GameManager (not separate ResourceManager)
+- **Build UI**: Basic panel exists, missing rune/wall selection
+- **Active UI**: Basic UI exists, minimal features
+
+### ❌ Not Started
+- **GridManager autoload** (grid logic currently in game_scene)
+- **Pathfinding Manager**
+- **Enemy System** (base, types, manager)
+- **Wall System**
+- **Furnace Scene**
+- **Most Rune Types** (Portal, Explosive, Reflect, Acceleration)
+- **Level Manager**
+- **Selling System**
+- **Path Preview**
+
+**Note**: Some systems deviate from the planned architecture (e.g., GridManager embedded in game_scene). These work but are less modular. See `implementation-status.md` for details.
 
 ---
 
