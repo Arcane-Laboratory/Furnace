@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://game_scene"]
+[gd_scene load_steps=3 format=3 uid="uid://c8nvl6un2iiwa"]
 
-[ext_resource type="Script" path="res://scripts/game/game_scene.gd" id="1_game"]
+[ext_resource type="Script" uid="uid://bvxxnk05lkk4q" path="res://scripts/game/game_scene.gd" id="1_game"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="2_pause"]
 
 [node name="GameScene" type="Node2D"]
@@ -12,13 +12,17 @@ offset_bottom = 360.0
 color = Color(0.12, 0.12, 0.14, 1)
 
 [node name="Background" type="Sprite2D" parent="."]
-position = Vector2(320, 180)
 texture_filter = 1
+position = Vector2(320, 180)
 
 [node name="GameBoard" type="Node2D" parent="."]
 position = Vector2(40, 96)
 
 [node name="GridOverlay" type="Node2D" parent="GameBoard"]
+
+[node name="Tiles" type="Node2D" parent="GameBoard"]
+
+[node name="SpawnPoints" type="Node2D" parent="GameBoard"]
 
 [node name="FurnaceEntry" type="Node2D" parent="GameBoard"]
 position = Vector2(208, 0)
@@ -27,7 +31,6 @@ position = Vector2(208, 0)
 offset_left = -16.0
 offset_top = -24.0
 offset_right = 16.0
-offset_bottom = 0.0
 color = Color(0.9, 0.4, 0.1, 1)
 
 [node name="Enemies" type="Node2D" parent="GameBoard"]
