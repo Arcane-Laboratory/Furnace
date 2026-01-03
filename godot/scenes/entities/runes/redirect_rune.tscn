@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://redirect_rune"]
+[gd_scene load_steps=2 format=3 uid="uid://baumibt8wukwt"]
 
-[ext_resource type="Script" path="res://scripts/entities/runes/redirect_rune.gd" id="1_redirect"]
+[ext_resource type="Script" uid="uid://b2hcpsduchra0" path="res://scripts/entities/runes/redirect_rune.gd" id="1_redirect"]
 
 [node name="RedirectRune" type="Node2D"]
 script = ExtResource("1_redirect")

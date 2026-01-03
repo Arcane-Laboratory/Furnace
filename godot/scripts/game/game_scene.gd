@@ -251,8 +251,8 @@ func _create_spawn_point_markers() -> void:
 				push_error("Spawn point marker is not a Node2D")
 				continue
 			marker.position = Vector2(
-				spawn_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2,
-				spawn_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2
+				spawn_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+				spawn_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 			)
 			spawn_points_container.add_child(marker)
 

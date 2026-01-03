@@ -1,0 +1,14 @@
+[gd_scene load_steps=1 format=3 uid="uid://base_tile"]
+
+[node name="BaseTile" type="Node2D"]
+
+[node name="TerrainVisual" type="ColorRect" parent="."]
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0.55, 0.45, 0.33, 1)
+
+[node name="Overlay" type="ColorRect" parent="."]
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0, 0, 0, 0)
+mouse_filter = 2
