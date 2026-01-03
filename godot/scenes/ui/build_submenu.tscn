@@ -1,128 +1,87 @@
-[gd_scene load_steps=4 format=3 uid="uid://d2o6wquhpnbac"]
+[gd_scene load_steps=5 format=3 uid="uid://d2o6wquhpnbac"]
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_bv72o"]
 [ext_resource type="PackedScene" uid="uid://d3lefgipylt8o" path="res://scenes/ui/menu_label.tscn" id="2_ljs7x"]
 [ext_resource type="PackedScene" uid="uid://cbahjpvjs4v7x" path="res://scenes/ui/build_menu_item.tscn" id="3_h57i6"]
+[ext_resource type="Script" path="res://scripts/ui/build_submenu.gd" id="4_submenu"]
 
 [node name="BuildSubmenu" type="Control"]
+script = ExtResource("4_submenu")
 layout_mode = 3
 anchors_preset = 15
-=======
-[ext_resource type="Script" uid="uid://c0rix0gyi2o0x" path="res://scripts/game/game_scene.gd" id="1_h57i6"]
-[ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_u5cdw"]
-[ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="3_dvviv"]
-
-=======
-[ext_resource type="Script" uid="uid://c0rix0gyi2o0x" path="res://scripts/game/game_scene.gd" id="1_h57i6"]
-[ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_u5cdw"]
-[ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="3_dvviv"]
-
->>>>>>> Stashed changes
-=======
-[ext_resource type="Script" uid="uid://c0rix0gyi2o0x" path="res://scripts/game/game_scene.gd" id="1_h57i6"]
-[ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_u5cdw"]
-[ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="3_dvviv"]
-
->>>>>>> Stashed changes
-[node name="GameScene" type="Node2D"]
-script = ExtResource("1_h57i6")
-
-[node name="BaseBackground" type="ColorRect" parent="."]
-offset_right = 640.0
-offset_bottom = 360.0
-color = Color(0.12, 0.12, 0.14, 1)
-
-[node name="Background" type="Sprite2D" parent="."]
-texture_filter = 1
-position = Vector2(320, 180)
-
-[node name="GameBoard" type="Node2D" parent="."]
-position = Vector2(40, 96)
-
-[node name="GridOverlay" type="Node2D" parent="GameBoard"]
-
-[node name="Tiles" type="Node2D" parent="GameBoard"]
-
-[node name="SpawnPoints" type="Node2D" parent="GameBoard"]
-
-[node name="FurnaceEntry" type="Node2D" parent="GameBoard"]
-position = Vector2(208, 0)
-
-[node name="FurnaceSprite" type="ColorRect" parent="GameBoard/FurnaceEntry"]
-offset_left = -16.0
-offset_top = -24.0
-offset_right = 16.0
-color = Color(0.9, 0.4, 0.1, 1)
-
-[node name="Enemies" type="Node2D" parent="GameBoard"]
-
-[node name="Runes" type="Node2D" parent="GameBoard"]
-
-[node name="Fireball" type="Node2D" parent="GameBoard"]
-
-[node name="UILayer" type="CanvasLayer" parent="."]
-
-[node name="BottomBar" type="PanelContainer" parent="UILayer"]
-visible = false
-offset_left = 40.0
-offset_top = 324.0
-offset_right = 456.0
-offset_bottom = 352.0
-
-[node name="BottomLabel" type="Label" parent="UILayer/BottomBar"]
-layout_mode = 2
-text = "UI - Buttons"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="RightPanel" type="PanelContainer" parent="UILayer"]
-custom_minimum_size = Vector2(128, 320)
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -148.0
-offset_top = -160.0
-offset_right = -20.0
-offset_bottom = 160.0
-grow_horizontal = 0
+anchor_bottom = 1.0
+offset_right = -512.0
+offset_bottom = -120.0
+grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_bv72o")
 
-[node name="CenterContainer" type="CenterContainer" parent="UILayer/RightPanel"]
-layout_mode = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/RightPanel/CenterContainer"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="GameMenu" parent="UILayer/RightPanel/CenterContainer/VBoxContainer" instance=ExtResource("2_u5cdw")]
-layout_mode = 2
-
-[node name="ActiveUI" type="Control" parent="UILayer"]
-visible = false
-layout_mode = 3
-anchors_preset = 0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = 200.0
-offset_bottom = 40.0
-
-[node name="WaveLabel" type="Label" parent="UILayer/ActiveUI"]
+[node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 0
-offset_right = 150.0
-offset_bottom = 20.0
-text = "Wave in Progress..."
+offset_right = 128.0
+offset_bottom = 240.0
+theme = ExtResource("1_bv72o")
+color = Color(0.07683582, 0.07683582, 0.07683582, 1)
 
-[node name="PauseMenu" parent="." instance=ExtResource("3_dvviv")]
-visible = false
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -64.0
+offset_right = 64.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme = ExtResource("1_bv72o")
+theme_override_constants/separation = 12
+
+[node name="MenuLabel" parent="VBoxContainer" instance=ExtResource("2_ljs7x")]
+layout_mode = 2
+
+[node name="Label" parent="VBoxContainer/MenuLabel/ColorRect" index="0"]
+text = "Build Menu"
+
+[node name="CenterContainer" type="CenterContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/CenterContainer"]
+layout_mode = 2
+theme = ExtResource("1_bv72o")
+columns = 2
+
+[node name="BuildMenuItem" parent="VBoxContainer/CenterContainer/GridContainer" instance=ExtResource("3_h57i6")]
+layout_mode = 2
+
+[node name="BuildMenuItem2" parent="VBoxContainer/CenterContainer/GridContainer" instance=ExtResource("3_h57i6")]
+layout_mode = 2
+
+[node name="CenterContainer2" type="CenterContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/CenterContainer2"]
+layout_mode = 2
+theme = ExtResource("1_bv72o")
+columns = 2
+
+[node name="BuildMenuItem" parent="VBoxContainer/CenterContainer2/GridContainer" instance=ExtResource("3_h57i6")]
+layout_mode = 2
+
+[node name="BuildMenuItem2" parent="VBoxContainer/CenterContainer2/GridContainer" instance=ExtResource("3_h57i6")]
+layout_mode = 2
+
+[node name="CenterContainer3" type="CenterContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/CenterContainer3"]
+layout_mode = 2
+theme = ExtResource("1_bv72o")
+columns = 2
+
+[node name="BuildMenuItem" parent="VBoxContainer/CenterContainer3/GridContainer" instance=ExtResource("3_h57i6")]
+layout_mode = 2
+
+[node name="BuildMenuItem2" parent="VBoxContainer/CenterContainer3/GridContainer" instance=ExtResource("3_h57i6")]
+layout_mode = 2
+
+[editable path="VBoxContainer/MenuLabel"]

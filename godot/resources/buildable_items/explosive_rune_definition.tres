@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_type = "explosive"
+display_name = "Explosive"
+cost = 18
+unlocked_by_default = false
+icon_color = Color(0.9, 0.3, 0.2, 1)
+scene_path = ""

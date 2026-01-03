@@ -6,6 +6,7 @@ extends Node2D
 @onready var right_panel: PanelContainer = $UILayer/RightPanel
 @onready var active_ui: Control = $UILayer/ActiveUI
 @onready var grid_overlay: Node2D = $GameBoard/GridOverlay
+@onready var path_preview: Node2D = $GameBoard/PathPreview
 @onready var background: Sprite2D = $Background
 @onready var game_board: Node2D = $GameBoard
 @onready var tiles_container: Node2D = $GameBoard/Tiles
@@ -51,6 +52,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_update_hover_highlight()
+
+
 
 
 func _load_background() -> void:
@@ -99,6 +102,12 @@ func _initialize_tile_system() -> void:
 	# Initialize TileManager with level data
 	TileManager.initialize_from_level_data(current_level_data)
 	
+	# Initialize path preview
+	if path_preview:
+		path_preview.update_paths(current_level_data)
+		# Connect to tile occupancy changes to update paths
+		TileManager.occupancy_changed.connect(_on_tile_occupancy_changed)
+	
 	# Add all tiles to the scene and set their positions
 	# We need to iterate through the tiles dictionary to get both position and tile
 	for x in range(GameConfig.GRID_COLUMNS):
@@ -116,6 +125,9 @@ func _initialize_tile_system() -> void:
 	# Connect EnemyManager signals
 	EnemyManager.all_enemies_defeated.connect(_on_all_enemies_defeated)
 	EnemyManager.furnace_destroyed.connect(_on_furnace_destroyed)
+	
+	# Update build menu with level data
+	_update_build_menu()
 	
 	# Test pathfinding for all spawn points
 	_test_pathfinding()
@@ -242,6 +254,16 @@ func _fade_out_highlight() -> void:
 	highlight_tween.tween_property(hover_highlight, "color", Color(1.0, 0.9, 0.5, 0.0), 0.15)
 
 
+func _update_build_menu() -> void:
+	# Find and update build submenu with level data
+	# Path: UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu/ColorRect/CenterContainer/VBoxContainer/BuildSubmenu
+	var game_menu := get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu") as Control
+	if game_menu:
+		var build_submenu := game_menu.get_node_or_null("ColorRect/CenterContainer/VBoxContainer/BuildSubmenu") as Control
+		if build_submenu and build_submenu.has_method("set_level_data"):
+			build_submenu.set_level_data(current_level_data)
+
+
 func _test_pathfinding() -> void:
 	# Test pathfinding from each spawn point to furnace
 	if not current_level_data:
@@ -300,6 +322,13 @@ func _on_furnace_destroyed() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# Toggle path preview with 'P' key (only in build phase)
+	if event is InputEventKey and event.pressed and event.keycode == KEY_P:
+		if GameManager.current_state == GameManager.GameState.BUILD_PHASE and path_preview:
+			path_preview.visible = not path_preview.visible
+			path_preview.queue_redraw()
+	
+	# Handle pause menu
 	if event.is_action_pressed("ui_cancel"):
 		_toggle_pause()
 
@@ -319,6 +348,10 @@ func _start_build_phase() -> void:
 	GameManager.start_build_phase()
 	right_panel.show()
 	active_ui.hide()
+	# Show path preview in build phase
+	if path_preview:
+		path_preview.set_visible(true)
+		path_preview.update_paths(current_level_data)
 
 
 func _start_active_phase() -> void:
@@ -350,9 +383,15 @@ func _on_state_changed(new_state: GameManager.GameState) -> void:
 		GameManager.GameState.BUILD_PHASE:
 			right_panel.show()
 			active_ui.hide()
+			# Show path preview in build phase
+			if path_preview:
+				path_preview.set_preview_visible(true)
 		GameManager.GameState.ACTIVE_PHASE:
 			right_panel.hide()
 			active_ui.show()
+			# Hide path preview in active phase
+			if path_preview:
+				path_preview.set_preview_visible(false)
 		GameManager.GameState.GAME_OVER:
 			SceneManager.goto_game_over(GameManager.game_won)
 
@@ -364,6 +403,20 @@ func _update_ui() -> void:
 		money_value.text = str(GameManager.resources)
 	if heat_value:
 		heat_value.text = "3"  # Placeholder - heat system TBD
+
+
+## Handle tile occupancy changes - update path preview
+func _on_tile_occupancy_changed(_grid_pos: Vector2i) -> void:
+	# Update path preview when tiles change (debounced for performance)
+	if path_preview and GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+		# Use call_deferred to batch updates and avoid excessive recalculations
+		if not has_method("_update_path_preview_deferred"):
+			call_deferred("_update_path_preview_deferred")
+
+
+func _update_path_preview_deferred() -> void:
+	if path_preview and current_level_data:
+		path_preview.update_paths(current_level_data)
 
 
 # Called when level is won

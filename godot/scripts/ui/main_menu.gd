@@ -2,9 +2,9 @@ extends Control
 ## Main menu with game options
 
 
-@onready var start_button: Button = get_node_or_null("CenterContainer/VBoxContainer/HBoxContainer/StartButton") as Button
-@onready var settings_button: Button = get_node_or_null("CenterContainer/VBoxContainer/HBoxContainer/SettingsButton") as Button
-@onready var quit_button: Button = get_node_or_null("CenterContainer/VBoxContainer/HBoxContainer/QuitButton") as Button
+@onready var start_button: Button = get_node_or_null("CenterContainer/VBoxContainer/CenterContainer/HBoxContainer/StartButton") as Button
+@onready var settings_button: Button = get_node_or_null("CenterContainer/VBoxContainer/CenterContainer/HBoxContainer/SettingsButton") as Button
+@onready var quit_button: Button = get_node_or_null("CenterContainer/VBoxContainer/CenterContainer/HBoxContainer/QuitButton") as Button
 
 
 func _ready() -> void:

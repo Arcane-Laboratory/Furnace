@@ -40,6 +40,10 @@ class_name LevelData
 ## Hint text shown at level start (optional)
 @export var hint_text: String = ""
 
+## Allowed runes for this level (empty array = all default runes available)
+## Format: Array of rune type strings (e.g., ["redirect", "wall", "portal"])
+@export var allowed_runes: Array[String] = []
+
 
 ## Validate that the level data is properly configured
 func is_valid() -> bool:
