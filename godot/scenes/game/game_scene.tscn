@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://b06ob7kxsjkag"]
+[gd_scene load_steps=6 format=3 uid="uid://b06ob7kxsjkag"]
 
-[ext_resource type="Script" uid="uid://bvxxnk05lkk4q" path="res://scripts/game/game_scene.gd" id="1_game"]
+[ext_resource type="Script" uid="uid://c0rix0gyi2o0x" path="res://scripts/game/game_scene.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="2_pause"]
 [ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_ydf3n"]
-[ext_resource type="Script" uid="uid://bkx4rum0dc8ux" path="res://scripts/game/path_preview.gd" id="3_path_preview"]
+[ext_resource type="StyleBox" uid="uid://dlbfo6wh0pcbr" path="res://style_box_9p_large.tres" id="3_p0de3"]
+[ext_resource type="Script" uid="uid://cjysgd6un04nh" path="res://scripts/game/path_preview.gd" id="3_path_preview"]
 
 [node name="GameScene" type="Node2D"]
 script = ExtResource("1_game")
@@ -61,30 +62,6 @@ text = "UI - Buttons"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RightPanel" type="PanelContainer" parent="UILayer"]
-custom_minimum_size = Vector2(128, 320)
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -148.0
-offset_top = -160.0
-offset_right = -20.0
-offset_bottom = 160.0
-grow_horizontal = 0
-grow_vertical = 2
-
-[node name="CenterContainer" type="CenterContainer" parent="UILayer/RightPanel"]
-layout_mode = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/RightPanel/CenterContainer"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="GameMenu" parent="UILayer/RightPanel/CenterContainer/VBoxContainer" instance=ExtResource("2_ydf3n")]
-layout_mode = 2
-
 [node name="ActiveUI" type="Control" parent="UILayer"]
 visible = false
 layout_mode = 3
@@ -99,6 +76,30 @@ layout_mode = 0
 offset_right = 150.0
 offset_bottom = 20.0
 text = "Wave in Progress..."
+
+[node name="CenterContainer" type="CenterContainer" parent="UILayer"]
+offset_left = 492.0
+offset_right = 640.0
+offset_bottom = 360.0
+
+[node name="Panel" type="Panel" parent="UILayer/CenterContainer"]
+custom_minimum_size = Vector2(147, 360)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("3_p0de3")
+
+[node name="RightPanel" type="PanelContainer" parent="UILayer"]
+custom_minimum_size = Vector2(128, 320)
+offset_left = 502.0
+offset_top = 20.0
+offset_right = 630.0
+offset_bottom = 340.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/RightPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GameMenu" parent="UILayer/RightPanel/VBoxContainer" instance=ExtResource("2_ydf3n")]
+layout_mode = 2
 
 [node name="PauseMenu" parent="." instance=ExtResource("2_pause")]
 visible = false
