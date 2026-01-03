@@ -227,7 +227,7 @@ func _execute_placement(grid_pos: Vector2i, definition: Resource) -> bool:
 			grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 		)
 		var spark_icon := load("res://resources/ui_assets/spark.png") as Texture2D
-		FloatingNumberManager.show_number("-%d scrap" % definition.cost, world_pos, Color.RED, spark_icon, 1.0)
+		FloatingNumberManager.show_number("-%d sparks" % definition.cost, world_pos, Color.RED, spark_icon, 1.0)
 	
 	# Determine occupancy type based on item
 	var occupancy_type: TileBase.OccupancyType
@@ -282,7 +282,7 @@ func _start_portal_placement(grid_pos: Vector2i, definition: Resource) -> bool:
 			grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 		)
 		var spark_icon := load("res://resources/ui_assets/spark.png") as Texture2D
-		FloatingNumberManager.show_number("-%d scrap" % definition.cost, world_pos, Color.RED, spark_icon, 1.0)
+		FloatingNumberManager.show_number("-%d sparks" % definition.cost, world_pos, Color.RED, spark_icon, 1.0)
 	
 	# Create and place the entrance portal
 	var entrance_scene := load(definition.scene_path) as PackedScene
@@ -506,7 +506,7 @@ func try_sell_item(grid_pos: Vector2i) -> bool:
 			grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 		)
 		var spark_icon := load("res://resources/ui_assets/spark.png") as Texture2D
-		FloatingNumberManager.show_number("+%d scrap" % refund_amount, world_pos, Color.GREEN, spark_icon, 1.0)
+		FloatingNumberManager.show_number("+%d sparks" % refund_amount, world_pos, Color.GREEN, spark_icon, 1.0)
 	
 	item_sold.emit(item_type, grid_pos, refund_amount)
 	return true
