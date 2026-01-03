@@ -122,6 +122,7 @@ func _create_debug_modal() -> void:
 	# Connect signals
 	debug_modal.export_level_requested.connect(_on_export_level_requested)
 	debug_modal.go_to_level_requested.connect(_on_go_to_level_requested)
+	debug_modal.restart_level_requested.connect(_on_restart_level_requested)
 	debug_modal.place_spawn_point_requested.connect(_on_place_spawn_point_requested)
 	debug_modal.place_terrain_requested.connect(_on_place_terrain_requested)
 	
@@ -171,6 +172,47 @@ func _on_go_to_level_requested(level_number: int) -> void:
 	# Reset to build phase so player needs to click start again
 	GameManager.current_state = GameManager.GameState.BUILD_PHASE
 	SceneManager.reload_current_scene()
+
+
+## Handle restart level requested from debug modal
+func _on_restart_level_requested() -> void:
+	print("DebugModeController: Restarting level %d (maintaining layout)" % GameManager.current_level)
+	
+	# Cancel any active debug placement mode
+	cancel_placement()
+	
+	# Reset game state to build phase (this will also unpause if paused)
+	GameManager.set_state(GameManager.GameState.BUILD_PHASE)
+	
+	# Reset resources to starting resources for this level
+	GameManager.reset_for_level(GameManager.current_level)
+	
+	# Clear all enemies using EnemyManager
+	EnemyManager.clear_enemies()
+	
+	# Also manually clear enemies container if available
+	if game_board:
+		var enemies_container := game_board.get_node_or_null("Enemies")
+		if enemies_container:
+			for child in enemies_container.get_children():
+				if is_instance_valid(child):
+					child.queue_free()
+	
+	# Clear all fireballs
+	var fireballs := get_tree().get_nodes_in_group("fireball")
+	for fireball in fireballs:
+		if is_instance_valid(fireball):
+			fireball.queue_free()
+	
+	# Also check the game board's fireball container
+	if game_board:
+		var fireball_container := game_board.get_node_or_null("Fireball")
+		if fireball_container:
+			for child in fireball_container.get_children():
+				if is_instance_valid(child):
+					child.queue_free()
+	
+	show_info_requested.emit("Level restarted! Layout preserved.")
 
 
 ## Handle place spawn point requested from debug modal
@@ -240,8 +282,17 @@ func _place_debug_terrain(grid_pos: Vector2i) -> void:
 		show_error_requested.emit("Original terrain already here!")
 		return
 	
+	# Check if tile is already occupied (by player-placed items or preset walls)
+	var tile := TileManager.get_tile(grid_pos)
+	if tile and tile.occupancy != TileBase.OccupancyType.EMPTY:
+		show_error_requested.emit("Tile already occupied!")
+		return
+	
 	# Add the terrain tile
 	debug_terrain_tiles.append(grid_pos)
+	
+	# Set tile occupancy to WALL (not player-placed, so it can't be sold)
+	TileManager.set_occupancy(grid_pos, TileBase.OccupancyType.WALL, null, false, "terrain")
 	
 	# Create visual marker
 	_create_debug_terrain_marker(grid_pos)
@@ -296,6 +347,14 @@ func _remove_debug_terrain(grid_pos: Vector2i) -> void:
 	
 	# Remove from array
 	debug_terrain_tiles.erase(grid_pos)
+	
+	# Clear tile occupancy (set back to EMPTY)
+	# Since we know this is debug terrain (it's in our array), we can safely clear it
+	var tile := TileManager.get_tile(grid_pos)
+	if tile and tile.occupancy == TileBase.OccupancyType.WALL and not tile.is_player_placed:
+		# Clear the occupancy - this will set it back to EMPTY
+		tile.clear_occupancy()
+		TileManager.occupancy_changed.emit(grid_pos)
 	
 	# Remove visual marker
 	if game_board:
