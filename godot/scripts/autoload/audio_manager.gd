@@ -13,10 +13,12 @@ var music_player: AudioStreamPlayer
 var sfx_player: AudioStreamPlayer
 
 # Fade transition settings
-var fade_duration: float = 1.0  # seconds
+var fade_duration: float = 1.0  # seconds for transitions
+var initial_fade_duration: float = 0.1  # seconds for initial playback from silence
 var tween: Tween
 var pending_track_path: String = ""  # Track to play after fade out completes
 var pending_fade_in: bool = true
+var is_transition: bool = false  # Track if we're transitioning between tracks
 
 
 func _ready() -> void:
@@ -26,6 +28,9 @@ func _ready() -> void:
 	
 	add_child(music_player)
 	add_child(sfx_player)
+	
+	# Connect to finished signal for looping
+	music_player.finished.connect(_on_music_finished)
 	
 	# Connect to game state changes
 	if GameManager:
@@ -53,14 +58,19 @@ func play_music(track_path: String, fade_in: bool = true) -> void:
 		push_warning("AudioManager: Failed to load music track: %s" % track_path)
 		return
 	
-	# If music is playing, fade out first, then play new track
+	# Duplicate stream to avoid modifying shared resources
+	stream = stream.duplicate()
+	
+	# If music is playing, fade out first, then play new track (crossfade)
 	if music_player.playing:
+		is_transition = true
 		pending_track_path = track_path
 		pending_fade_in = fade_in
 		_fade_out_music()
 		return
 	
-	# No music playing, start immediately
+	# No music playing - start with fade-in
+	is_transition = false
 	_start_music(stream, fade_in)
 
 
@@ -153,14 +163,29 @@ func _fade_in_music() -> void:
 func _start_music(stream: AudioStream, fade_in: bool) -> void:
 	music_player.stream = stream
 	
+	# Set looping based on track type
+	_set_stream_looping(stream)
+	
 	if fade_in:
-		# Use a less extreme starting volume so beginning is audible
-		# -40dB is quiet but audible, preventing cut-off of first beats
+		# Set starting volume and prepare tween before playing
+		# This ensures the fade-in starts immediately when playback begins
 		music_player.volume_db = -40.0
+		
+		# Kill any existing tween first
+		if tween:
+			tween.kill()
+		
+		# Use shorter fade for initial playback, longer for transitions
+		var fade_time: float = initial_fade_duration if not is_transition else fade_duration
+		
+		# Create tween before playing - it will start animating immediately
+		tween = create_tween()
+		tween.tween_property(music_player, "volume_db", 0.0, fade_time)
+		
+		# Now start playback - the tween is already set up and will animate immediately
 		music_player.play()
-		# Start fade-in immediately - tween will handle smooth transition
-		_fade_in_music()
 	else:
+		# No fade-in - play at full volume
 		music_player.volume_db = 0.0
 		music_player.play()
 
@@ -179,9 +204,50 @@ func _fade_out_music() -> void:
 func _on_fade_out_complete() -> void:
 	music_player.stop()
 	
-	# If there's a pending track, play it now
+	# If there's a pending track, play it now (this is a transition)
 	if not pending_track_path.is_empty():
 		var stream: AudioStream = load(pending_track_path)
+		var should_fade: bool = pending_fade_in
+		var track_path: String = pending_track_path
+		pending_track_path = ""  # Clear before starting
+		
 		if stream:
-			_start_music(stream, pending_fade_in)
-		pending_track_path = ""
+			# Duplicate stream to avoid modifying shared resources
+			stream = stream.duplicate()
+			# For transitions, use fade-in
+			_start_music(stream, should_fade)
+
+
+## Set looping on audio stream based on track path
+func _set_stream_looping(stream: AudioStream) -> void:
+	if not stream:
+		return
+	
+	var stream_path: String = stream.resource_path
+	
+	# Gameplay and main menu themes should loop
+	var should_loop: bool = (
+		stream_path == gameplay_theme_path or 
+		stream_path == main_menu_theme_path
+	)
+	
+	# Set looping based on stream type
+	if stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = should_loop
+	elif stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = should_loop
+	elif stream is AudioStreamWAV:
+		(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD if should_loop else AudioStreamWAV.LOOP_DISABLED
+
+
+## Handle music finished signal - restart looping tracks
+func _on_music_finished() -> void:
+	if not music_player.stream:
+		return
+	
+	var stream_path: String = music_player.stream.resource_path
+	
+	# Only restart if this is a looping track (gameplay or main menu)
+	if stream_path == gameplay_theme_path or stream_path == main_menu_theme_path:
+		# Restart the track (it will loop automatically if stream looping is set)
+		music_player.play()
