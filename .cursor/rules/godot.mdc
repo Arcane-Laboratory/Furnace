@@ -71,6 +71,54 @@ globs: godot/\*\*
 - Log errors appropriately in production builds
 - Handle network errors gracefully in multiplayer games
 
+## Real-Time Error Monitoring
+
+- **Godot Log Watcher**: A real-time error monitoring system is available in `cursor-integration/`
+- **Cross-Platform**: Works on Linux, macOS, and Windows
+- **Setup**: Start the watcher before running Godot:
+  
+  **Linux/macOS:**
+  ```bash
+  cd cursor-integration
+  ./godot-dev.sh start
+  ```
+  
+  **Windows (PowerShell):**
+  ```powershell
+  cd cursor-integration
+  .\godot-dev.ps1 start
+  ```
+  
+  **Windows (Git Bash):**
+  ```bash
+  cd cursor-integration
+  ./godot-dev.sh start
+  ```
+- **How It Works**: 
+  - Automatically finds Godot log files (searches `~/.local/share/godot/app_userdata/Furnace/logs/`)
+  - Monitors log files for errors and warnings in real-time using `inotifywait`
+  - Parses multiple Godot error formats (ERROR/WARNING messages, stack traces, compilation errors)
+  - Sends formatted errors to Cursor via temporary files or clipboard
+- **Usage**:
+  - `./godot-dev.sh start` - Start the watcher (runs in background)
+  - `./godot-dev.sh status` - Check if watcher is running
+  - `./godot-dev.sh stop` - Stop the watcher
+  - `./godot-dev.sh log` - View watcher output
+  - `./godot-dev.sh find-log` - Locate the current log file
+- **Error Detection**: The system detects:
+  - Script errors (missing nodes, type mismatches, null references)
+  - Resource loading failures
+  - Signal connection issues
+  - Compilation errors
+  - Stack traces with file paths and line numbers
+- **Integration**: Errors are automatically formatted and sent to Cursor for easy debugging
+- **Cursor CLI Support**: Automatically detects and uses Cursor CLI (`cursor`, `cursor.exe`, or `cursor.cmd`) to open error files directly
+- **Dependencies**: 
+  - Linux: Requires `inotify-tools` package (`sudo pacman -S inotify-tools` on Arch, `sudo apt-get install inotify-tools` on Ubuntu)
+  - Windows: PowerShell 5.1+ (built-in) or Git Bash with WSL
+  - macOS: `fswatch` via Homebrew or use bash scripts
+- **Note**: The watcher will wait for Godot to create log files if they don't exist yet - just start Godot and the watcher will automatically detect them
+
 ## TileMap Implementation
 
 - TileMap node is deprecated - use multiple TileMapLayer nodes instead
