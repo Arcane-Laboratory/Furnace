@@ -82,17 +82,17 @@ func _ready() -> void:
 
 ## Find and setup UI references (GameSubmenu, BuildSubmenu)
 func _setup_ui_references() -> void:
-	# Path: UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu/ColorRect/CenterContainer/VBoxContainer/...
+	# Path: UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu/CenterContainer/VBoxContainer/...
 	var game_menu := get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu") as Control
 	if game_menu:
-		game_submenu = game_menu.get_node_or_null("ColorRect/CenterContainer/VBoxContainer/GameSubmenu") as GameSubmenu
+		game_submenu = game_menu.get_node_or_null("CenterContainer/VBoxContainer/GameSubmenu") as GameSubmenu
 		if game_submenu:
 			game_submenu.start_pressed.connect(_on_start_pressed)
 			game_submenu.set_level(GameManager.current_level)
 		else:
 			push_warning("GameScene: GameSubmenu not found")
 		
-		build_submenu = game_menu.get_node_or_null("ColorRect/CenterContainer/VBoxContainer/BuildSubmenu") as Control
+		build_submenu = game_menu.get_node_or_null("CenterContainer/VBoxContainer/BuildSubmenu") as Control
 		if not build_submenu:
 			push_warning("GameScene: BuildSubmenu not found")
 
@@ -364,10 +364,10 @@ func _fade_out_highlight() -> void:
 
 func _update_build_menu() -> void:
 	# Find and update build submenu with level data
-	# Path: UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu/ColorRect/CenterContainer/VBoxContainer/BuildSubmenu
+	# Path: UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu/CenterContainer/VBoxContainer/BuildSubmenu
 	var game_menu := get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu") as Control
 	if game_menu:
-		var build_submenu := game_menu.get_node_or_null("ColorRect/CenterContainer/VBoxContainer/BuildSubmenu") as Control
+		var build_submenu := game_menu.get_node_or_null("CenterContainer/VBoxContainer/BuildSubmenu") as Control
 		if build_submenu and build_submenu.has_method("set_level_data"):
 			build_submenu.set_level_data(current_level_data)
 

@@ -2,7 +2,7 @@
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_wedh3"]
 [ext_resource type="PackedScene" uid="uid://dequ5qkc8ctjx" path="res://scenes/entities/runes/menu_rune.tscn" id="2_bvdbp"]
-[ext_resource type="StyleBox" uid="uid://blka56f6w0okd" path="res://style_box_dark.tres" id="3_bvdbp"]
+[ext_resource type="StyleBox" uid="uid://biprx6rkh4548" path="res://style_box_9p_small.tres" id="3_bvdbp"]
 
 [node name="DetailsSubmenuItem" type="Control"]
 custom_minimum_size = Vector2(48, 60)
@@ -63,6 +63,7 @@ custom_minimum_size = Vector2(0, 33)
 layout_mode = 2
 size_flags_vertical = 1
 theme = ExtResource("1_wedh3")
+theme_override_colors/font_color = Color(0.81960785, 0.62352943, 0.24705882, 1)
 text = "Emits an explosion when touched by the hearthflame. Maximum four lines of text can go here."
 horizontal_alignment = 1
 autowrap_mode = 2
