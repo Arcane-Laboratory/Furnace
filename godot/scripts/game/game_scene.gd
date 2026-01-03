@@ -121,7 +121,7 @@ func _load_background() -> void:
 
 func _load_level_data() -> void:
 	# Try to load level data resource, or create default
-	var level_path := "res://levels/level_%d.tres" % GameManager.current_level
+	var level_path := "res://resources/levels/level_%d.tres" % GameManager.current_level
 	if ResourceLoader.exists(level_path):
 		current_level_data = load(level_path) as LevelData
 	else:
@@ -145,12 +145,23 @@ func _create_default_level_data() -> LevelData:
 	# Default furnace position (top center)
 	level_data.furnace_position = Vector2i(6, 0)
 	
-	# Default enemy wave
-	level_data.enemy_waves = [
-		{"enemy_type": "basic", "spawn_point": 0, "delay": 0.0},
-		{"enemy_type": "basic", "spawn_point": 1, "delay": 1.0},
-		{"enemy_type": "basic", "spawn_point": 2, "delay": 2.0},
-	]
+	# Default enemy wave (using EnemyWaveEntry resources)
+	var wave1 := EnemyWaveEntry.new()
+	wave1.enemy_type = EnemyWaveEntry.EnemyType.BASIC
+	wave1.spawn_point = 0
+	wave1.delay = 0.0
+	
+	var wave2 := EnemyWaveEntry.new()
+	wave2.enemy_type = EnemyWaveEntry.EnemyType.BASIC
+	wave2.spawn_point = 1
+	wave2.delay = 1.0
+	
+	var wave3 := EnemyWaveEntry.new()
+	wave3.enemy_type = EnemyWaveEntry.EnemyType.BASIC
+	wave3.spawn_point = 2
+	wave3.delay = 2.0
+	
+	level_data.enemy_waves = [wave1, wave2, wave3]
 	
 	return level_data
 

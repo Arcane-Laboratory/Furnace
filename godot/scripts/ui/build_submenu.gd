@@ -66,8 +66,8 @@ func _is_item_available(definition: Resource) -> bool:
 		# All default unlocked items are available
 		return unlocked_by_default
 	else:
-		# Only items in allowed_runes are available
-		return item_type in current_level_data.allowed_runes
+		# Only items in allowed_runes are available (use helper method for enum conversion)
+		return current_level_data.is_rune_allowed(item_type)
 
 
 ## Initialize list of available buildable items (filtered by level)

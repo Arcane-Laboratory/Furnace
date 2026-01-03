@@ -3,6 +3,25 @@ class_name LevelData
 ## Custom resource for defining level layouts and configurations
 
 
+## Enemy type enum (matches EnemyWaveEntry.EnemyType)
+enum EnemyType {
+	BASIC,  # Standard enemy
+	FAST,   # Fast enemy (low health, high speed)
+	TANK,   # Tank enemy (high health, low speed)
+}
+
+## Rune type enum
+enum RuneType {
+	REDIRECT,          # Basic redirect rune
+	ADVANCED_REDIRECT, # Advanced redirect (can change direction during active phase)
+	WALL,              # Wall (blocks enemy movement)
+	REFLECT,           # Reflect rune (bounces fireball back)
+	EXPLOSIVE,         # Explosive rune (area damage)
+	ACCELERATION,      # Acceleration rune (speeds up fireball)
+	PORTAL,            # Portal rune (teleports fireball)
+}
+
+
 ## Level identifier
 @export var level_number: int = 1
 
@@ -19,7 +38,7 @@ class_name LevelData
 ## Pre-placed runes (grid position + rune type)
 ## These cannot be edited by the player
 @export var preset_runes: Array[Dictionary] = []
-# Format: [{ "position": Vector2i, "type": "redirect", "direction": "south", "uses": 0 }]
+# Format: [{ "position": Vector2i, "type": RuneType, "direction": "south", "uses": 0 }]
 
 ## Impassable terrain tiles (rock/mountain)
 @export var terrain_blocked: Array[Vector2i] = []
@@ -30,9 +49,8 @@ class_name LevelData
 ## Furnace entry position (where fireball launches from)
 @export var furnace_position: Vector2i = Vector2i(6, 0)  # Top center default
 
-## Enemy wave data
-@export var enemy_waves: Array[Dictionary] = []
-# Format: [{ "enemy_type": "basic", "spawn_point": 0, "delay": 0.0 }]
+## Enemy wave data (using typed resource entries)
+@export var enemy_waves: Array[EnemyWaveEntry] = []
 
 ## Par time for level (optional, for scoring)
 @export var par_time_seconds: float = 60.0
@@ -41,8 +59,8 @@ class_name LevelData
 @export var hint_text: String = ""
 
 ## Allowed runes for this level (empty array = all default runes available)
-## Format: Array of rune type strings (e.g., ["redirect", "wall", "portal"])
-@export var allowed_runes: Array[String] = []
+## Uses enum values for type safety
+@export var allowed_runes: Array[RuneType] = []
 
 
 ## Validate that the level data is properly configured
@@ -103,3 +121,64 @@ func is_tile_buildable(grid_pos: Vector2i) -> bool:
 		return false
 	
 	return true
+
+
+## Convert rune type enum to string for compatibility with existing systems
+static func rune_type_to_string(rune_type: RuneType) -> String:
+	match rune_type:
+		RuneType.REDIRECT:
+			return "redirect"
+		RuneType.ADVANCED_REDIRECT:
+			return "advanced_redirect"
+		RuneType.WALL:
+			return "wall"
+		RuneType.REFLECT:
+			return "reflect"
+		RuneType.EXPLOSIVE:
+			return "explosive"
+		RuneType.ACCELERATION:
+			return "acceleration"
+		RuneType.PORTAL:
+			return "portal"
+		_:
+			return "redirect"
+
+
+## Get allowed runes as string array (for compatibility with existing code)
+func get_allowed_runes_strings() -> Array[String]:
+	var result: Array[String] = []
+	for rune_type in allowed_runes:
+		result.append(rune_type_to_string(rune_type))
+	return result
+
+
+## Check if a rune type is allowed (by string)
+func is_rune_allowed(rune_type_string: String) -> bool:
+	if allowed_runes.is_empty():
+		# Empty array means all default unlocked runes are available
+		return true
+	
+	# Convert string to enum and check
+	var rune_type: RuneType = string_to_rune_type(rune_type_string)
+	return rune_type in allowed_runes
+
+
+## Convert string to rune type enum
+static func string_to_rune_type(rune_type_string: String) -> RuneType:
+	match rune_type_string:
+		"redirect":
+			return RuneType.REDIRECT
+		"advanced_redirect":
+			return RuneType.ADVANCED_REDIRECT
+		"wall":
+			return RuneType.WALL
+		"reflect":
+			return RuneType.REFLECT
+		"explosive":
+			return RuneType.EXPLOSIVE
+		"acceleration":
+			return RuneType.ACCELERATION
+		"portal":
+			return RuneType.PORTAL
+		_:
+			return RuneType.REDIRECT

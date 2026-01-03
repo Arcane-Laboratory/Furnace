@@ -62,12 +62,12 @@ func start_wave() -> void:
 	
 	# Spawn all enemies with their delays
 	for i in range(current_level_data.enemy_waves.size()):
-		var wave_data: Dictionary = current_level_data.enemy_waves[i]
-		var delay: float = wave_data.get("delay", 0.0)
+		var wave_entry: EnemyWaveEntry = current_level_data.enemy_waves[i]
+		var delay: float = wave_entry.delay
 		
 		# Create spawn task with delay
 		await get_tree().create_timer(delay).timeout
-		_spawn_enemy(wave_data)
+		_spawn_enemy_from_entry(wave_entry)
 
 
 ## Apply enemy definition stats and path (called deferred after _ready())
@@ -84,13 +84,32 @@ func _apply_enemy_definition(enemy: EnemyBase, definition: EnemyDefinition, path
 	enemy.set_path(path)
 
 
-## Spawn a single enemy based on wave data
+## Spawn a single enemy based on wave entry (new enum-based system)
+func _spawn_enemy_from_entry(wave_entry: EnemyWaveEntry) -> void:
+	if not current_level_data or not enemies_container:
+		return
+	
+	var enemy_type: String = wave_entry.get_enemy_type_string()
+	var spawn_point_index: int = wave_entry.spawn_point
+	
+	_spawn_enemy_by_type(enemy_type, spawn_point_index)
+
+
+## Spawn a single enemy based on wave data (legacy Dictionary format - kept for compatibility)
 func _spawn_enemy(wave_data: Dictionary) -> void:
 	if not current_level_data or not enemies_container:
 		return
 	
 	var enemy_type: String = wave_data.get("enemy_type", "basic")
 	var spawn_point_index: int = wave_data.get("spawn_point", 0)
+	
+	_spawn_enemy_by_type(enemy_type, spawn_point_index)
+
+
+## Internal helper to spawn an enemy by type and spawn point index
+func _spawn_enemy_by_type(enemy_type: String, spawn_point_index: int) -> void:
+	if not current_level_data or not enemies_container:
+		return
 	
 	# Validate spawn point index
 	if spawn_point_index < 0 or spawn_point_index >= current_level_data.spawn_points.size():
@@ -112,9 +131,14 @@ func _spawn_enemy(wave_data: Dictionary) -> void:
 		# Fallback to default path pattern
 		enemy_scene_path = "res://scenes/entities/enemies/%s_enemy.tscn" % enemy_type
 	
+	# If the specific enemy scene doesn't exist, fallback to basic enemy scene
+	# This allows levels to use any enemy type even if the scene file doesn't exist yet
 	if not ResourceLoader.exists(enemy_scene_path):
-		push_error("EnemyManager: Enemy scene not found: %s" % enemy_scene_path)
-		return
+		push_warning("EnemyManager: Enemy scene not found: %s, falling back to basic_enemy.tscn" % enemy_scene_path)
+		enemy_scene_path = "res://scenes/entities/enemies/basic_enemy.tscn"
+		if not ResourceLoader.exists(enemy_scene_path):
+			push_error("EnemyManager: Basic enemy scene also not found: %s" % enemy_scene_path)
+			return
 	
 	var enemy_scene := load(enemy_scene_path)
 	if not enemy_scene:

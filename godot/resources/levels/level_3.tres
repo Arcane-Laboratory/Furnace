@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/level_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
+
+[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_1"]
+script = ExtResource("2")
+enemy_type = 0
+spawn_point = 0
+delay = 0.0
+
+[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_2"]
+script = ExtResource("2")
+enemy_type = 1
+spawn_point = 1
+delay = 1.0
+
+[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_3"]
+script = ExtResource("2")
+enemy_type = 2
+spawn_point = 2
+delay = 2.0
+
+[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_4"]
+script = ExtResource("2")
+enemy_type = 0
+spawn_point = 0
+delay = 3.0
+
+[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_5"]
+script = ExtResource("2")
+enemy_type = 1
+spawn_point = 1
+delay = 4.0
+
+[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_6"]
+script = ExtResource("2")
+enemy_type = 2
+spawn_point = 2
+delay = 5.0
+
+[resource]
+script = ExtResource("1")
+level_number = 3
+level_name = "Expert"
+starting_resources = 150
+spawn_points = [Vector2i(2, 6), Vector2i(6, 6), Vector2i(10, 6)]
+furnace_position = Vector2i(6, 0)
+terrain_blocked = []
+preset_walls = []
+preset_runes = []
+enemy_waves = [SubResource("EnemyWaveEntry_1"), SubResource("EnemyWaveEntry_2"), SubResource("EnemyWaveEntry_3"), SubResource("EnemyWaveEntry_4"), SubResource("EnemyWaveEntry_5"), SubResource("EnemyWaveEntry_6")]
+allowed_runes = [0, 2, 3, 4, 5]
+hint_text = "Tank enemies have high health. Use explosive runes to deal area damage, or acceleration runes to speed up your fireball!"
+par_time_seconds = 120.0
