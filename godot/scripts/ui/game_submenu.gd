@@ -6,10 +6,10 @@ class_name GameSubmenu
 signal start_pressed
 
 
-## Reference to UI elements
-@onready var money_value: Label = $MarginContainer/CenterContainer/VBoxContainer/MoneyRow/Panel/CenterContainer/MoneyValue
-@onready var level_value: Label = $MarginContainer/CenterContainer/VBoxContainer/LevelRow/Panel/CenterContainer/LevelValue
-@onready var start_button: Button = $MarginContainer/CenterContainer/VBoxContainer/StartButton
+## Reference to UI elements (using unique names)
+@onready var money_value: Label = %MoneyValue
+@onready var level_value: Label = %LevelValue
+@onready var start_button: Button = %StartButton
 
 ## Track previous resources for animation direction
 var previous_resources: int = 0
