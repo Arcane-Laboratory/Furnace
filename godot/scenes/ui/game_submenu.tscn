@@ -1,14 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://dxuiv0flwd2jt"]
+[gd_scene load_steps=5 format=3 uid="uid://dxuiv0flwd2jt"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_fa1kw"]
-[ext_resource type="Script" path="res://scripts/ui/game_submenu.gd" id="2_submenu"]
+[ext_resource type="Script" uid="uid://bsku6m1ik0xko" path="res://scripts/ui/game_submenu.gd" id="2_submenu"]
 [ext_resource type="Texture2D" uid="uid://bbn1cc3p4k1jm" path="res://icon.svg" id="3_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hksn4"]
 bg_color = Color(0, 0, 0, 1)
 
 [node name="GameSubmenu" type="Control"]
-script = ExtResource("2_submenu")
 custom_minimum_size = Vector2(128, 80)
 layout_mode = 3
 anchors_preset = 8
@@ -23,6 +22,7 @@ offset_bottom = 40.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_fa1kw")
+script = ExtResource("2_submenu")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 custom_minimum_size = Vector2(128, 80)
@@ -84,10 +84,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_hksn4")
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 8.0
-offset_right = 24.0
+offset_right = 29.0
 offset_bottom = 9.0
 text = "1"
-horizontal_alignment = 1
+horizontal_alignment = 2
 vertical_alignment = 1
 
 [node name="Icon" type="Sprite2D" parent="MarginContainer/VBoxContainer/LevelRow/Panel"]
@@ -111,10 +111,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_hksn4")
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 8.0
-offset_right = 24.0
+offset_right = 29.0
 offset_bottom = 9.0
 text = "100"
-horizontal_alignment = 1
+horizontal_alignment = 2
 vertical_alignment = 1
 
 [node name="Icon" type="Sprite2D" parent="MarginContainer/VBoxContainer/MoneyRow/Panel"]
@@ -138,10 +138,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_hksn4")
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 8.0
-offset_right = 24.0
+offset_right = 29.0
 offset_bottom = 9.0
 text = "0"
-horizontal_alignment = 1
+horizontal_alignment = 2
 vertical_alignment = 1
 
 [node name="Icon" type="Sprite2D" parent="MarginContainer/VBoxContainer/HeatRow/Panel"]
