@@ -33,6 +33,12 @@ var current_grid_pos: Vector2i = Vector2i(-1, -1)
 ## Reference to the smoke particles
 @onready var smoke_particles: GPUParticles2D = $SmokeParticles
 
+## Reference to the collision Area2D
+@onready var collision_area: Area2D = $Area2D
+
+## Track currently overlapping enemies to prevent double damage
+var overlapping_enemies: Dictionary = {}
+
 signal fireball_destroyed
 signal enemy_hit(enemy: Node2D, damage: int)
 signal rune_ignited(rune: RuneBase)
@@ -54,6 +60,19 @@ func _ready() -> void:
 	var particles := smoke_particles if smoke_particles else get_node_or_null("SmokeParticles") as GPUParticles2D
 	if particles:
 		particles.emitting = false
+	
+	# Connect Area2D collision signals
+	var area := collision_area if collision_area else get_node_or_null("Area2D") as Area2D
+	if area:
+		# Ensure monitoring is enabled for collision detection
+		area.monitoring = true
+		area.monitorable = false  # Fireball doesn't need to be detected by other areas
+		
+		# Connect signals (Godot 4 safely handles already-connected signals)
+		area.body_entered.connect(_on_enemy_entered)
+		area.body_exited.connect(_on_enemy_exited)
+	else:
+		push_warning("Fireball: Area2D node not found - enemy collision detection will not work")
 
 
 func _physics_process(delta: float) -> void:
@@ -101,6 +120,7 @@ func launch(start_position: Vector2) -> void:
 	boost_timer = 0.0
 	is_active = true
 	activated_tiles.clear()
+	overlapping_enemies.clear()  # Reset collision tracking
 	current_grid_pos = _world_to_grid(position)
 	
 	# Ensure animation is playing (use get_node as fallback if @onready isn't ready)
@@ -122,8 +142,13 @@ func launch(start_position: Vector2) -> void:
 func set_direction(new_direction: Vector2) -> void:
 	# Ensure cardinal direction only
 	if new_direction in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
-		direction = new_direction
-		_update_rotation()
+		# Only clear activated tiles if direction actually changed
+		if direction != new_direction:
+			direction = new_direction
+			# Clear activated tiles to allow re-activation of runes
+			# This enables bouncing between redirect runes and re-entering portals
+			activated_tiles.clear()
+			_update_rotation()
 
 
 ## Increase speed permanently (called by acceleration runes if needed)
@@ -177,11 +202,8 @@ func _activate_tile(grid_pos: Vector2i) -> void:
 			rune.activate(self)
 			rune_ignited.emit(rune)
 	
-	# Check for enemies to damage
-	var enemies := get_tree().get_nodes_in_group("enemies")
-	for enemy in enemies:
-		if enemy.has_method("get_grid_position") and enemy.get_grid_position() == grid_pos:
-			_hit_enemy(enemy)
+	# Enemy collision detection is now handled by Area2D signals
+	# Removed grid-based enemy check to prevent double damage and missed collisions
 
 
 ## Hit an enemy with the fireball
@@ -189,6 +211,39 @@ func _hit_enemy(enemy: Node2D) -> void:
 	if enemy.has_method("take_damage"):
 		enemy.take_damage(GameConfig.fireball_damage)
 		enemy_hit.emit(enemy, GameConfig.fireball_damage)
+
+
+## Called when an enemy enters the fireball's collision area
+func _on_enemy_entered(body: Node2D) -> void:
+	# Validate body exists and is valid
+	if not is_instance_valid(body):
+		return
+	
+	# Check if body is an enemy (has take_damage method)
+	if not body.has_method("take_damage"):
+		return
+	
+	# Check if enemy is valid and not already overlapping (prevent double damage)
+	if not body.is_inside_tree():
+		return
+	
+	if body in overlapping_enemies:
+		return
+	
+	# Add enemy to tracking dictionary
+	overlapping_enemies[body] = true
+	
+	# Deal damage to enemy
+	_hit_enemy(body)
+
+
+## Called when an enemy exits the fireball's collision area
+func _on_enemy_exited(body: Node2D) -> void:
+	# Remove enemy from tracking dictionary
+	# This allows re-hitting if enemy enters again later
+	# Check if valid first to avoid warnings with freed nodes
+	if is_instance_valid(body) and body in overlapping_enemies:
+		overlapping_enemies.erase(body)
 
 
 ## Check if a grid position is out of bounds
@@ -217,6 +272,9 @@ func reflect() -> void:
 	# Clear activated tiles when reflecting to allow re-activation
 	# This prevents getting stuck in loops where runes can't activate again
 	activated_tiles.clear()
+	
+	# Clear overlapping enemies to allow re-hitting after reflection
+	overlapping_enemies.clear()
 
 
 ## Teleport the fireball to a new position with a new direction - called by Portal Rune
@@ -235,12 +293,18 @@ func teleport_to(new_position: Vector2, new_direction: Vector2) -> void:
 	# Clear activated tiles to allow activation at new location
 	activated_tiles.clear()
 	
+	# Clear overlapping enemies to allow re-hitting after teleport
+	overlapping_enemies.clear()
+	
 	fireball_teleported.emit(old_position, new_position)
 
 
 ## Destroy the fireball
 func _destroy() -> void:
 	is_active = false
+	
+	# Clean up collision tracking
+	overlapping_enemies.clear()
 	
 	# Stop smoke particles
 	var particles := smoke_particles if smoke_particles else get_node_or_null("SmokeParticles") as GPUParticles2D
