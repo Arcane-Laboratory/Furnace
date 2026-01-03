@@ -86,6 +86,8 @@ func take_damage(amount: int) -> void:
 	if health <= 0:
 		_die()
 	else:
+		# Show floating damage number only if enemy survives
+		FloatingNumberManager.show_number(amount, global_position, Color.RED, null, 1.0, true)
 		_on_damaged(amount)
 
 

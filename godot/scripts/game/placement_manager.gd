@@ -220,6 +220,15 @@ func _execute_placement(grid_pos: Vector2i, definition: Resource) -> bool:
 		placement_failed.emit("Not enough money!")
 		return false
 	
+	# Show floating number for resource loss with spark icon (red)
+	if game_board:
+		var world_pos := game_board.global_position + Vector2(
+			grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+			grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
+		)
+		var spark_icon := load("res://resources/ui_assets/spark.png") as Texture2D
+		FloatingNumberManager.show_number("-%d scrap" % definition.cost, world_pos, Color.RED, spark_icon, 1.0)
+	
 	# Determine occupancy type based on item
 	var occupancy_type: TileBase.OccupancyType
 	if definition.item_type == "wall":
@@ -265,6 +274,15 @@ func _start_portal_placement(grid_pos: Vector2i, definition: Resource) -> bool:
 	if not GameManager.spend_resources(definition.cost):
 		placement_failed.emit("Not enough money!")
 		return false
+	
+	# Show floating number for resource loss with spark icon (red)
+	if game_board:
+		var world_pos := game_board.global_position + Vector2(
+			grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+			grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
+		)
+		var spark_icon := load("res://resources/ui_assets/spark.png") as Texture2D
+		FloatingNumberManager.show_number("-%d scrap" % definition.cost, world_pos, Color.RED, spark_icon, 1.0)
 	
 	# Create and place the entrance portal
 	var entrance_scene := load(definition.scene_path) as PackedScene
@@ -480,6 +498,15 @@ func try_sell_item(grid_pos: Vector2i) -> bool:
 	
 	# Add resources back
 	GameManager.add_resources(refund_amount)
+	
+	# Show floating number for resource gain with spark icon (green)
+	if game_board:
+		var world_pos := game_board.global_position + Vector2(
+			grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+			grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
+		)
+		var spark_icon := load("res://resources/ui_assets/spark.png") as Texture2D
+		FloatingNumberManager.show_number("+%d scrap" % refund_amount, world_pos, Color.GREEN, spark_icon, 1.0)
 	
 	item_sold.emit(item_type, grid_pos, refund_amount)
 	return true
