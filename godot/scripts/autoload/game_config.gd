@@ -1,6 +1,10 @@
 extends Node
 ## Developer tunable parameters - all game balance values in one place
 
+## Developer debug mode - when true, starts at debug level with all items unlocked
+## Set to true in editor for testing, leave false for production
+var debug_mode: bool = false
+
 # Grid Configuration
 const GRID_COLUMNS: int = 13
 const GRID_ROWS: int = 7
@@ -45,7 +49,7 @@ var enemy_definitions: Dictionary = {}  # Key: enemy_type, Value: Resource (Enem
 
 # Level Resources (indexed by level number)
 var level_resources: Array[int] = [
-	0,    # Level 0 (unused)
+	1000, # Level 0 (debug) - generous resources for testing
 	100,  # Level 1 - Tutorial
 	120,  # Level 2
 	150,  # Level 3
@@ -60,7 +64,7 @@ func _ready() -> void:
 
 
 func get_level_resources(level: int) -> int:
-	if level > 0 and level < level_resources.size():
+	if level >= 0 and level < level_resources.size():
 		return level_resources[level]
 	return 100  # Default fallback
 

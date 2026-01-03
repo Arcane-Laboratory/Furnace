@@ -204,6 +204,17 @@ func _on_enemy_died(enemy: EnemyBase) -> void:
 ## Called when an enemy reaches the furnace
 func _on_enemy_reached_furnace(enemy: EnemyBase) -> void:
 	enemy_reached_furnace.emit(enemy)
+	
+	# In debug mode, don't end the game when enemies reach furnace
+	if GameConfig.debug_mode:
+		print("EnemyManager: [DEBUG] Enemy reached furnace - ignoring (debug mode)")
+		# Remove enemy from tracking so win condition can still trigger
+		var index := active_enemies.find(enemy)
+		if index >= 0:
+			active_enemies.remove_at(index)
+		_check_win_condition()
+		return
+	
 	furnace_destroyed.emit()
 	
 	# Game over - enemy reached furnace
@@ -214,9 +225,32 @@ func _on_enemy_reached_furnace(enemy: EnemyBase) -> void:
 func _check_win_condition() -> void:
 	# Check if wave is active, all enemies spawned, and all defeated
 	if is_wave_active and enemies_spawned >= total_enemies_to_spawn and active_enemies.is_empty():
+		# In debug mode, respawn the wave instead of ending the game
+		if GameConfig.debug_mode:
+			print("EnemyManager: [DEBUG] All enemies defeated - respawning wave...")
+			_restart_wave_debug()
+			return
+		
 		is_wave_active = false
 		all_enemies_defeated.emit()
 		print("EnemyManager: All enemies defeated - VICTORY!")
+
+
+## [DEBUG ONLY] Restart the wave after a short delay
+func _restart_wave_debug() -> void:
+	# Reset spawn count but keep wave active
+	enemies_spawned = 0
+	
+	# Wait a moment before respawning
+	await get_tree().create_timer(2.0).timeout
+	
+	# Respawn all enemies from the wave
+	for i in range(current_level_data.enemy_waves.size()):
+		var wave_entry: EnemyWaveEntry = current_level_data.enemy_waves[i]
+		var delay: float = wave_entry.delay
+		
+		await get_tree().create_timer(delay).timeout
+		_spawn_enemy_from_entry(wave_entry)
 
 
 ## Get count of active enemies

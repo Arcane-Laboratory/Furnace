@@ -52,6 +52,10 @@ func _is_item_available(definition: Resource) -> bool:
 	if not definition:
 		return false
 	
+	# Debug mode: all items available
+	if GameConfig.debug_mode:
+		return true
+	
 	# Access properties directly (they're @export properties on BuildableItemDefinition)
 	var item_type: String = definition.item_type
 	var unlocked_by_default: bool = definition.unlocked_by_default
