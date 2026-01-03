@@ -211,7 +211,12 @@ func _execute_placement(grid_pos: Vector2i, definition: Resource) -> bool:
 	# Add to scene and position
 	if structure_node and runes_container:
 		runes_container.add_child(structure_node)
-		if structure_node is Node2D:
+		
+		# Set grid position for runes (required for fireball collision detection)
+		if structure_node is RuneBase:
+			(structure_node as RuneBase).set_grid_position(grid_pos)
+		elif structure_node is Node2D:
+			# For non-rune items (like walls), just set world position
 			(structure_node as Node2D).position = Vector2(
 				grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
 				grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0

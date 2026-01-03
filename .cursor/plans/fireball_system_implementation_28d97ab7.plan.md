@@ -4,25 +4,25 @@ overview: Implement the fireball launch system with 1-second delay, grid boundar
 todos:
   - id: buildable-item-direction
     content: Add has_direction and default_direction properties to BuildableItemDefinition
-    status: pending
+    status: completed
   - id: redirect-definition-update
     content: Update redirect_rune_definition.tres with has_direction = true
-    status: pending
+    status: completed
   - id: tile-tooltip-scene
     content: Update tile_tooltip.tscn with unique names for direction buttons and container
-    status: pending
+    status: completed
   - id: tile-tooltip-script
     content: Wire up direction buttons in tile_tooltip.gd with show/hide logic
-    status: pending
+    status: completed
   - id: fireball-collision
     content: Implement boundary and wall collision detection with bouncing in fireball.gd
-    status: pending
+    status: completed
   - id: fireball-spawning
     content: Implement fireball spawning with 1-second delay in game_scene.gd
-    status: pending
+    status: completed
   - id: redirect-rune-visual
     content: Add method to RedirectRune to update direction visual indicator when changed
-    status: pending
+    status: completed
 ---
 
 # Fireball System Implementation
