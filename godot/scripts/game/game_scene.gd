@@ -26,8 +26,8 @@ var placement_manager: PlacementManager = null
 ## Error snackbar for showing placement errors
 var error_snackbar: Control = null
 
-## Sell tooltip for selling items
-var sell_tooltip: SellTooltip = null
+## Tile tooltip for tile actions (sell, etc.)
+var tile_tooltip: TileTooltip = null
 
 var is_paused: bool = false
 
@@ -68,7 +68,7 @@ func _ready() -> void:
 	_create_error_snackbar()
 	
 	# Create sell tooltip
-	_create_sell_tooltip()
+	_create_tile_tooltip()
 	
 	# Create drop target for drag-and-drop
 	_create_drop_target()
@@ -422,12 +422,12 @@ func _input(event: InputEvent) -> void:
 			# First, try to cancel any active selection
 			if placement_manager and placement_manager.has_selection():
 				placement_manager.clear_selection()
-				_hide_sell_tooltip()
+				_hide_tile_tooltip()
 				get_viewport().set_input_as_handled()
 				return
 			# If sell tooltip is visible, hide it
-			if sell_tooltip and sell_tooltip.visible:
-				_hide_sell_tooltip()
+			if tile_tooltip and tile_tooltip.visible:
+				_hide_tile_tooltip()
 				get_viewport().set_input_as_handled()
 				return
 		# Otherwise, toggle pause menu
@@ -437,7 +437,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
 			# Skip if click is over the sell tooltip (let button handle it)
-			if _is_mouse_over_sell_tooltip():
+			if _is_mouse_over_tile_tooltip():
 				return
 			_handle_build_phase_click()
 
@@ -550,13 +550,13 @@ func _handle_build_phase_click() -> void:
 	
 	if cell_x < 0 or cell_x >= GameConfig.GRID_COLUMNS or cell_y < 0 or cell_y >= GameConfig.GRID_ROWS:
 		# Click outside grid - hide sell tooltip
-		_hide_sell_tooltip()
+		_hide_tile_tooltip()
 		return
 	
 	var grid_pos := Vector2i(cell_x, cell_y)
 	
 	# Hide sell tooltip on any click
-	_hide_sell_tooltip()
+	_hide_tile_tooltip()
 	
 	# If item is selected, try to place it
 	if placement_manager.has_selection():
@@ -564,7 +564,7 @@ func _handle_build_phase_click() -> void:
 	else:
 		# No item selected - check if clicking on a sellable tile
 		if TileManager.can_sell_tile(grid_pos):
-			_show_sell_tooltip(grid_pos)
+			_show_tile_tooltip(grid_pos)
 
 
 ## Create the error snackbar
@@ -620,32 +620,32 @@ func _show_error_snackbar(message: String) -> void:
 
 
 ## Create the sell tooltip
-func _create_sell_tooltip() -> void:
-	var sell_tooltip_scene := load("res://scenes/ui/sell_tooltip.tscn") as PackedScene
-	if not sell_tooltip_scene:
-		push_error("GameScene: Failed to load sell_tooltip.tscn")
+func _create_tile_tooltip() -> void:
+	var tile_tooltip_scene := load("res://scenes/ui/tile_tooltip.tscn") as PackedScene
+	if not tile_tooltip_scene:
+		push_error("GameScene: Failed to load tile_tooltip.tscn")
 		return
 	
-	sell_tooltip = sell_tooltip_scene.instantiate() as SellTooltip
-	if not sell_tooltip:
+	tile_tooltip = tile_tooltip_scene.instantiate() as SellTooltip
+	if not tile_tooltip:
 		push_error("GameScene: Failed to instantiate sell tooltip")
 		return
 	
 	# Connect to sell request signal
-	sell_tooltip.sell_requested.connect(_on_sell_requested)
+	tile_tooltip.sell_requested.connect(_on_sell_requested)
 	
 	# Add to UILayer so it's above game board and handles input correctly
 	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
 	if ui_layer:
-		ui_layer.add_child(sell_tooltip)
+		ui_layer.add_child(tile_tooltip)
 	else:
 		# Fallback to game_board with high z_index
-		game_board.add_child(sell_tooltip)
+		game_board.add_child(tile_tooltip)
 
 
 ## Show sell tooltip at tile position
-func _show_sell_tooltip(grid_pos: Vector2i) -> void:
-	if not sell_tooltip:
+func _show_tile_tooltip(grid_pos: Vector2i) -> void:
+	if not tile_tooltip:
 		return
 	
 	var item_type := TileManager.get_placed_item_type(grid_pos)
@@ -666,20 +666,20 @@ func _show_sell_tooltip(grid_pos: Vector2i) -> void:
 		tile_screen_pos.y - 26  # Just above the tile
 	)
 	
-	sell_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos)
+	tile_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos)
 
 
 ## Hide the sell tooltip
-func _hide_sell_tooltip() -> void:
-	if sell_tooltip:
-		sell_tooltip.hide_tooltip()
+func _hide_tile_tooltip() -> void:
+	if tile_tooltip:
+		tile_tooltip.hide_tooltip()
 
 
 ## Check if mouse is over the sell tooltip
-func _is_mouse_over_sell_tooltip() -> bool:
-	if not sell_tooltip:
+func _is_mouse_over_tile_tooltip() -> bool:
+	if not tile_tooltip:
 		return false
-	return sell_tooltip.is_mouse_over()
+	return tile_tooltip.is_mouse_over()
 
 
 ## Handle sell request from tooltip
@@ -710,7 +710,7 @@ func _on_item_sold(_item_type: String, _grid_pos: Vector2i, _refund_amount: int)
 ## Handle selection changed signal
 func _on_selection_changed(_item_type: String) -> void:
 	# Selection changed - hide sell tooltip when selecting an item
-	_hide_sell_tooltip()
+	_hide_tile_tooltip()
 
 
 ## Create drop target overlay for drag-and-drop
