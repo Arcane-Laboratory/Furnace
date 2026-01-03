@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3 uid="uid://dequ5qkc8ctjx"]
+
+[ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_2k7j0"]
+
+[node name="MenuRune" type="Control"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_right = 32.0
+offset_bottom = 32.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -16.0
+offset_right = 16.0
+offset_bottom = 32.0
+grow_horizontal = 2
+color = Color(0.14406255, 0.14406255, 0.14406255, 1)
+
+[node name="Label" type="Label" parent="ColorRect"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -9.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = ExtResource("1_2k7j0")
+text = "$3"
+horizontal_alignment = 2
+vertical_alignment = 2
