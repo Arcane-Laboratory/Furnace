@@ -6,8 +6,9 @@ class_name DebugModal
 signal export_level_requested
 signal go_to_level_requested(level_number: int)
 signal place_spawn_point_requested
-signal place_furnace_requested
+signal place_terrain_requested
 
+@onready var background: ColorRect = $Background
 @onready var panel: PanelContainer = $Panel
 @onready var main_menu: VBoxContainer = $Panel/MarginContainer/VBoxContainer/MainMenu
 @onready var level_submenu: VBoxContainer = $Panel/MarginContainer/VBoxContainer/LevelSubmenu
@@ -15,7 +16,7 @@ signal place_furnace_requested
 @onready var export_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/ExportButton
 @onready var go_to_level_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/GoToLevelButton
 @onready var place_spawn_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/PlaceSpawnButton
-@onready var place_furnace_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/PlaceFurnaceButton
+@onready var place_terrain_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/PlaceTerrainButton
 @onready var back_button: Button = $Panel/MarginContainer/VBoxContainer/LevelSubmenu/BackButton
 
 
@@ -26,11 +27,32 @@ func _ready() -> void:
 	export_button.pressed.connect(_on_export_pressed)
 	go_to_level_button.pressed.connect(_on_go_to_level_pressed)
 	place_spawn_button.pressed.connect(_on_place_spawn_pressed)
-	place_furnace_button.pressed.connect(_on_place_furnace_pressed)
+	place_terrain_button.pressed.connect(_on_place_terrain_pressed)
 	back_button.pressed.connect(_on_back_pressed)
+	
+	# Connect background click to close modal
+	background.gui_input.connect(_on_background_input)
 	
 	# Populate level list
 	_populate_level_list()
+
+
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	
+	if event.is_action_pressed("ui_cancel"):
+		# If in submenu, go back; otherwise close modal
+		if level_submenu.visible:
+			_on_back_pressed()
+		else:
+			hide_modal()
+		get_viewport().set_input_as_handled()
+
+
+func _on_background_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		hide_modal()
 
 
 func show_modal() -> void:
@@ -73,8 +95,8 @@ func _on_place_spawn_pressed() -> void:
 	hide_modal()
 
 
-func _on_place_furnace_pressed() -> void:
-	place_furnace_requested.emit()
+func _on_place_terrain_pressed() -> void:
+	place_terrain_requested.emit()
 	hide_modal()
 
 

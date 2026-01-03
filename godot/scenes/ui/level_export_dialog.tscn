@@ -102,12 +102,18 @@ alignment = 1
 
 [node name="ExportButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
-text = "Export"
+text = "Copy"
+
+[node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Save"
 
 [node name="CancelButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 text = "Cancel"

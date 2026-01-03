@@ -10,7 +10,8 @@ static func export_current_level(
 	starting_resources: int = 100,
 	hint_text: String = "",
 	additional_spawn_points: Array[Vector2i] = [],
-	override_furnace_position: Vector2i = Vector2i(-1, -1)
+	override_furnace_position: Vector2i = Vector2i(-1, -1),
+	additional_terrain_tiles: Array[Vector2i] = []
 ) -> String:
 	# Collect data from current game state
 	var walls: Array[Vector2i] = []
@@ -29,6 +30,11 @@ static func export_current_level(
 	for sp in additional_spawn_points:
 		if sp not in spawn_points:
 			spawn_points.append(sp)
+	
+	# Add additional debug-placed terrain tiles
+	for terrain_pos in additional_terrain_tiles:
+		if terrain_pos not in terrain_blocked:
+			terrain_blocked.append(terrain_pos)
 	
 	# Override furnace position if specified
 	if override_furnace_position != Vector2i(-1, -1):

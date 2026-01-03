@@ -1,17 +1,26 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=4 format=3 uid="uid://uma3g6n8spna"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=3 format=3 uid="uid://73cjhkd2n1tq"]
 
 [ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
 [ext_resource type="Script" uid="uid://oi70e4rojnys" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
 
 [sub_resource type="Resource" id="Resource_wave1"]
 script = ExtResource("2")
+enemy_type = 0
+spawn_point = 0
+delay = 0.0
 metadata/_custom_type_script = "uid://oi70e4rojnys"
 
 [resource]
 script = ExtResource("1")
 level_number = 2
-level_name = "Level 2 Test"
-preset_walls = Array[Vector2i]([Vector2i(0, 4), Vector2i(1, 4), Vector2i(2, 1), Vector2i(2, 4), Vector2i(3, 4), Vector2i(4, 2), Vector2i(4, 4), Vector2i(9, 2), Vector2i(9, 4), Vector2i(10, 4), Vector2i(11, 4), Vector2i(12, 4)])
-spawn_points = Array[Vector2i]([Vector2i(6, 6), Vector2i(12, 6)])
+level_name = "hi 2"
+starting_resources = 100
+spawn_points = Array[Vector2i]([Vector2i(6, 6), Vector2i(0, 6), Vector2i(2, 6), Vector2i(8, 5)])
+furnace_position = Vector2i(6, 0)
+terrain_blocked = Array[Vector2i]([Vector2i(0, 4), Vector2i(1, 4), Vector2i(2, 4), Vector2i(3, 4), Vector2i(4, 4), Vector2i(5, 4), Vector2i(6, 4), Vector2i(7, 1), Vector2i(8, 1), Vector2i(8, 0)])
+preset_walls = Array[Vector2i]([Vector2i(0, 0), Vector2i(5, 2), Vector2i(7, 4), Vector2i(8, 0)])
+preset_runes = Array[Dictionary]([])
 enemy_waves = Array[ExtResource("2")]([SubResource("Resource_wave1")])
-hint_text = "Hello world"
+allowed_runes = Array[int]([])
+hint_text = "abc"
+par_time_seconds = 60.0
