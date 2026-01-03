@@ -32,7 +32,7 @@ func _ready() -> void:
 ## Update display with current GameManager values
 func _update_display() -> void:
 	if money_value:
-		money_value.text = "$%d" % GameManager.resources
+		money_value.text = "%d" % GameManager.resources
 		previous_resources = GameManager.resources
 	if level_value:
 		level_value.text = str(GameManager.current_level)
@@ -47,7 +47,7 @@ func set_level(level: int) -> void:
 ## Set the money display (without animation)
 func set_money(amount: int) -> void:
 	if money_value:
-		money_value.text = "$%d" % amount
+		money_value.text = "%d" % amount
 		previous_resources = amount
 
 
@@ -57,7 +57,7 @@ func _on_resources_changed(new_amount: int) -> void:
 	previous_resources = new_amount
 	
 	if money_value:
-		money_value.text = "$%d" % new_amount
+		money_value.text = "%d" % new_amount
 		_animate_currency_change(delta)
 
 
