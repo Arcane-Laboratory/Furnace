@@ -90,7 +90,7 @@ func _on_furnace_reached() -> void:
 	queue_free()
 
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if not is_active or current_path.is_empty():
 		return
 	
@@ -125,6 +125,6 @@ func get_grid_position() -> Vector2i:
 ## Convert grid position to world position (tile center)
 func _grid_to_world(grid_pos: Vector2i) -> Vector2:
 	return Vector2(
-		grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2,
-		grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2
+		grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+		grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 	)

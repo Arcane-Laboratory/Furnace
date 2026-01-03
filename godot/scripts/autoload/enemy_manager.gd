@@ -1,0 +1,178 @@
+extends Node
+## Autoload class for managing enemy spawning and lifecycle
+
+
+signal enemy_spawned(enemy: EnemyBase)
+signal enemy_died(enemy: EnemyBase)
+signal enemy_reached_furnace(enemy: EnemyBase)
+signal all_enemies_defeated()
+signal furnace_destroyed()
+
+## Current level data
+var current_level_data: LevelData = null
+
+## All spawned enemies (for tracking)
+var active_enemies: Array[EnemyBase] = []
+
+## Total enemies to spawn in this wave
+var total_enemies_to_spawn: int = 0
+
+## Enemies spawned so far
+var enemies_spawned: int = 0
+
+## Whether wave is currently active
+var is_wave_active: bool = false
+
+## Reference to enemies container in game scene
+var enemies_container: Node2D = null
+
+
+func _ready() -> void:
+	pass
+
+
+## Initialize wave with level data
+func initialize_wave(level_data: LevelData, container: Node2D) -> void:
+	current_level_data = level_data
+	enemies_container = container
+	active_enemies.clear()
+	enemies_spawned = 0
+	is_wave_active = false
+	
+	# Count total enemies
+	total_enemies_to_spawn = level_data.enemy_waves.size()
+	
+	# Validate paths exist
+	if not PathfindingManager.validate_all_spawn_paths(level_data):
+		push_warning("EnemyManager: Not all spawn points have valid paths to furnace!")
+
+
+## Start spawning enemies for the current wave
+func start_wave() -> void:
+	if not current_level_data:
+		push_error("EnemyManager: Cannot start wave - no level data!")
+		return
+	
+	if not enemies_container:
+		push_error("EnemyManager: Cannot start wave - no enemies container!")
+		return
+	
+	is_wave_active = true
+	enemies_spawned = 0
+	
+	# Spawn all enemies with their delays
+	for i in range(current_level_data.enemy_waves.size()):
+		var wave_data: Dictionary = current_level_data.enemy_waves[i]
+		var delay: float = wave_data.get("delay", 0.0)
+		
+		# Create spawn task with delay
+		await get_tree().create_timer(delay).timeout
+		_spawn_enemy(wave_data)
+
+
+## Spawn a single enemy based on wave data
+func _spawn_enemy(wave_data: Dictionary) -> void:
+	if not current_level_data or not enemies_container:
+		return
+	
+	var enemy_type: String = wave_data.get("enemy_type", "basic")
+	var spawn_point_index: int = wave_data.get("spawn_point", 0)
+	
+	# Validate spawn point index
+	if spawn_point_index < 0 or spawn_point_index >= current_level_data.spawn_points.size():
+		push_error("EnemyManager: Invalid spawn point index: %d" % spawn_point_index)
+		return
+	
+	var spawn_pos: Vector2i = current_level_data.spawn_points[spawn_point_index]
+	var furnace_pos: Vector2i = current_level_data.furnace_position
+	
+	# Load enemy scene
+	var enemy_scene_path := "res://scenes/entities/enemies/%s_enemy.tscn" % enemy_type
+	if not ResourceLoader.exists(enemy_scene_path):
+		push_error("EnemyManager: Enemy scene not found: %s" % enemy_scene_path)
+		return
+	
+	var enemy_scene := load(enemy_scene_path)
+	if not enemy_scene:
+		push_error("EnemyManager: Failed to load enemy scene: %s" % enemy_scene_path)
+		return
+	
+	# Instantiate enemy
+	var enemy_node: Node = enemy_scene.instantiate()
+	if not enemy_node:
+		push_error("EnemyManager: Failed to instantiate enemy")
+		return
+	
+	var enemy: EnemyBase = enemy_node as EnemyBase
+	if not enemy:
+		push_error("EnemyManager: Instantiated node is not an EnemyBase")
+		return
+	
+	# Get path from spawn to furnace
+	var path: Array[Vector2i] = PathfindingManager.find_path(spawn_pos, furnace_pos)
+	if path.is_empty():
+		push_error("EnemyManager: No path found from spawn %s to furnace %s" % [spawn_pos, furnace_pos])
+		enemy.queue_free()
+		return
+	
+	# Set enemy path
+	enemy.set_path(path)
+	
+	# Connect signals
+	enemy.died.connect(_on_enemy_died.bind(enemy))
+	enemy.reached_furnace.connect(_on_enemy_reached_furnace.bind(enemy))
+	
+	# Add to scene and tracking
+	enemies_container.add_child(enemy)
+	active_enemies.append(enemy)
+	enemies_spawned += 1
+	
+	# Emit spawn signal
+	enemy_spawned.emit(enemy)
+	
+	print("EnemyManager: Spawned %s enemy at %s (path length: %d)" % [enemy_type, spawn_pos, path.size()])
+
+
+## Called when an enemy dies
+func _on_enemy_died(enemy: EnemyBase) -> void:
+	# Remove from active enemies
+	var index := active_enemies.find(enemy)
+	if index >= 0:
+		active_enemies.remove_at(index)
+	
+	enemy_died.emit(enemy)
+	
+	# Check if all enemies are defeated
+	_check_win_condition()
+
+
+## Called when an enemy reaches the furnace
+func _on_enemy_reached_furnace(enemy: EnemyBase) -> void:
+	enemy_reached_furnace.emit(enemy)
+	furnace_destroyed.emit()
+	
+	# Game over - enemy reached furnace
+	print("EnemyManager: Enemy reached furnace - GAME OVER")
+
+
+## Check if all enemies are defeated (win condition)
+func _check_win_condition() -> void:
+	# Check if wave is active, all enemies spawned, and all defeated
+	if is_wave_active and enemies_spawned >= total_enemies_to_spawn and active_enemies.is_empty():
+		is_wave_active = false
+		all_enemies_defeated.emit()
+		print("EnemyManager: All enemies defeated - VICTORY!")
+
+
+## Get count of active enemies
+func get_active_enemy_count() -> int:
+	return active_enemies.size()
+
+
+## Clear all enemies (for cleanup)
+func clear_enemies() -> void:
+	for enemy in active_enemies:
+		if is_instance_valid(enemy):
+			enemy.queue_free()
+	active_enemies.clear()
+	is_wave_active = false

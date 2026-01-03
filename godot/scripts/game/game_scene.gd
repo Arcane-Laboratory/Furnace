@@ -10,6 +10,7 @@ extends Node2D
 @onready var game_board: Node2D = $GameBoard
 @onready var tiles_container: Node2D = $GameBoard/Tiles
 @onready var spawn_points_container: Node2D = $GameBoard/SpawnPoints
+@onready var enemies_container: Node2D = $GameBoard/Enemies
 
 # Stats labels (optional - may not exist if UI structure changed)
 @onready var level_value: Label = get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameSubmenu/StatsContainer/LevelRow/LevelValue") as Label
@@ -108,6 +109,13 @@ func _initialize_tile_system() -> void:
 				tiles_container.add_child(tile)
 				# Set grid position after adding to tree (ensures node is ready)
 				tile.set_grid_position(grid_pos)
+	
+	# Initialize EnemyManager with level data
+	EnemyManager.initialize_wave(current_level_data, enemies_container)
+	
+	# Connect EnemyManager signals
+	EnemyManager.all_enemies_defeated.connect(_on_all_enemies_defeated)
+	EnemyManager.furnace_destroyed.connect(_on_furnace_destroyed)
 	
 	# Test pathfinding for all spawn points
 	_test_pathfinding()
@@ -279,6 +287,18 @@ func _create_spawn_point_markers() -> void:
 			spawn_points_container.add_child(marker)
 
 
+# Called when all enemies are defeated
+func _on_all_enemies_defeated() -> void:
+	print("GameScene: All enemies defeated - VICTORY!")
+	win_level()
+
+
+# Called when enemy reaches furnace
+func _on_furnace_destroyed() -> void:
+	print("GameScene: Furnace destroyed - DEFEAT!")
+	lose_level()
+
+
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_toggle_pause()
@@ -305,6 +325,10 @@ func _start_active_phase() -> void:
 	GameManager.start_active_phase()
 	right_panel.hide()
 	active_ui.show()
+	
+	# Start enemy wave
+	EnemyManager.start_wave()
+	
 	_launch_fireball()
 
 
