@@ -1,8 +1,27 @@
-[gd_scene load_steps=12 format=3 uid="uid://fireball"]
+[gd_scene load_steps=14 format=3 uid="uid://fireball"]
 
-[ext_resource type="Script" path="res://scripts/entities/fireball.gd" id="1_fireball"]
+[ext_resource type="Script" uid="uid://dk1qvnk8g8bku" path="res://scripts/entities/fireball.gd" id="1_fireball"]
 [ext_resource type="Texture2D" uid="uid://dtekhosid5ju4" path="res://assets/sprites/fireball.png" id="2_fireball"]
-[ext_resource type="Texture2D" path="res://assets/sprites/particle-cluster.png" id="3_smoke"]
+[ext_resource type="Texture2D" uid="uid://byhmt67gybk2i" path="res://assets/sprites/particle-cluster.png" id="3_smoke"]
+
+[sub_resource type="Curve" id="Curve_rotation_90deg"]
+_data = {
+"points": PackedFloat32Array(0, 0, 0.249, 0, 0.25, 90, 0.499, 90, 0.5, 180, 0.749, 180, 0.75, 270, 0.999, 270, 1, 360)
+}
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_smoke"]
+angle_min = 0.0
+angle_max = 360.0
+angle_curve = SubResource("Curve_rotation_90deg")
+direction = Vector3(0, 1, 0)
+initial_velocity_min = 10.0
+initial_velocity_max = 30.0
+gravity = Vector3(0, -20, 0)
+scale_min = 1.0
+scale_max = 1.0
+color = Color(0.8, 0.8, 0.8, 0.6)
+angular_velocity_min = 0.0
+angular_velocity_max = 0.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_frame0"]
 atlas = ExtResource("2_fireball")
@@ -34,44 +53,44 @@ region = Rect2(192, 0, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fireball"]
 animations = [{
-"frames": [SubResource("AtlasTexture_frame0"), SubResource("AtlasTexture_frame1"), SubResource("AtlasTexture_frame2"), SubResource("AtlasTexture_frame3"), SubResource("AtlasTexture_frame4"), SubResource("AtlasTexture_frame5"), SubResource("AtlasTexture_frame6")],
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_frame0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_frame1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_frame2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_frame3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_frame4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_frame5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_frame6")
+}],
 "loop": true,
-"name": "default",
+"name": &"default",
 "speed": 20.0
 }]
-
-[sub_resource type="Gradient" id="Gradient_fireball_smoke"]
-colors = PackedColorArray(0.8, 0.8, 0.8, 0.8, 0.6, 0.6, 0.6, 0.4, 0.4, 0.4, 0.4, 0.0)
-
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_smoke"]
-direction = Vector3(0, 1, 0)
-initial_velocity_min = 10.0
-initial_velocity_max = 30.0
-gravity = Vector3(0, -20, 0)
-scale_min = 0.5
-scale_max = 1.0
-color = Color(0.8, 0.8, 0.8, 0.6)
-color_ramp = SubResource("Gradient_fireball_smoke")
 
 [node name="Fireball" type="Node2D"]
 script = ExtResource("1_fireball")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-centered = true
-offset = Vector2(0, 0)
-sprite_frames = SubResource("SpriteFrames_fireball")
-animation = "default"
-playing = true
-
 [node name="SmokeParticles" type="GPUParticles2D" parent="."]
-offset = Vector2(0, 0)
-texture = ExtResource("3_smoke")
-emitting = false
 amount = 50
+texture = ExtResource("3_smoke")
 lifetime = 0.5
-one_shot = false
-preprocess = 0.0
 process_material = SubResource("ParticleProcessMaterial_smoke")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_fireball")
 
 [node name="FireballVisual" type="ColorRect" parent="."]
 visible = false

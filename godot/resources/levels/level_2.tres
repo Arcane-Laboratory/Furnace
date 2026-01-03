@@ -1,27 +1,30 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="LevelData" load_steps=7 format=3 uid="uid://djjk58wud71p3"]
 
-[ext_resource type="Script" path="res://scripts/resources/level_data.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
+[ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://oi70e4rojnys" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
 
 [sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_1"]
+resource_local_to_scene = false
+resource_name = ""
 script = ExtResource("2")
-enemy_type = 0
-spawn_point = 0
-delay = 0.0
 
 [sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_2"]
+resource_local_to_scene = false
+resource_name = ""
 script = ExtResource("2")
 enemy_type = 1
-spawn_point = 0
 delay = 1.5
 
 [sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_3"]
+resource_local_to_scene = false
+resource_name = ""
 script = ExtResource("2")
-enemy_type = 0
 spawn_point = 1
 delay = 2.0
 
 [sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_4"]
+resource_local_to_scene = false
+resource_name = ""
 script = ExtResource("2")
 enemy_type = 1
 spawn_point = 1
@@ -32,12 +35,8 @@ script = ExtResource("1")
 level_number = 2
 level_name = "Challenge"
 starting_resources = 120
-spawn_points = [Vector2i(3, 6), Vector2i(9, 6)]
-furnace_position = Vector2i(6, 0)
-terrain_blocked = []
-preset_walls = []
-preset_runes = []
-enemy_waves = [SubResource("EnemyWaveEntry_1"), SubResource("EnemyWaveEntry_2"), SubResource("EnemyWaveEntry_3"), SubResource("EnemyWaveEntry_4")]
-allowed_runes = [0, 2, 3]
-hint_text = "Fast enemies move quickly! Use reflect runes to bounce the fireball back at them."
+spawn_points = Array[Vector2i]([Vector2i(3, 6), Vector2i(9, 6)])
+enemy_waves = Array[ExtResource("2")]([SubResource("EnemyWaveEntry_1"), SubResource("EnemyWaveEntry_2"), SubResource("EnemyWaveEntry_3"), SubResource("EnemyWaveEntry_4")])
 par_time_seconds = 90.0
+hint_text = "Fast enemies move quickly! Use reflect runes to bounce the fireball back at them."
+allowed_runes = Array[int]([0, 2, 3])
