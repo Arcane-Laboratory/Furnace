@@ -1,6 +1,7 @@
 extends PanelContainer
 class_name LevelExportDialog
-## Dialog for exporting current level to clipboard
+## Dialog for exporting current level to a .tres file
+## Saves directly to res://resources/levels/level_N.tres and also copies to clipboard
 
 
 signal export_completed(success: bool)
@@ -83,18 +84,37 @@ func _on_export_pressed() -> void:
 		override_furnace_position
 	)
 	
-	# Copy to clipboard
+	# Save directly to the levels folder
+	var file_path := "res://resources/levels/level_%d.tres" % level_number
+	var save_success := _save_to_file(file_path, content)
+	
+	# Also copy to clipboard as backup
 	LevelExporter.copy_to_clipboard(content)
 	
-	print("LevelExportDialog: Level exported to clipboard!")
+	if save_success:
+		print("LevelExportDialog: Level saved to %s" % file_path)
+	else:
+		print("LevelExportDialog: Failed to save file, content copied to clipboard instead")
+	
 	if not additional_spawn_points.is_empty():
 		print("  - Includes %d additional spawn points" % additional_spawn_points.size())
 	if override_furnace_position != Vector2i(-1, -1):
 		print("  - Custom furnace position: %s" % override_furnace_position)
-	print("Save as: res://resources/levels/level_%d.tres" % level_number)
 	
 	hide_dialog()
-	export_completed.emit(true)
+	export_completed.emit(save_success)
+
+
+## Save content to a file
+func _save_to_file(path: String, content: String) -> bool:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if not file:
+		push_error("LevelExportDialog: Could not open file for writing: %s (Error: %d)" % [path, FileAccess.get_open_error()])
+		return false
+	
+	file.store_string(content)
+	file.close()
+	return true
 
 
 ## Handle cancel button pressed
