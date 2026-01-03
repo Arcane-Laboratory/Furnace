@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3 uid="uid://b8f0fgdnvqcvb"]
+
+[ext_resource type="Script" uid="uid://bgshd8ub4sts4" path="res://scripts/resources/enemy_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+enemy_type = "basic"
+display_name = "Basic Enemy"
+speed = 100.0
+scene_path = "res://scenes/entities/enemies/basic_enemy.tscn"
+color = Color(0.8, 0.2, 0.2, 1)

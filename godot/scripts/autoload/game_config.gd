@@ -39,6 +39,10 @@ var tank_enemy_speed: float = 30.0
 # These are loaded from resource files in godot/resources/buildable_items/
 var buildable_item_definitions: Dictionary = {}  # Key: item_type, Value: Resource (BuildableItemDefinition)
 
+# Enemy Definitions
+# These are loaded from resource files in godot/resources/enemies/
+var enemy_definitions: Dictionary = {}  # Key: enemy_type, Value: Resource (EnemyDefinition)
+
 # Level Resources (indexed by level number)
 var level_resources: Array[int] = [
 	0,    # Level 0 (unused)
@@ -52,6 +56,7 @@ var level_resources: Array[int] = [
 
 func _ready() -> void:
 	_load_buildable_item_definitions()
+	_load_enemy_definitions()
 
 
 func get_level_resources(level: int) -> int:
@@ -120,3 +125,68 @@ func is_rune_unlocked_by_default(rune_type: String) -> bool:
 	if definition:
 		return definition.unlocked_by_default
 	return false
+
+
+## Load all enemy definitions from resource files
+func _load_enemy_definitions() -> void:
+	var definition_paths: Array[String] = [
+		"res://resources/enemies/basic_enemy_definition.tres",
+		"res://resources/enemies/fast_enemy_definition.tres",
+		"res://resources/enemies/tank_enemy_definition.tres",
+	]
+	
+	for path in definition_paths:
+		var definition: Resource = load(path) as Resource
+		if definition:
+			var enemy_type: String = definition.enemy_type
+			if enemy_type != "":
+				enemy_definitions[enemy_type] = definition
+			else:
+				push_error("GameConfig: Loaded enemy definition missing enemy_type: %s" % path)
+		else:
+			push_error("GameConfig: Failed to load enemy definition: %s" % path)
+
+
+## Get an enemy definition by type
+func get_enemy_definition(enemy_type: String) -> Resource:
+	return enemy_definitions.get(enemy_type, null)
+
+
+## Get all enemy definitions
+func get_all_enemy_definitions() -> Array:
+	var definitions: Array = []
+	for enemy_type in enemy_definitions:
+		definitions.append(enemy_definitions[enemy_type])
+	return definitions
+
+
+## Backward compatibility: Get enemy health (delegates to definition)
+func get_enemy_health(enemy_type: String) -> int:
+	var definition := get_enemy_definition(enemy_type)
+	if definition:
+		return definition.health
+	# Fallback to old hardcoded values
+	match enemy_type:
+		"basic":
+			return basic_enemy_health
+		"fast":
+			return fast_enemy_health
+		"tank":
+			return tank_enemy_health
+	return 50  # Default fallback
+
+
+## Backward compatibility: Get enemy speed (delegates to definition)
+func get_enemy_speed(enemy_type: String) -> float:
+	var definition := get_enemy_definition(enemy_type)
+	if definition:
+		return definition.speed
+	# Fallback to old hardcoded values
+	match enemy_type:
+		"basic":
+			return basic_enemy_speed
+		"fast":
+			return fast_enemy_speed
+		"tank":
+			return tank_enemy_speed
+	return 50.0  # Default fallback

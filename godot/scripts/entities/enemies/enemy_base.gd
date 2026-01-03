@@ -29,6 +29,12 @@ var is_active: bool = false
 
 
 func _ready() -> void:
+	# Configure collision layers so enemies don't collide with each other
+	# Enemies are on layer 1, but don't check for collisions (mask = 0)
+	# This allows enemies to pass through each other while still being detectable by Area2D
+	collision_layer = 1
+	collision_mask = 0
+	
 	# Call subclass initialization first so it can set health/max_health/speed
 	_on_enemy_ready()
 	# Then set max_health to health if max_health wasn't explicitly set

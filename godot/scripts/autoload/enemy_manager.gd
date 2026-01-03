@@ -70,6 +70,20 @@ func start_wave() -> void:
 		_spawn_enemy(wave_data)
 
 
+## Apply enemy definition stats and path (called deferred after _ready())
+func _apply_enemy_definition(enemy: EnemyBase, definition: EnemyDefinition, path: Array[Vector2i]) -> void:
+	if not is_instance_valid(enemy):
+		return
+	
+	# Set enemy stats from definition - this overrides any defaults set in _on_enemy_ready()
+	enemy.health = definition.health
+	enemy.max_health = definition.health
+	enemy.speed = definition.speed
+	
+	# Set enemy path
+	enemy.set_path(path)
+
+
 ## Spawn a single enemy based on wave data
 func _spawn_enemy(wave_data: Dictionary) -> void:
 	if not current_level_data or not enemies_container:
@@ -86,8 +100,18 @@ func _spawn_enemy(wave_data: Dictionary) -> void:
 	var spawn_pos: Vector2i = current_level_data.spawn_points[spawn_point_index]
 	var furnace_pos: Vector2i = current_level_data.furnace_position
 	
-	# Load enemy scene
-	var enemy_scene_path := "res://scenes/entities/enemies/%s_enemy.tscn" % enemy_type
+	# Load enemy definition
+	var enemy_definition := GameConfig.get_enemy_definition(enemy_type)
+	if not enemy_definition:
+		push_error("EnemyManager: Enemy definition not found for type: %s" % enemy_type)
+		return
+	
+	# Get scene path from definition
+	var enemy_scene_path: String = enemy_definition.scene_path
+	if enemy_scene_path.is_empty():
+		# Fallback to default path pattern
+		enemy_scene_path = "res://scenes/entities/enemies/%s_enemy.tscn" % enemy_type
+	
 	if not ResourceLoader.exists(enemy_scene_path):
 		push_error("EnemyManager: Enemy scene not found: %s" % enemy_scene_path)
 		return
@@ -115,22 +139,29 @@ func _spawn_enemy(wave_data: Dictionary) -> void:
 		enemy.queue_free()
 		return
 	
-	# Set enemy path
-	enemy.set_path(path)
-	
-	# Connect signals
+	# Connect signals BEFORE adding to scene tree
 	enemy.died.connect(_on_enemy_died.bind(enemy))
 	enemy.reached_furnace.connect(_on_enemy_reached_furnace.bind(enemy))
 	
-	# Add to scene and tracking
+	# Add to scene tree first (this triggers _ready() synchronously)
 	enemies_container.add_child(enemy)
+	
+	# Set enemy stats from definition AFTER _ready() completes
+	# Using call_deferred ensures _ready() has finished before we override stats
+	var definition := enemy_definition as EnemyDefinition
+	if definition:
+		call_deferred("_apply_enemy_definition", enemy, definition, path)
+	else:
+		push_error("EnemyManager: Enemy definition is not an EnemyDefinition resource")
+	
+	# Track enemy
 	active_enemies.append(enemy)
 	enemies_spawned += 1
 	
 	# Emit spawn signal
 	enemy_spawned.emit(enemy)
 	
-	print("EnemyManager: Spawned %s enemy at %s (path length: %d)" % [enemy_type, spawn_pos, path.size()])
+	print("EnemyManager: Spawned %s enemy at %s (path length: %d, health: %d, speed: %.1f)" % [enemy_type, spawn_pos, path.size(), enemy_definition.health, enemy_definition.speed])
 
 
 ## Called when an enemy dies

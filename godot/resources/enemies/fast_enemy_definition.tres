@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/enemy_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+enemy_type = "fast"
+display_name = "Fast Enemy"
+health = 30
+speed = 80.0
+scene_path = "res://scenes/entities/enemies/fast_enemy.tscn"
+color = Color(0.2, 0.6, 0.9, 1)
+introduction_level = 2
