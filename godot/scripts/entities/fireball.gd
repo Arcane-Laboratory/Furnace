@@ -18,6 +18,9 @@ var activated_tiles: Array[Vector2i] = []
 ## Track current grid position for collision detection
 var current_grid_pos: Vector2i = Vector2i(-1, -1)
 
+## Reference to the AnimatedSprite2D node
+@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+
 signal fireball_destroyed
 signal enemy_hit(enemy: Node2D, damage: int)
 signal rune_ignited(rune: RuneBase)
@@ -27,6 +30,12 @@ signal fireball_bounced
 func _ready() -> void:
 	current_speed = GameConfig.fireball_speed
 	add_to_group("fireball")
+	
+	# Ensure animation is playing (use get_node as fallback if @onready isn't ready)
+	var sprite := animated_sprite if animated_sprite else get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if sprite:
+		sprite.play("default")
+		sprite.visible = true
 
 
 func _physics_process(delta: float) -> void:
@@ -66,6 +75,15 @@ func launch(start_position: Vector2) -> void:
 	is_active = true
 	activated_tiles.clear()
 	current_grid_pos = _world_to_grid(position)
+	
+	# Ensure animation is playing (use get_node as fallback if @onready isn't ready)
+	var sprite := animated_sprite if animated_sprite else get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if sprite:
+		sprite.play("default")
+		sprite.visible = true
+	
+	# Update rotation to face direction
+	_update_rotation()
 
 
 ## Set a new direction (called by redirect runes)
@@ -73,6 +91,7 @@ func set_direction(new_direction: Vector2) -> void:
 	# Ensure cardinal direction only
 	if new_direction in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
 		direction = new_direction
+		_update_rotation()
 
 
 ## Increase speed (called by acceleration runes)
@@ -138,6 +157,9 @@ func _bounce() -> void:
 	direction = -direction  # Reverse direction
 	fireball_bounced.emit()
 	
+	# Update rotation to face new direction
+	_update_rotation()
+	
 	# Clear activated tiles when bouncing to allow re-activation
 	# This prevents getting stuck in loops where runes can't activate again
 	activated_tiles.clear()
@@ -166,3 +188,26 @@ func _grid_to_world(grid_pos: Vector2i) -> Vector2:
 		grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2,
 		grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2
 	)
+
+
+## Update sprite rotation to face movement direction
+func _update_rotation() -> void:
+	var sprite := animated_sprite if animated_sprite else get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if not sprite:
+		return
+	
+	# Calculate rotation angle based on direction
+	# DOWN (0, 1) = 0 radians (default, facing down)
+	# UP (0, -1) = PI radians (180 degrees, facing up)
+	# RIGHT (1, 0) = -PI/2 radians (-90 degrees, facing right)
+	# LEFT (-1, 0) = PI/2 radians (90 degrees, facing left)
+	var rotation_angle: float = 0.0
+	if direction == Vector2.UP:
+		rotation_angle = PI
+	elif direction == Vector2.RIGHT:
+		rotation_angle = -PI / 2.0
+	elif direction == Vector2.LEFT:
+		rotation_angle = PI / 2.0
+	# DOWN is already 0.0
+	
+	sprite.rotation = rotation_angle

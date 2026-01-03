@@ -1,13 +1,56 @@
-[gd_scene load_steps=2 format=3 uid="uid://fireball"]
+[gd_scene load_steps=9 format=3 uid="uid://fireball"]
 
 [ext_resource type="Script" path="res://scripts/entities/fireball.gd" id="1_fireball"]
+[ext_resource type="Texture2D" uid="uid://dtekhosid5ju4" path="res://assets/sprites/fireball.png" id="2_fireball"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame0"]
+atlas = ExtResource("2_fireball")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame1"]
+atlas = ExtResource("2_fireball")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame2"]
+atlas = ExtResource("2_fireball")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame3"]
+atlas = ExtResource("2_fireball")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame4"]
+atlas = ExtResource("2_fireball")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame5"]
+atlas = ExtResource("2_fireball")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame6"]
+atlas = ExtResource("2_fireball")
+region = Rect2(192, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fireball"]
+animations = [{
+"frames": [SubResource("AtlasTexture_frame0"), SubResource("AtlasTexture_frame1"), SubResource("AtlasTexture_frame2"), SubResource("AtlasTexture_frame3"), SubResource("AtlasTexture_frame4"), SubResource("AtlasTexture_frame5"), SubResource("AtlasTexture_frame6")],
+"loop": true,
+"name": "default",
+"speed": 20.0
+}]
 
 [node name="Fireball" type="Node2D"]
 script = ExtResource("1_fireball")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+centered = true
+offset = Vector2(0, 0)
+sprite_frames = SubResource("SpriteFrames_fireball")
+animation = "default"
+playing = true
 
 [node name="FireballVisual" type="ColorRect" parent="."]
+visible = false
 offset_left = -8.0
 offset_top = -8.0
 offset_right = 8.0

@@ -1,9 +1,9 @@
 [gd_scene load_steps=6 format=3 uid="uid://b8ueaefk5grmb"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_theme"]
-[ext_resource type="Script" uid="uid://civ2widccyvhw" path="res://scripts/ui/tile_tooltip.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://c6j1bnmsqnjso" path="res://scripts/ui/tile_tooltip.gd" id="2_script"]
 [ext_resource type="PackedScene" uid="uid://spk7rmyqqglv" path="res://scenes/ui/tooltip_label.tscn" id="3_4hynu"]
-[ext_resource type="Texture2D" uid="uid://bbn1cc3p4k1jm" path="res://icon.svg" id="3_iq88k"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="3_iq88k"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4hynu"]
 bg_color = Color(0.0885599, 0.08855992, 0.08855986, 1)

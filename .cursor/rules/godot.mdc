@@ -71,6 +71,15 @@ globs: godot/\*\*
 - Log errors appropriately in production builds
 - Handle network errors gracefully in multiplayer games
 
+## Testing and Validation
+
+- **After making code changes**: Run `./cursor-integration/godot-check-errors.sh` to check for runtime errors and warnings in the Godot log file
+- The error check script should be run as part of testing after any code modifications to catch issues early
+- The script checks the latest Godot log file and reports any errors or warnings found
+- This helps catch runtime issues that may not be detected during static analysis
+- Run the script from the project root: `./cursor-integration/godot-check-errors.sh`
+- The script will automatically find the Godot log file at `~/.local/share/godot/app_userdata/Furnace/logs/godot.log`
+
 ## Real-Time Error Monitoring
 
 - **Godot Log Watcher**: A real-time error monitoring system is available in `cursor-integration/`
