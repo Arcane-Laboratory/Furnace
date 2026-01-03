@@ -12,8 +12,10 @@ func _ready() -> void:
 	
 	if GameManager.game_won:
 		title_label.text = "Victory!"
+		AudioManager.play_victory_music()
 	else:
 		title_label.text = "Game Over"
+		AudioManager.play_defeat_music()
 	
 	retry_button.pressed.connect(_on_retry_pressed)
 	menu_button.pressed.connect(_on_menu_pressed)

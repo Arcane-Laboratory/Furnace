@@ -1,8 +1,9 @@
 # Furnace - Implementation Status Review
 
-**Last Updated**: January 2, 2025  
+**Last Updated**: Current  
 **Git Status**: Up to date with `origin/main` (https://github.com/Arcane-Laboratory/Furnace.git)  
-**Working Tree**: Clean
+**Working Tree**: Clean  
+**Note**: Completed plans have been archived to `.cursor/plans/archive/`
 
 ---
 
@@ -50,7 +51,7 @@ Furnace/
 ## Implementation Status by System
 
 ### ✅ Phase 0: Scaffold (COMPLETE)
-**Status**: All tasks completed per `initial_scaffold.md`
+**Status**: All tasks completed - **ARCHIVED** (`archive/initial_scaffold.md`)
 
 - ✅ Directory structure created
 - ✅ Background asset placed
@@ -59,16 +60,16 @@ Furnace/
 - ✅ Game scene with basic structure
 - ✅ Project configuration updated
 
-### 🟡 Phase 1: Foundation (PARTIAL)
+### ✅ Phase 1: Foundation (COMPLETE)
+**Status**: Tile system fully implemented - **ARCHIVED** (`archive/tile-system-scaffold.md`)
 
 #### Grid & Tile System
-- ❌ **GridManager autoload** - Not implemented
-- ❌ **Grid TileMap setup** - Not implemented (using manual grid drawing)
-- ✅ **Basic grid visualization** - Implemented in `game_scene.gd` (manual ColorRect lines)
-- ✅ **Grid state tracking** - Implemented in `game_scene.gd` (`grid_state` array)
-- ✅ **Hover highlight** - Implemented in `game_scene.gd`
-
-**Note**: Grid functionality is partially implemented directly in `game_scene.gd` rather than as a separate GridManager autoload.
+- ✅ **TileManager autoload** - Fully implemented (`scripts/tiles/tile_manager.gd`)
+- ✅ **Tile system** - Complete with TileBase, terrain types, occupancy tracking
+- ✅ **Grid state tracking** - Dictionary-based grid state in TileManager
+- ✅ **Hover highlight** - Implemented in `game_scene.gd` with tile integration
+- ✅ **Terrain types** - OPEN and ROCK implemented with scenes
+- ✅ **Spawn point markers** - Visual markers implemented
 
 ### ✅ Phase 2: Core Entities (PARTIAL)
 
@@ -111,11 +112,14 @@ Furnace/
 - Only Redirect Rune exists
 - All other rune types need implementation
 
-### ❌ Phase 4: Enemy System (NOT STARTED)
-- ❌ Base Enemy scene and script
-- ❌ Enemy types (Basic, Fast, Tank)
-- ❌ Enemy Manager autoload
-- ❌ Pathfinding Manager autoload
+### ✅ Phase 4: Enemy System (COMPLETE)
+**Status**: Enemy spawning and pathfinding implemented - **ARCHIVED** (`archive/enemy-spawning-system.md`, `archive/pathfinding-implementation.md`)
+
+- ✅ **Base Enemy scene and script** - EnemyBase class implemented (`scripts/entities/enemies/enemy_base.gd`)
+- ✅ **Basic Enemy** - BasicEnemy implemented (`scripts/entities/enemies/basic_enemy.gd`)
+- ✅ **Enemy Manager autoload** - Fully implemented (`scripts/autoload/enemy_manager.gd`)
+- ✅ **Pathfinding Manager autoload** - A* pathfinding implemented (`scripts/autoload/pathfinding_manager.gd`)
+- ⚠️ **Additional enemy types** - Fast and Tank enemies not yet implemented
 
 ### 🟡 Phase 5: Systems Integration (PARTIAL)
 
@@ -187,15 +191,13 @@ Furnace/
 7. **UI scenes** - All menu screens exist and are functional
 
 ### What's Missing
-1. **GridManager** - Grid logic is embedded in game_scene instead of separate autoload
-2. **Pathfinding** - No A* pathfinding implementation
-3. **Enemy system** - No enemies, spawning, or pathfinding
-4. **Wall system** - No walls implemented
-5. **Furnace** - No furnace scene/entity
-6. **Most rune types** - Only redirect rune exists
-7. **Build UI** - No rune/wall selection panel
-8. **Placement system** - No click-to-place functionality
-9. **Level loading** - LevelData exists but not used to load levels
+1. **Wall system** - No walls implemented
+2. **Furnace** - No furnace scene/entity
+3. **Most rune types** - Only redirect rune exists
+4. **Placement system** - No click-to-place functionality (build menu exists but not connected)
+5. **Selling system** - Not implemented
+6. **Additional enemy types** - Fast and Tank enemies not implemented
+7. **Level loading** - LevelData exists but not fully integrated for level progression
 
 ### Architecture Deviations from Plan
 
@@ -214,23 +216,21 @@ Furnace/
 ## Next Steps (Priority Order)
 
 ### High Priority (Core Gameplay)
-1. **Wall system** - Implement wall scene and placement
-2. **Furnace** - Create furnace scene and integrate fireball launch
-3. **Build UI** - Add rune/wall selection panel with click-to-place
-4. **Enemy system** - Base enemy, spawning, pathfinding
-5. **Pathfinding** - A* implementation for enemy paths
+1. **Click-to-place system** - Connect build menu to placement logic
+2. **Wall system** - Implement wall scene and placement
+3. **Furnace** - Create furnace scene and integrate fireball launch
 
 ### Medium Priority (Game Features)
-6. **Additional rune types** - Portal, Explosive, Acceleration, Reflect
+4. **Additional rune types** - Portal, Explosive, Acceleration, Reflect
+5. **Additional enemy types** - Fast and Tank enemies
+6. **Selling system** - Allow players to sell placed structures
 7. **Level loading** - Implement LevelManager to load LevelData resources
-8. **Selling system** - Allow players to sell placed structures
-9. **Path preview** - Show enemy path during build phase
 
 ### Low Priority (Polish)
-10. **Visual effects** - Rune activation, explosions, trails
-11. **Sound effects** - SFX for all game events
-12. **Music** - Background music for phases
-13. **Performance** - Optimization pass
+8. **Visual effects** - Rune activation, explosions, trails
+9. **Sound effects** - SFX for all game events
+10. **Music** - Background music for phases
+11. **Performance** - Optimization pass
 
 ---
 
@@ -246,9 +246,12 @@ Furnace/
 ## Documentation Status
 
 ### Plans
-- ✅ `initial_scaffold.md` - Complete and accurate
-- ✅ `systems-integration-plan.md` - Complete plan, needs status updates
-- ✅ `implementation-status.md` - This file, current status
+- ✅ `archive/initial_scaffold.md` - **COMPLETE** - Archived
+- ✅ `archive/tile-system-scaffold.md` - **COMPLETE** - Archived
+- ✅ `archive/pathfinding-implementation.md` - **COMPLETE** - Archived
+- ✅ `archive/enemy-spawning-system.md` - **COMPLETE** - Archived
+- 🟡 `systems-integration-plan.md` - Reference plan, partially implemented
+- 🟡 `implementation-status.md` - This file, current status
 
 ### Design Docs
 - ✅ All design documents in `docs/` are present
@@ -257,4 +260,9 @@ Furnace/
 
 ---
 
-**Summary**: The project has a solid foundation with core scaffold complete, fireball system working, and basic game scene functional. The main gaps are enemy system, pathfinding, wall system, and most rune types. The architecture is functional but could be more modular per the original plan.
+**Summary**: 
+- ✅ **Completed Systems**: Scaffold, Tile System, Pathfinding, Enemy Spawning, Build Menu UI, Path Preview
+- 🟡 **Partially Complete**: Build UI (menu exists, missing click-to-place), Resource System (in GameManager)
+- ❌ **Missing Systems**: Click-to-place, Wall System, Furnace System, Additional Rune Types, Selling System
+
+**Archived Plans**: See `.cursor/plans/archive/` for completed implementation plans.
