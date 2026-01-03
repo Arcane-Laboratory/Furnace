@@ -1,7 +1,6 @@
 extends Node
 ## Developer tunable parameters - all game balance values in one place
 
-
 # Grid Configuration
 const GRID_COLUMNS: int = 13
 const GRID_ROWS: int = 7
@@ -36,14 +35,9 @@ var fast_enemy_speed: float = 80.0
 var tank_enemy_health: int = 150
 var tank_enemy_speed: float = 30.0
 
-# Resource Costs
-var wall_cost: int = 5
-var redirect_rune_cost: int = 10
-var advanced_redirect_rune_cost: int = 15
-var portal_rune_cost: int = 20
-var reflect_rune_cost: int = 12
-var explosive_rune_cost: int = 18
-var acceleration_rune_cost: int = 15
+# Buildable Item Definitions
+# These are loaded from resource files in godot/resources/buildable_items/
+var buildable_item_definitions: Dictionary = {}  # Key: item_type, Value: Resource (BuildableItemDefinition)
 
 # Level Resources (indexed by level number)
 var level_resources: Array[int] = [
@@ -57,7 +51,7 @@ var level_resources: Array[int] = [
 
 
 func _ready() -> void:
-	pass
+	_load_buildable_item_definitions()
 
 
 func get_level_resources(level: int) -> int:
@@ -66,23 +60,63 @@ func get_level_resources(level: int) -> int:
 	return 100  # Default fallback
 
 
+## Load all buildable item definitions from resource files
+func _load_buildable_item_definitions() -> void:
+	var definition_paths: Array[String] = [
+		"res://resources/buildable_items/wall_definition.tres",
+		"res://resources/buildable_items/redirect_rune_definition.tres",
+		"res://resources/buildable_items/advanced_redirect_rune_definition.tres",
+		"res://resources/buildable_items/portal_rune_definition.tres",
+		"res://resources/buildable_items/reflect_rune_definition.tres",
+		"res://resources/buildable_items/explosive_rune_definition.tres",
+		"res://resources/buildable_items/acceleration_rune_definition.tres",
+	]
+	
+	for path in definition_paths:
+		var definition: Resource = load(path) as Resource
+		if definition:
+			# Access property directly (it's an @export property on BuildableItemDefinition)
+			var item_type: String = definition.item_type
+			if item_type != "":
+				buildable_item_definitions[item_type] = definition
+			else:
+				push_error("GameConfig: Loaded definition missing item_type: %s" % path)
+		else:
+			push_error("GameConfig: Failed to load buildable item definition: %s" % path)
+
+
+## Get a buildable item definition by type
+func get_item_definition(item_type: String) -> Resource:
+	return buildable_item_definitions.get(item_type, null)
+
+
+## Get all buildable item definitions
+func get_all_item_definitions() -> Array:
+	var definitions: Array = []
+	for item_type in buildable_item_definitions:
+		definitions.append(buildable_item_definitions[item_type])
+	return definitions
+
+
+## Backward compatibility: Get rune cost (delegates to definition)
 func get_rune_cost(rune_type: String) -> int:
-	match rune_type:
-		"redirect":
-			return redirect_rune_cost
-		"advanced_redirect":
-			return advanced_redirect_rune_cost
-		"portal":
-			return portal_rune_cost
-		"reflect":
-			return reflect_rune_cost
-		"explosive":
-			return explosive_rune_cost
-		"acceleration":
-			return acceleration_rune_cost
-		_:
-			return 0
+	var definition := get_item_definition(rune_type)
+	if definition:
+		return definition.cost
+	return 0
 
 
+## Backward compatibility: Get wall cost (delegates to definition)
 func get_wall_cost() -> int:
-	return wall_cost
+	var definition := get_item_definition("wall")
+	if definition:
+		return definition.cost
+	return 5  # Fallback
+
+
+## Backward compatibility: Check if a rune type is unlocked by default (delegates to definition)
+func is_rune_unlocked_by_default(rune_type: String) -> bool:
+	var definition := get_item_definition(rune_type)
+	if definition:
+		return definition.unlocked_by_default
+	return false

@@ -117,6 +117,9 @@ func _initialize_tile_system() -> void:
 	EnemyManager.all_enemies_defeated.connect(_on_all_enemies_defeated)
 	EnemyManager.furnace_destroyed.connect(_on_furnace_destroyed)
 	
+	# Update build menu with level data
+	_update_build_menu()
+	
 	# Test pathfinding for all spawn points
 	_test_pathfinding()
 
@@ -240,6 +243,16 @@ func _fade_out_highlight() -> void:
 	
 	highlight_tween = create_tween()
 	highlight_tween.tween_property(hover_highlight, "color", Color(1.0, 0.9, 0.5, 0.0), 0.15)
+
+
+func _update_build_menu() -> void:
+	# Find and update build submenu with level data
+	# Path: UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu/ColorRect/CenterContainer/VBoxContainer/BuildSubmenu
+	var game_menu := get_node_or_null("UILayer/RightPanel/CenterContainer/VBoxContainer/GameMenu") as Control
+	if game_menu:
+		var build_submenu := game_menu.get_node_or_null("ColorRect/CenterContainer/VBoxContainer/BuildSubmenu") as Control
+		if build_submenu and build_submenu.has_method("set_level_data"):
+			build_submenu.set_level_data(current_level_data)
 
 
 func _test_pathfinding() -> void:
