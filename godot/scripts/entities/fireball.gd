@@ -21,6 +21,9 @@ var current_grid_pos: Vector2i = Vector2i(-1, -1)
 ## Reference to the AnimatedSprite2D node
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
+## Reference to the smoke particles
+@onready var smoke_particles: GPUParticles2D = $SmokeParticles
+
 signal fireball_destroyed
 signal enemy_hit(enemy: Node2D, damage: int)
 signal rune_ignited(rune: RuneBase)
@@ -36,6 +39,11 @@ func _ready() -> void:
 	if sprite:
 		sprite.play("default")
 		sprite.visible = true
+	
+	# Start with particles disabled (will be enabled when launched)
+	var particles := smoke_particles if smoke_particles else get_node_or_null("SmokeParticles") as GPUParticles2D
+	if particles:
+		particles.emitting = false
 
 
 func _physics_process(delta: float) -> void:
@@ -81,6 +89,11 @@ func launch(start_position: Vector2) -> void:
 	if sprite:
 		sprite.play("default")
 		sprite.visible = true
+	
+	# Enable smoke particles
+	var particles := smoke_particles if smoke_particles else get_node_or_null("SmokeParticles") as GPUParticles2D
+	if particles:
+		particles.emitting = true
 	
 	# Update rotation to face direction
 	_update_rotation()
@@ -168,6 +181,12 @@ func _bounce() -> void:
 ## Destroy the fireball
 func _destroy() -> void:
 	is_active = false
+	
+	# Stop smoke particles
+	var particles := smoke_particles if smoke_particles else get_node_or_null("SmokeParticles") as GPUParticles2D
+	if particles:
+		particles.emitting = false
+	
 	fireball_destroyed.emit()
 	queue_free()
 
@@ -211,3 +230,27 @@ func _update_rotation() -> void:
 	# DOWN is already 0.0
 	
 	sprite.rotation = rotation_angle
+	
+	# Update smoke particle direction to trail behind fireball (opposite direction)
+	_update_smoke_direction()
+
+
+## Update smoke particle direction to trail behind fireball
+func _update_smoke_direction() -> void:
+	var particles := smoke_particles if smoke_particles else get_node_or_null("SmokeParticles") as GPUParticles2D
+	if not particles or not particles.process_material:
+		return
+	
+	var material := particles.process_material as ParticleProcessMaterial
+	if not material:
+		return
+	
+	# Calculate direction vector opposite to fireball movement (smoke trails behind)
+	# DOWN (0, 1) -> particles go UP (0, -1) -> Vector3(0, -1, 0)
+	# UP (0, -1) -> particles go DOWN (0, 1) -> Vector3(0, 1, 0)
+	# RIGHT (1, 0) -> particles go LEFT (-1, 0) -> Vector3(-1, 0, 0)
+	# LEFT (-1, 0) -> particles go RIGHT (1, 0) -> Vector3(1, 0, 0)
+	var particle_direction: Vector3 = Vector3(-direction.x, -direction.y, 0)
+	
+	# Normalize and set direction (with some spread handled by the material's spread property)
+	material.direction = particle_direction.normalized()
