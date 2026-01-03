@@ -1,0 +1,43 @@
+[gd_scene load_steps=4 format=3 uid="uid://b3jhhs6h1vujk"]
+
+[ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_6jy2e"]
+[ext_resource type="PackedScene" uid="uid://dxuiv0flwd2jt" path="res://scenes/ui/game_submenu.tscn" id="2_vtvlb"]
+[ext_resource type="PackedScene" uid="uid://d2o6wquhpnbac" path="res://scenes/ui/build_submenu.tscn" id="3_g8oa6"]
+
+[node name="GameMenu" type="Control"]
+custom_minimum_size = Vector2(128, 320)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -512.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_6jy2e")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_6jy2e")
+color = Color(0.1584723, 0.15847233, 0.1584723, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/CenterContainer"]
+layout_mode = 2
+theme = ExtResource("1_6jy2e")
+theme_override_constants/separation = 0
+
+[node name="GameSubmenu" parent="ColorRect/CenterContainer/VBoxContainer" instance=ExtResource("2_vtvlb")]
+layout_mode = 2
+
+[node name="BuildSubmenu" parent="ColorRect/CenterContainer/VBoxContainer" instance=ExtResource("3_g8oa6")]
+layout_mode = 2
