@@ -1,6 +1,6 @@
 extends Node
 class_name DebugModeController
-## Handles all debug-mode functionality: spawn point/furnace placement, level export
+## Handles all debug-mode functionality: spawn point/terrain placement, level export
 
 
 ## Emitted when info snackbar should be shown
@@ -13,15 +13,15 @@ signal hide_info_requested()
 signal show_error_requested(message: String)
 
 
-## Debug placement mode (for placing spawn points, furnace, etc.)
-enum DebugPlacementMode { NONE, SPAWN_POINT, FURNACE }
+## Debug placement mode (for placing spawn points, terrain, etc.)
+enum DebugPlacementMode { NONE, SPAWN_POINT, TERRAIN }
 var debug_placement_mode: DebugPlacementMode = DebugPlacementMode.NONE
 
 ## Debug-placed spawn points (additional spawn points placed by editor)
 var debug_spawn_points: Array[Vector2i] = []
 
-## Debug-placed furnace position (overrides level data)
-var debug_furnace_position: Vector2i = Vector2i(-1, -1)
+## Debug-placed terrain tiles (additional terrain placed by editor)
+var debug_terrain_tiles: Array[Vector2i] = []
 
 ## Level export dialog
 var level_export_dialog: LevelExportDialog = null
@@ -70,8 +70,8 @@ func handle_placement_click(grid_pos: Vector2i) -> void:
 	match debug_placement_mode:
 		DebugPlacementMode.SPAWN_POINT:
 			_place_debug_spawn_point(grid_pos)
-		DebugPlacementMode.FURNACE:
-			_place_debug_furnace(grid_pos)
+		DebugPlacementMode.TERRAIN:
+			_place_debug_terrain(grid_pos)
 
 
 ## Create debug UI elements
@@ -114,7 +114,7 @@ func _create_debug_modal() -> void:
 	debug_modal.export_level_requested.connect(_on_export_level_requested)
 	debug_modal.go_to_level_requested.connect(_on_go_to_level_requested)
 	debug_modal.place_spawn_point_requested.connect(_on_place_spawn_point_requested)
-	debug_modal.place_furnace_requested.connect(_on_place_furnace_requested)
+	debug_modal.place_terrain_requested.connect(_on_place_terrain_requested)
 	
 	# Add to UI layer so it's on top
 	if ui_layer:
@@ -135,6 +135,7 @@ func _create_level_export_dialog() -> void:
 	
 	# Connect signals
 	level_export_dialog.export_completed.connect(_on_level_export_completed)
+	level_export_dialog.save_completed.connect(_on_level_save_completed)
 	level_export_dialog.cancelled.connect(_on_level_export_cancelled)
 	
 	# Add to UI layer so it's on top
@@ -151,7 +152,7 @@ func _on_debug_fab_pressed() -> void:
 ## Handle export level requested from debug modal
 func _on_export_level_requested() -> void:
 	if level_export_dialog:
-		level_export_dialog.show_dialog(debug_spawn_points, debug_furnace_position)
+		level_export_dialog.show_dialog(debug_spawn_points, debug_terrain_tiles)
 
 
 ## Handle go to level requested from debug modal
@@ -171,12 +172,12 @@ func _on_place_spawn_point_requested() -> void:
 	TileManager.highlight_tiles(func(tile): return tile.is_buildable() or tile.occupancy == TileBase.OccupancyType.EMPTY, "buildable")
 
 
-## Handle place furnace requested from debug modal
-func _on_place_furnace_requested() -> void:
-	debug_placement_mode = DebugPlacementMode.FURNACE
-	show_info_requested.emit("Click to place furnace (ESC to cancel)")
-	# Highlight top row tiles as potential placement spots
-	TileManager.highlight_tiles(func(tile): return tile.grid_position.y == 0, "buildable")
+## Handle place terrain requested from debug modal
+func _on_place_terrain_requested() -> void:
+	debug_placement_mode = DebugPlacementMode.TERRAIN
+	show_info_requested.emit("Click to place terrain (ESC to cancel)")
+	# Highlight all tiles as potential placement spots
+	TileManager.highlight_tiles(func(tile): return tile.is_buildable() or tile.occupancy == TileBase.OccupancyType.EMPTY, "buildable")
 
 
 ## Place a debug spawn point
@@ -201,32 +202,6 @@ func _place_debug_spawn_point(grid_pos: Vector2i) -> void:
 	show_info_requested.emit("Spawn point placed! Click to add more, ESC to finish")
 
 
-## Place a debug furnace
-func _place_debug_furnace(grid_pos: Vector2i) -> void:
-	# Furnace should be on top row (y == 0)
-	if grid_pos.y != 0:
-		show_error_requested.emit("Furnace must be on top row!")
-		return
-	
-	# Remove old debug furnace marker if exists
-	if debug_furnace_position != Vector2i(-1, -1):
-		_remove_debug_furnace_marker()
-	
-	# Set new furnace position
-	debug_furnace_position = grid_pos
-	
-	# Create visual marker
-	_create_debug_furnace_marker(grid_pos)
-	
-	print("DebugModeController: Placed debug furnace at %s" % grid_pos)
-	cancel_placement()
-	show_info_requested.emit("Furnace placed!")
-	# Auto-hide after 2 seconds
-	var tween := create_tween()
-	tween.tween_interval(2.0)
-	tween.tween_callback(func(): hide_info_requested.emit())
-
-
 ## Create a visual marker for debug spawn point
 func _create_debug_spawn_marker(grid_pos: Vector2i) -> void:
 	var marker := ColorRect.new()
@@ -244,16 +219,38 @@ func _create_debug_spawn_marker(grid_pos: Vector2i) -> void:
 		spawn_points_container.add_child(marker)
 
 
-## Create a visual marker for debug furnace
-func _create_debug_furnace_marker(grid_pos: Vector2i) -> void:
+## Place a debug terrain tile
+func _place_debug_terrain(grid_pos: Vector2i) -> void:
+	# Check if already a terrain tile
+	if grid_pos in debug_terrain_tiles:
+		show_error_requested.emit("Terrain already exists here!")
+		return
+	
+	# Check if terrain already exists in level data
+	if current_level_data and grid_pos in current_level_data.terrain_blocked:
+		show_error_requested.emit("Original terrain already here!")
+		return
+	
+	# Add the terrain tile
+	debug_terrain_tiles.append(grid_pos)
+	
+	# Create visual marker
+	_create_debug_terrain_marker(grid_pos)
+	
+	print("DebugModeController: Placed debug terrain at %s" % grid_pos)
+	show_info_requested.emit("Terrain placed! Click to add more, ESC to finish")
+
+
+## Create a visual marker for debug terrain
+func _create_debug_terrain_marker(grid_pos: Vector2i) -> void:
 	var marker := ColorRect.new()
-	marker.name = "DebugFurnace"
+	marker.name = "DebugTerrain_%d_%d" % [grid_pos.x, grid_pos.y]
 	marker.size = Vector2(GameConfig.TILE_SIZE - 4, GameConfig.TILE_SIZE - 4)
 	marker.position = Vector2(
 		grid_pos.x * GameConfig.TILE_SIZE + 2,
 		grid_pos.y * GameConfig.TILE_SIZE + 2
 	)
-	marker.color = Color(0.0, 0.8, 1.0, 0.6)  # Cyan
+	marker.color = Color(0.4, 0.35, 0.3, 0.7)  # Dark gray/brown for terrain
 	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	# Add to game board
@@ -261,22 +258,26 @@ func _create_debug_furnace_marker(grid_pos: Vector2i) -> void:
 		game_board.add_child(marker)
 
 
-## Remove debug furnace marker
-func _remove_debug_furnace_marker() -> void:
-	if game_board:
-		var old_marker := game_board.get_node_or_null("DebugFurnace")
-		if old_marker:
-			old_marker.queue_free()
-
-
-## Handle level export completed
+## Handle level export completed (copy to clipboard)
 func _on_level_export_completed(success: bool) -> void:
 	if success:
-		show_info_requested.emit("Level exported to clipboard!")
+		show_info_requested.emit("Level copied to clipboard!")
 		# Auto-hide after 3 seconds
 		var tween := create_tween()
 		tween.tween_interval(3.0)
 		tween.tween_callback(func(): hide_info_requested.emit())
+
+
+## Handle level save completed (save to file)
+func _on_level_save_completed(success: bool, file_path: String) -> void:
+	if success:
+		show_info_requested.emit("Level saved to %s" % file_path)
+	else:
+		show_error_requested.emit("Failed to save level!")
+	# Auto-hide after 3 seconds
+	var tween := create_tween()
+	tween.tween_interval(3.0)
+	tween.tween_callback(func(): hide_info_requested.emit())
 
 
 ## Handle level export cancelled
