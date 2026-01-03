@@ -6,7 +6,7 @@ extends Node2D
 @onready var right_panel: PanelContainer = $UILayer/RightPanel
 @onready var active_ui: Control = $UILayer/ActiveUI
 @onready var grid_overlay: Node2D = $GameBoard/GridOverlay
-@onready var path_preview: Node2D = $GameBoard/PathPreview
+@onready var path_preview: Node2D = get_node_or_null("GameBoard/PathPreview") as Node2D
 @onready var background: Sprite2D = $Background
 @onready var game_board: Node2D = $GameBoard
 @onready var tiles_container: Node2D = $GameBoard/Tiles
@@ -102,7 +102,7 @@ func _initialize_tile_system() -> void:
 	# Initialize TileManager with level data
 	TileManager.initialize_from_level_data(current_level_data)
 	
-	# Initialize path preview
+	# Initialize path preview (if it exists)
 	if path_preview:
 		path_preview.update_paths(current_level_data)
 		# Connect to tile occupancy changes to update paths
@@ -383,13 +383,13 @@ func _on_state_changed(new_state: GameManager.GameState) -> void:
 		GameManager.GameState.BUILD_PHASE:
 			right_panel.show()
 			active_ui.hide()
-			# Show path preview in build phase
+			# Show path preview in build phase (if it exists)
 			if path_preview:
 				path_preview.set_preview_visible(true)
 		GameManager.GameState.ACTIVE_PHASE:
 			right_panel.hide()
 			active_ui.show()
-			# Hide path preview in active phase
+			# Hide path preview in active phase (if it exists)
 			if path_preview:
 				path_preview.set_preview_visible(false)
 		GameManager.GameState.GAME_OVER:
