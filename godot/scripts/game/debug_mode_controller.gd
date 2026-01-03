@@ -65,13 +65,22 @@ func cancel_placement() -> void:
 	TileManager.clear_highlights()
 
 
-## Handle debug placement click at grid position
+## Handle debug placement click at grid position (left click = place)
 func handle_placement_click(grid_pos: Vector2i) -> void:
 	match debug_placement_mode:
 		DebugPlacementMode.SPAWN_POINT:
 			_place_debug_spawn_point(grid_pos)
 		DebugPlacementMode.TERRAIN:
 			_place_debug_terrain(grid_pos)
+
+
+## Handle debug removal click at grid position (right click = remove)
+func handle_removal_click(grid_pos: Vector2i) -> void:
+	match debug_placement_mode:
+		DebugPlacementMode.SPAWN_POINT:
+			_remove_debug_spawn_point(grid_pos)
+		DebugPlacementMode.TERRAIN:
+			_remove_debug_terrain(grid_pos)
 
 
 ## Create debug UI elements
@@ -167,7 +176,7 @@ func _on_go_to_level_requested(level_number: int) -> void:
 ## Handle place spawn point requested from debug modal
 func _on_place_spawn_point_requested() -> void:
 	debug_placement_mode = DebugPlacementMode.SPAWN_POINT
-	show_info_requested.emit("Click to place spawn point (ESC to cancel)")
+	show_info_requested.emit("Left-click to place, right-click to remove (ESC to cancel)")
 	# Highlight all tiles as potential placement spots
 	TileManager.highlight_tiles(func(tile): return tile.is_buildable() or tile.occupancy == TileBase.OccupancyType.EMPTY, "buildable")
 
@@ -175,7 +184,7 @@ func _on_place_spawn_point_requested() -> void:
 ## Handle place terrain requested from debug modal
 func _on_place_terrain_requested() -> void:
 	debug_placement_mode = DebugPlacementMode.TERRAIN
-	show_info_requested.emit("Click to place terrain (ESC to cancel)")
+	show_info_requested.emit("Left-click to place, right-click to remove (ESC to cancel)")
 	# Highlight all tiles as potential placement spots
 	TileManager.highlight_tiles(func(tile): return tile.is_buildable() or tile.occupancy == TileBase.OccupancyType.EMPTY, "buildable")
 
@@ -256,6 +265,46 @@ func _create_debug_terrain_marker(grid_pos: Vector2i) -> void:
 	# Add to game board
 	if game_board:
 		game_board.add_child(marker)
+
+
+## Remove a debug spawn point (right-click)
+func _remove_debug_spawn_point(grid_pos: Vector2i) -> void:
+	# Check if it's a debug-placed spawn point
+	if grid_pos not in debug_spawn_points:
+		show_error_requested.emit("No debug spawn point here!")
+		return
+	
+	# Remove from array
+	debug_spawn_points.erase(grid_pos)
+	
+	# Remove visual marker
+	if spawn_points_container:
+		var marker := spawn_points_container.get_node_or_null("DebugSpawn_%d_%d" % [grid_pos.x, grid_pos.y])
+		if marker:
+			marker.queue_free()
+	
+	print("DebugModeController: Removed debug spawn point at %s" % grid_pos)
+	show_info_requested.emit("Spawn point removed!")
+
+
+## Remove a debug terrain tile (right-click)
+func _remove_debug_terrain(grid_pos: Vector2i) -> void:
+	# Check if it's a debug-placed terrain tile
+	if grid_pos not in debug_terrain_tiles:
+		show_error_requested.emit("No debug terrain here!")
+		return
+	
+	# Remove from array
+	debug_terrain_tiles.erase(grid_pos)
+	
+	# Remove visual marker
+	if game_board:
+		var marker := game_board.get_node_or_null("DebugTerrain_%d_%d" % [grid_pos.x, grid_pos.y])
+		if marker:
+			marker.queue_free()
+	
+	print("DebugModeController: Removed debug terrain at %s" % grid_pos)
+	show_info_requested.emit("Terrain removed!")
 
 
 ## Handle level export completed (copy to clipboard)
