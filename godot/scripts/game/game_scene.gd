@@ -27,7 +27,7 @@ var placement_manager: PlacementManager = null
 var error_snackbar: Control = null
 
 ## Sell tooltip for selling items
-var sell_tooltip: Control = null
+var sell_tooltip: SellTooltip = null
 
 var is_paused: bool = false
 
@@ -621,29 +621,18 @@ func _show_error_snackbar(message: String) -> void:
 
 ## Create the sell tooltip
 func _create_sell_tooltip() -> void:
-	sell_tooltip = PanelContainer.new()
-	sell_tooltip.name = "SellTooltip"
+	var sell_tooltip_scene := load("res://scenes/ui/sell_tooltip.tscn") as PackedScene
+	if not sell_tooltip_scene:
+		push_error("GameScene: Failed to load sell_tooltip.tscn")
+		return
 	
-	# Just the sell button, no extra containers or labels
-	var sell_button := Button.new()
-	sell_button.name = "SellButton"
-	sell_button.text = "Sell $0"
-	sell_button.pressed.connect(_on_sell_button_pressed)
-	sell_button.custom_minimum_size = Vector2(60, 20)
-	sell_tooltip.add_child(sell_button)
+	sell_tooltip = sell_tooltip_scene.instantiate() as SellTooltip
+	if not sell_tooltip:
+		push_error("GameScene: Failed to instantiate sell tooltip")
+		return
 	
-	# Compact style with minimal padding
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.2, 0.25, 0.95)
-	style.set_corner_radius_all(3)
-	style.set_content_margin_all(2)
-	sell_tooltip.add_theme_stylebox_override("panel", style)
-	
-	# Ensure tooltip is on top and receives input
-	sell_tooltip.mouse_filter = Control.MOUSE_FILTER_STOP
-	sell_tooltip.z_index = 100
-	
-	sell_tooltip.visible = false
+	# Connect to sell request signal
+	sell_tooltip.sell_requested.connect(_on_sell_requested)
 	
 	# Add to UILayer so it's above game board and handles input correctly
 	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
@@ -665,14 +654,6 @@ func _show_sell_tooltip(grid_pos: Vector2i) -> void:
 	if not definition:
 		return
 	
-	# Store the grid position for the sell action
-	sell_tooltip.set_meta("grid_pos", grid_pos)
-	
-	# Update sell button text
-	var sell_button := sell_tooltip.get_node_or_null("SellButton") as Button
-	if sell_button:
-		sell_button.text = "Sell $%d" % definition.cost
-	
 	# Calculate screen position (tile position + game board offset)
 	var tile_screen_pos := Vector2(
 		grid_pos.x * GameConfig.TILE_SIZE + game_board.position.x,
@@ -680,40 +661,33 @@ func _show_sell_tooltip(grid_pos: Vector2i) -> void:
 	)
 	
 	# Position above the tile, centered horizontally
-	sell_tooltip.position = Vector2(
+	var tooltip_pos := Vector2(
 		tile_screen_pos.x + GameConfig.TILE_SIZE / 2.0 - 30,  # Center the ~60px button
 		tile_screen_pos.y - 26  # Just above the tile
 	)
 	
-	sell_tooltip.visible = true
+	sell_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos)
 
 
 ## Hide the sell tooltip
 func _hide_sell_tooltip() -> void:
 	if sell_tooltip:
-		sell_tooltip.visible = false
+		sell_tooltip.hide_tooltip()
 
 
 ## Check if mouse is over the sell tooltip
 func _is_mouse_over_sell_tooltip() -> bool:
-	if not sell_tooltip or not sell_tooltip.visible:
+	if not sell_tooltip:
 		return false
-	
-	var mouse_pos := get_viewport().get_mouse_position()
-	var tooltip_rect := Rect2(sell_tooltip.global_position, sell_tooltip.size)
-	return tooltip_rect.has_point(mouse_pos)
+	return sell_tooltip.is_mouse_over()
 
 
-## Handle sell button pressed
-func _on_sell_button_pressed() -> void:
-	if not sell_tooltip or not placement_manager:
+## Handle sell request from tooltip
+func _on_sell_requested(grid_pos: Vector2i) -> void:
+	if not placement_manager:
 		return
 	
-	var grid_pos: Vector2i = sell_tooltip.get_meta("grid_pos", Vector2i(-1, -1))
-	if grid_pos != Vector2i(-1, -1):
-		placement_manager.try_sell_item(grid_pos)
-	
-	_hide_sell_tooltip()
+	placement_manager.try_sell_item(grid_pos)
 
 
 ## Handle placement failed signal
