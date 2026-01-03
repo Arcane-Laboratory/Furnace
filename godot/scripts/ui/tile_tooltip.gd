@@ -1,6 +1,6 @@
 extends PanelContainer
-class_name SellTooltip
-## Tooltip shown when clicking a sellable tile - allows selling placed items
+class_name TileTooltip
+## Tooltip shown when clicking a tile - allows actions like selling placed items
 
 
 ## Emitted when sell button is pressed, with the grid position
