@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=5 format=3 uid="uid://debug_level_0"]
+
+[ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://oi70e4rojnys" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
+
+[sub_resource type="Resource" id="Resource_debug1"]
+script = ExtResource("2")
+enemy_type = 0
+spawn_point = 0
+delay = 0.0
+metadata/_custom_type_script = "uid://oi70e4rojnys"
+
+[sub_resource type="Resource" id="Resource_debug2"]
+script = ExtResource("2")
+enemy_type = 1
+spawn_point = 0
+delay = 3.0
+metadata/_custom_type_script = "uid://oi70e4rojnys"
+
+[resource]
+script = ExtResource("1")
+level_number = 0
+level_name = "Debug Level"
+starting_resources = 1000
+spawn_points = Array[Vector2i]([Vector2i(6, 6)])
+furnace_position = Vector2i(6, 0)
+terrain_blocked = Array[Vector2i]([])
+preset_walls = Array[Vector2i]([])
+preset_runes = Array[Dictionary]([])
+enemy_waves = Array[ExtResource("2")]([SubResource("Resource_debug1"), SubResource("Resource_debug2")])
+allowed_runes = Array[int]([])
+hint_text = "[DEBUG] Test level with all items unlocked and invincibility enabled."
+par_time_seconds = 999.0
