@@ -76,6 +76,12 @@ custom_minimum_size = Vector2(150, 28)
 layout_mode = 2
 text = "Go to Level..."
 
+[node name="RestartLevelButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 28)
+layout_mode = 2
+text = "Restart Level"
+
 [node name="HSeparator2" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
 layout_mode = 2
 
