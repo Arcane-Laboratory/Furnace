@@ -149,9 +149,11 @@ func _destroy() -> void:
 
 ## Convert world position to grid position
 func _world_to_grid(world_pos: Vector2) -> Vector2i:
+	# Use floori to correctly handle negative positions (left/top of grid)
+	# int() truncates toward zero, so int(-0.5) = 0, but we need -1
 	return Vector2i(
-		int(world_pos.x / GameConfig.TILE_SIZE),
-		int(world_pos.y / GameConfig.TILE_SIZE)
+		floori(world_pos.x / GameConfig.TILE_SIZE),
+		floori(world_pos.y / GameConfig.TILE_SIZE)
 	)
 
 
