@@ -27,6 +27,9 @@ var grid_position: Vector2i = Vector2i.ZERO
 ## Whether the enemy is currently moving
 var is_active: bool = false
 
+## Reference to health bar node (if present)
+@onready var health_bar: EnemyHealthBar = $HealthBar
+
 
 func _ready() -> void:
 	# Configure collision layers so enemies don't collide with each other
@@ -41,6 +44,10 @@ func _ready() -> void:
 	if max_health == 50:  # Still default value
 		max_health = health
 	add_to_group("enemies")
+	
+	# Initialize health bar if present
+	if health_bar:
+		health_bar.update_health(health, max_health)
 
 
 ## Override in subclasses for custom initialization
@@ -65,6 +72,10 @@ func set_path(path: Array[Vector2i]) -> void:
 func take_damage(amount: int) -> void:
 	health -= amount
 	
+	# Update health bar if present
+	if health_bar:
+		health_bar.update_health(health, max_health)
+	
 	if health <= 0:
 		_die()
 	else:
@@ -74,6 +85,7 @@ func take_damage(amount: int) -> void:
 ## Called when enemy takes damage (override for visual feedback)
 func _on_damaged(_amount: int) -> void:
 	# Flash red or play hit animation
+	# Health bar is already updated in take_damage()
 	pass
 
 

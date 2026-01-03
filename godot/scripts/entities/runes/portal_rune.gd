@@ -27,51 +27,49 @@ func _on_rune_ready() -> void:
 
 
 func _on_activate(fireball: Node2D) -> void:
-	# Only entrance portals activate on fireball pass
-	if not is_entrance:
-		return
-	
 	# Check if fireball is traveling FROM the configured direction
-	# (i.e., fireball direction is OPPOSITE to entrance direction)
+	# Entrance: fireball comes FROM entrance direction (opposite to configured direction)
+	# Exit: fireball comes FROM exit direction (opposite to configured direction, i.e., traveling INTO exit)
 	if not _is_fireball_from_configured_direction(fireball):
 		return
 	
-	# Check if we have a linked exit portal
+	# Check if we have a linked portal
 	if not linked_portal or not is_instance_valid(linked_portal):
-		print("PortalRune: No linked exit portal!")
+		print("PortalRune: No linked portal!")
 		return
 	
-	# Calculate exit position (center of exit portal tile)
-	var exit_position := Vector2(
+	# Calculate destination position (center of linked portal tile)
+	var destination_position := Vector2(
 		linked_portal.grid_position.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
 		linked_portal.grid_position.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 	)
 	
-	# Get exit direction from exit portal
+	# Get exit direction from destination portal
 	var exit_direction := linked_portal.get_direction_vector()
 	
 	# Teleport fireball
 	if fireball.has_method("teleport_to"):
-		fireball.teleport_to(exit_position, exit_direction)
+		fireball.teleport_to(destination_position, exit_direction)
 	
 	# Play teleport effects on both portals
 	_play_teleport_effect()
 	linked_portal._play_teleport_effect()
 
 
-## Check if the fireball is traveling FROM the configured entrance direction
+## Check if the fireball is traveling FROM the configured portal direction
+## Works for both entrance and exit portals:
+## - Entrance configured as NORTH: fireball should be traveling SOUTH (coming from north)
+## - Exit configured as SOUTH: fireball should be traveling NORTH (coming from south, going back through exit)
 func _is_fireball_from_configured_direction(fireball: Node2D) -> bool:
 	# Get current fireball direction
 	var fireball_direction: Vector2 = fireball.direction
 	
-	# Get the direction we expect the fireball to come FROM
-	# If entrance is configured as NORTH, fireball should be traveling SOUTH (coming from north)
-	var expected_fireball_direction := get_direction_vector()
+	# Get the configured portal direction
+	var portal_direction := get_direction_vector()
 	
-	# Fireball direction should match our configured direction (traveling in that direction means coming from opposite)
-	# Actually, if entrance direction is NORTH, we want fireball traveling SOUTH to enter from north
-	# So we check if fireball direction is OPPOSITE to our configured direction
-	return fireball_direction == -expected_fireball_direction
+	# Fireball direction should be OPPOSITE to portal direction
+	# This means fireball is coming FROM the portal direction
+	return fireball_direction == -portal_direction
 
 
 ## Get direction as Vector2
