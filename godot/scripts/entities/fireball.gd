@@ -9,6 +9,15 @@ var direction: Vector2 = Vector2.DOWN
 ## Current speed (can be modified by Acceleration Runes)
 var current_speed: float = 0.0
 
+## Base speed (without boosts)
+var base_speed: float = 0.0
+
+## Active speed boost amount
+var speed_boost: float = 0.0
+
+## Timer for speed boost duration
+var boost_timer: float = 0.0
+
 ## Whether the fireball is currently active/moving
 var is_active: bool = false
 
@@ -27,7 +36,8 @@ var current_grid_pos: Vector2i = Vector2i(-1, -1)
 signal fireball_destroyed
 signal enemy_hit(enemy: Node2D, damage: int)
 signal rune_ignited(rune: RuneBase)
-signal fireball_bounced
+signal fireball_reflected
+signal fireball_teleported(from_pos: Vector2, to_pos: Vector2)
 
 
 func _ready() -> void:
@@ -50,21 +60,27 @@ func _physics_process(delta: float) -> void:
 	if not is_active:
 		return
 	
+	# Update boost timer
+	if boost_timer > 0.0:
+		boost_timer -= delta
+		if boost_timer <= 0.0:
+			_remove_speed_boost()
+	
 	# Calculate next position
 	var next_pos := position + direction * current_speed * delta
 	var next_grid_pos := _world_to_grid(next_pos)
 	
-	# Check for boundary collision (bounce at grid edges)
-	# Only bounce if we're currently IN bounds and about to go OUT
+	# Check for boundary collision (destroy at grid edges)
+	# Only destroy if we're currently IN bounds and about to go OUT
 	# This allows the fireball to enter the grid from outside (spawn position)
 	var current_in_bounds := not _is_out_of_bounds(current_grid_pos)
 	if current_in_bounds and _is_out_of_bounds(next_grid_pos):
-		_bounce()
+		_destroy()
 		return
 	
-	# Check for wall collision (bounce at walls)
+	# Check for wall collision (destroy at walls)
 	if _has_wall_at(next_grid_pos) and next_grid_pos != current_grid_pos:
-		_bounce()
+		_destroy()
 		return
 	
 	# Move to next position
@@ -79,7 +95,10 @@ func _physics_process(delta: float) -> void:
 func launch(start_position: Vector2) -> void:
 	position = start_position
 	direction = Vector2.DOWN  # Always starts going down from furnace
-	current_speed = GameConfig.fireball_speed
+	base_speed = GameConfig.fireball_speed
+	current_speed = base_speed
+	speed_boost = 0.0
+	boost_timer = 0.0
 	is_active = true
 	activated_tiles.clear()
 	current_grid_pos = _world_to_grid(position)
@@ -107,9 +126,31 @@ func set_direction(new_direction: Vector2) -> void:
 		_update_rotation()
 
 
-## Increase speed (called by acceleration runes)
+## Increase speed permanently (called by acceleration runes if needed)
 func accelerate(amount: float) -> void:
-	current_speed = min(current_speed + amount, GameConfig.fireball_max_speed)
+	base_speed = min(base_speed + amount, GameConfig.fireball_max_speed)
+	_update_current_speed()
+
+
+## Apply a temporary speed boost for a duration
+func apply_speed_boost(amount: float, duration: float) -> void:
+	speed_boost = amount
+	boost_timer = duration
+	_update_current_speed()
+	print("Fireball: Speed boost applied! +%d for %.1fs (speed: %d)" % [amount, duration, current_speed])
+
+
+## Remove the speed boost
+func _remove_speed_boost() -> void:
+	speed_boost = 0.0
+	boost_timer = 0.0
+	_update_current_speed()
+	print("Fireball: Speed boost expired (speed: %d)" % current_speed)
+
+
+## Update current speed based on base speed and boost
+func _update_current_speed() -> void:
+	current_speed = min(base_speed + speed_boost, GameConfig.fireball_max_speed)
 
 
 ## Check if we've crossed a tile center and should activate runes
@@ -165,17 +206,36 @@ func _has_wall_at(grid_pos: Vector2i) -> bool:
 	return false
 
 
-## Bounce the fireball (180-degree turn)
-func _bounce() -> void:
+## Reflect the fireball (180-degree turn) - called by Reflect Rune
+func reflect() -> void:
 	direction = -direction  # Reverse direction
-	fireball_bounced.emit()
+	fireball_reflected.emit()
 	
 	# Update rotation to face new direction
 	_update_rotation()
 	
-	# Clear activated tiles when bouncing to allow re-activation
+	# Clear activated tiles when reflecting to allow re-activation
 	# This prevents getting stuck in loops where runes can't activate again
 	activated_tiles.clear()
+
+
+## Teleport the fireball to a new position with a new direction - called by Portal Rune
+func teleport_to(new_position: Vector2, new_direction: Vector2) -> void:
+	var old_position := position
+	position = new_position
+	current_grid_pos = _world_to_grid(position)
+	
+	# Set new direction (must be cardinal)
+	if new_direction in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+		direction = new_direction
+	
+	# Update rotation to face new direction
+	_update_rotation()
+	
+	# Clear activated tiles to allow activation at new location
+	activated_tiles.clear()
+	
+	fireball_teleported.emit(old_position, new_position)
 
 
 ## Destroy the fireball

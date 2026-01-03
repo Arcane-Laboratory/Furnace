@@ -3,7 +3,7 @@ extends Node
 
 ## Developer debug mode - when true, starts at debug level with all items unlocked
 ## Set to true in editor for testing, leave false for production
-var debug_mode: bool = false
+var debug_mode: bool = true
 
 # Grid Configuration
 const GRID_COLUMNS: int = 13
@@ -74,7 +74,6 @@ func _load_buildable_item_definitions() -> void:
 	var definition_paths: Array[String] = [
 		"res://resources/buildable_items/wall_definition.tres",
 		"res://resources/buildable_items/redirect_rune_definition.tres",
-		"res://resources/buildable_items/advanced_redirect_rune_definition.tres",
 		"res://resources/buildable_items/portal_rune_definition.tres",
 		"res://resources/buildable_items/reflect_rune_definition.tres",
 		"res://resources/buildable_items/explosive_rune_definition.tres",

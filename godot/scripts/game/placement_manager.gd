@@ -15,6 +15,11 @@ signal item_sold(item_type: String, grid_pos: Vector2i, refund_amount: int)
 ## Emitted when selection changes
 signal selection_changed(item_type: String)
 
+## Emitted when portal placement mode changes (for UI to show snackbar)
+signal portal_placement_started()
+signal portal_placement_completed()
+signal portal_placement_cancelled()
+
 
 ## Currently selected item type (empty if none)
 var selected_item_type: String = ""
@@ -33,6 +38,12 @@ var ghost_preview: Node2D = null
 
 ## Reference to level data (for pathfinding validation)
 var level_data: LevelData = null
+
+## Portal placement state
+var is_placing_portal_exit: bool = false
+var pending_portal_entrance: Node2D = null
+var pending_portal_entrance_pos: Vector2i = Vector2i(-1, -1)
+var pending_portal_definition: Resource = null
 
 
 func _ready() -> void:
@@ -68,6 +79,11 @@ func set_selected_item(item_type: String) -> void:
 
 ## Clear the current selection
 func clear_selection() -> void:
+	# If we're placing a portal exit, cancel portal placement instead
+	if is_placing_portal_exit:
+		cancel_portal_placement()
+		return
+	
 	selected_item_type = ""
 	_clear_ghost_preview()
 	
@@ -91,6 +107,13 @@ func get_selected_definition() -> Resource:
 
 ## Validate if placement is allowed at position
 func can_place_at(grid_pos: Vector2i) -> bool:
+	# Handle portal exit placement mode
+	if is_placing_portal_exit:
+		# Can't place on same tile as entrance
+		if grid_pos == pending_portal_entrance_pos:
+			return false
+		return TileManager.is_buildable(grid_pos)
+	
 	# Check if tile is buildable
 	if not TileManager.is_buildable(grid_pos):
 		return false
@@ -149,6 +172,10 @@ func would_block_all_paths(grid_pos: Vector2i) -> bool:
 
 ## Attempt to place the selected item at a grid position
 func try_place_item(grid_pos: Vector2i) -> bool:
+	# Handle portal exit placement if we're in that mode
+	if is_placing_portal_exit:
+		return _try_place_portal_exit(grid_pos)
+	
 	if selected_item_type.is_empty():
 		placement_failed.emit("No item selected")
 		return false
@@ -173,6 +200,10 @@ func try_place_item(grid_pos: Vector2i) -> bool:
 		if would_block_all_paths(grid_pos):
 			placement_failed.emit("Would block all paths!")
 			return false
+	
+	# Check if this item requires paired placement (like portal)
+	if definition.requires_paired_placement:
+		return _start_portal_placement(grid_pos, definition)
 	
 	# Execute placement
 	var success := _execute_placement(grid_pos, definition)
@@ -228,6 +259,158 @@ func _execute_placement(grid_pos: Vector2i, definition: Resource) -> bool:
 	return true
 
 
+## Start portal placement (place entrance, then wait for exit)
+func _start_portal_placement(grid_pos: Vector2i, definition: Resource) -> bool:
+	# Spend resources for the portal (cost covers both entrance and exit)
+	if not GameManager.spend_resources(definition.cost):
+		placement_failed.emit("Not enough money!")
+		return false
+	
+	# Create and place the entrance portal
+	var entrance_scene := load(definition.scene_path) as PackedScene
+	if not entrance_scene:
+		GameManager.add_resources(definition.cost)  # Refund
+		placement_failed.emit("Failed to load portal scene")
+		return false
+	
+	var entrance_node := entrance_scene.instantiate()
+	if not entrance_node:
+		GameManager.add_resources(definition.cost)  # Refund
+		placement_failed.emit("Failed to create portal entrance")
+		return false
+	
+	# Add entrance to scene
+	if runes_container:
+		runes_container.add_child(entrance_node)
+	
+	# Position the entrance
+	if entrance_node is RuneBase:
+		(entrance_node as RuneBase).set_grid_position(grid_pos)
+	
+	# Update tile occupancy
+	TileManager.set_occupancy(grid_pos, TileBase.OccupancyType.RUNE, entrance_node, true, definition.item_type)
+	
+	# Store pending portal info for exit placement
+	pending_portal_entrance = entrance_node
+	pending_portal_entrance_pos = grid_pos
+	pending_portal_definition = definition
+	is_placing_portal_exit = true
+	
+	# Update ghost preview to show exit portal
+	_clear_ghost_preview()
+	if not definition.paired_scene_path.is_empty():
+		var exit_scene := load(definition.paired_scene_path) as PackedScene
+		if exit_scene:
+			var exit_preview := exit_scene.instantiate()
+			if exit_preview is Node2D:
+				ghost_preview = exit_preview as Node2D
+				ghost_preview.modulate.a = 0.5
+				if runes_container:
+					runes_container.add_child(ghost_preview)
+	
+	# Emit signal for UI to show "Place portal exit" snackbar
+	portal_placement_started.emit()
+	
+	return true
+
+
+## Try to place the portal exit
+func _try_place_portal_exit(grid_pos: Vector2i) -> bool:
+	if not is_placing_portal_exit or not pending_portal_definition:
+		return false
+	
+	# Can't place exit on same tile as entrance
+	if grid_pos == pending_portal_entrance_pos:
+		placement_failed.emit("Exit cannot be on same tile as entrance")
+		return false
+	
+	# Check if tile is buildable
+	if not TileManager.is_buildable(grid_pos):
+		placement_failed.emit("Cannot build here")
+		return false
+	
+	# Create and place the exit portal
+	var exit_scene := load(pending_portal_definition.paired_scene_path) as PackedScene
+	if not exit_scene:
+		placement_failed.emit("Failed to load portal exit scene")
+		return false
+	
+	var exit_node := exit_scene.instantiate()
+	if not exit_node:
+		placement_failed.emit("Failed to create portal exit")
+		return false
+	
+	# Add exit to scene
+	if runes_container:
+		runes_container.add_child(exit_node)
+	
+	# Position the exit
+	if exit_node is RuneBase:
+		(exit_node as RuneBase).set_grid_position(grid_pos)
+	
+	# Update tile occupancy
+	TileManager.set_occupancy(grid_pos, TileBase.OccupancyType.RUNE, exit_node, true, pending_portal_definition.item_type)
+	
+	# Link the portals together
+	if pending_portal_entrance is PortalRune and exit_node is PortalRune:
+		(pending_portal_entrance as PortalRune).link_to(exit_node as PortalRune)
+	
+	# Clear ghost preview
+	_clear_ghost_preview()
+	
+	# Reset portal placement state
+	is_placing_portal_exit = false
+	pending_portal_entrance = null
+	pending_portal_entrance_pos = Vector2i(-1, -1)
+	pending_portal_definition = null
+	
+	# Emit success signals
+	portal_placement_completed.emit()
+	placement_succeeded.emit("portal", grid_pos)
+	
+	# Clear selection
+	clear_selection()
+	
+	return true
+
+
+## Cancel portal placement (remove entrance and refund)
+func cancel_portal_placement() -> void:
+	if not is_placing_portal_exit:
+		return
+	
+	# Remove the entrance portal
+	if pending_portal_entrance and is_instance_valid(pending_portal_entrance):
+		# Clear tile occupancy first
+		TileManager.clear_tile(pending_portal_entrance_pos)
+		pending_portal_entrance.queue_free()
+	
+	# Refund the cost
+	if pending_portal_definition:
+		GameManager.add_resources(pending_portal_definition.cost)
+	
+	# Clear ghost preview
+	_clear_ghost_preview()
+	
+	# Reset state
+	is_placing_portal_exit = false
+	pending_portal_entrance = null
+	pending_portal_entrance_pos = Vector2i(-1, -1)
+	pending_portal_definition = null
+	selected_item_type = ""
+	
+	if build_submenu and build_submenu.has_method("clear_selection"):
+		build_submenu.clear_selection()
+	
+	selection_changed.emit("")
+	portal_placement_cancelled.emit()
+
+
+## Check if we're currently in portal exit placement mode
+func is_in_portal_exit_mode() -> bool:
+	return is_placing_portal_exit
+
+
 ## Create a fallback visual for items without a scene
 func _create_fallback_visual(definition: Resource) -> Node2D:
 	var visual := Node2D.new()
@@ -262,6 +445,12 @@ func try_sell_item(grid_pos: Vector2i) -> bool:
 	if not TileManager.can_sell_tile(grid_pos):
 		return false
 	
+	# Get the tile and structure before clearing
+	var tile := TileManager.get_tile(grid_pos)
+	var structure: Node = null
+	if tile:
+		structure = tile.structure
+	
 	# Get the item type for refund calculation
 	var item_type := TileManager.get_placed_item_type(grid_pos)
 	var definition := GameConfig.get_item_definition(item_type)
@@ -272,7 +461,21 @@ func try_sell_item(grid_pos: Vector2i) -> bool:
 	# Calculate refund (100% of cost)
 	var refund_amount: int = definition.cost
 	
-	# Clear the tile
+	# Handle portal paired removal - if selling a portal, also remove its linked portal
+	if structure is PortalRune:
+		var portal := structure as PortalRune
+		var linked_portal := portal.linked_portal
+		
+		if linked_portal and is_instance_valid(linked_portal):
+			# Find the grid position of the linked portal
+			var linked_grid_pos := linked_portal.grid_position
+			
+			# Clear the linked portal's tile
+			TileManager.clear_tile(linked_grid_pos)
+			
+			# Note: Refund is only given once (cost covers both entrance and exit)
+	
+	# Clear the tile (this also removes the structure)
 	TileManager.clear_tile(grid_pos)
 	
 	# Add resources back

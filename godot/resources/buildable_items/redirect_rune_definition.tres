@@ -12,3 +12,5 @@ icon_color = Color(0.9, 0.8, 0.2, 1)
 scene_path = "res://scenes/entities/runes/redirect_rune.tscn"
 has_direction = true
 default_direction = "south"
+max_level = 2
+upgrade_cost = 10
