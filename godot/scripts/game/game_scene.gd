@@ -6,7 +6,7 @@ extends Node2D
 @onready var right_panel: PanelContainer = $UILayer/RightPanel
 @onready var active_ui: Control = $UILayer/ActiveUI
 @onready var grid_overlay: Node2D = $GameBoard/GridOverlay
-@onready var path_preview: Node2D = get_node_or_null("GameBoard/PathPreview") as Node2D
+@onready var path_preview: Node2D = $GameBoard/PathPreview
 @onready var background: Sprite2D = $Background
 @onready var game_board: Node2D = $GameBoard
 @onready var tiles_container: Node2D = $GameBoard/Tiles
