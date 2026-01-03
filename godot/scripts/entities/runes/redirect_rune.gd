@@ -1,6 +1,8 @@
 extends RuneBase
 class_name RedirectRune
 ## Redirects the fireball to a fixed direction when activated
+## Level 1: Direction can only be changed during build phase
+## Level 2: Direction can be changed during active phase (like Advanced Redirect)
 
 
 enum Direction { NORTH, SOUTH, EAST, WEST }
@@ -10,10 +12,14 @@ enum Direction { NORTH, SOUTH, EAST, WEST }
 ## Reference to the direction indicator visual
 @onready var direction_indicator: ColorRect = $DirectionIndicator
 
+## Reference to optional level indicator
+var level_indicator: ColorRect = null
+
 
 func _on_rune_ready() -> void:
 	rune_type = "redirect"
 	_update_direction_visual()
+	_update_level_visual()
 
 
 func _on_activate(fireball: Node2D) -> void:
@@ -94,3 +100,34 @@ func _update_direction_visual() -> void:
 			direction_indicator.offset_top = -4.0
 			direction_indicator.offset_right = -4.0
 			direction_indicator.offset_bottom = 4.0
+
+
+## Update visual indicator for current level
+func _update_level_visual() -> void:
+	# Add corner markers for level 2+ to visually distinguish
+	if current_level >= 2:
+		if not level_indicator:
+			level_indicator = ColorRect.new()
+			level_indicator.name = "LevelIndicator"
+			add_child(level_indicator)
+		
+		# Small marker in corner to indicate upgraded
+		level_indicator.offset_left = -12.0
+		level_indicator.offset_top = -12.0
+		level_indicator.offset_right = -8.0
+		level_indicator.offset_bottom = -8.0
+		level_indicator.color = Color(0.2, 0.2, 0.2, 1.0)
+		level_indicator.visible = true
+	elif level_indicator:
+		level_indicator.visible = false
+
+
+## Override: Called when rune is upgraded
+func _on_upgrade(new_level: int) -> void:
+	_update_level_visual()
+	print("RedirectRune upgraded to level %d" % new_level)
+
+
+## Override: Level 2 redirect runes can be edited during active phase
+func is_editable_in_active_phase() -> bool:
+	return current_level >= 2

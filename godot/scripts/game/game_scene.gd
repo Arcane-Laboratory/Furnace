@@ -642,7 +642,7 @@ func _handle_build_phase_click() -> void:
 			_show_tile_tooltip(grid_pos)
 
 
-## Handle clicks during active phase (for advanced redirect runes only)
+## Handle clicks during active phase (for runes editable during active phase)
 func _handle_active_phase_click() -> void:
 	# Check if click is on the game board
 	var mouse_pos := get_global_mouse_position()
@@ -661,17 +661,19 @@ func _handle_active_phase_click() -> void:
 	# Hide any existing tooltip first
 	_hide_tile_tooltip()
 	
-	# Check if there's an advanced redirect rune at this position
+	# Check if there's a rune that's editable during active phase
 	var tile := TileManager.get_tile(grid_pos)
 	if not tile or not tile.structure:
 		return
 	
-	# Check if the structure is an AdvancedRedirectRune
-	if tile.structure is AdvancedRedirectRune:
-		_show_tile_tooltip_active_phase(grid_pos, tile.structure)
+	# Check if the structure is a rune that can be edited during active phase
+	if tile.structure is RuneBase:
+		var rune := tile.structure as RuneBase
+		if rune.is_editable_in_active_phase():
+			_show_tile_tooltip_active_phase(grid_pos, tile.structure)
 
 
-## Show tile tooltip during active phase (direction controls only, no sell button)
+## Show tile tooltip during active phase (direction controls only, no sell/upgrade buttons)
 func _show_tile_tooltip_active_phase(grid_pos: Vector2i, structure: Node) -> void:
 	if not tile_tooltip:
 		return
@@ -683,14 +685,14 @@ func _show_tile_tooltip_active_phase(grid_pos: Vector2i, structure: Node) -> voi
 	)
 	
 	# Position above the tile, with height for direction controls only
-	var tooltip_height := 50  # Shorter since no sell button
+	var tooltip_height := 50  # Shorter since no sell/upgrade buttons
 	var tooltip_pos := Vector2(
 		tile_screen_pos.x + GameConfig.TILE_SIZE / 2.0 - 30,
 		tile_screen_pos.y - tooltip_height
 	)
 	
-	# Show tooltip with direction controls but NO sell button
-	tile_tooltip.show_for_tile(grid_pos, 0, tooltip_pos, true, structure, false)
+	# Show tooltip with direction controls but NO sell button and NO upgrade button
+	tile_tooltip.show_for_tile(grid_pos, 0, tooltip_pos, true, structure, false, false)
 
 
 ## Create the error snackbar
@@ -826,6 +828,9 @@ func _create_tile_tooltip() -> void:
 	# Connect to sell request signal
 	tile_tooltip.sell_requested.connect(_on_sell_requested)
 	
+	# Connect to upgrade request signal
+	tile_tooltip.upgrade_requested.connect(_on_upgrade_requested)
+	
 	# Add to UILayer so it's above game board and handles input correctly
 	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
 	if ui_layer:
@@ -896,6 +901,30 @@ func _on_sell_requested(grid_pos: Vector2i) -> void:
 		return
 	
 	placement_manager.try_sell_item(grid_pos)
+
+
+## Handle upgrade request from tooltip
+func _on_upgrade_requested(grid_pos: Vector2i) -> void:
+	# Get the tile and structure
+	var tile := TileManager.get_tile(grid_pos)
+	if not tile or not tile.structure:
+		return
+	
+	# Check if structure is a rune that can be upgraded
+	if tile.structure is RuneBase:
+		var rune := tile.structure as RuneBase
+		if rune.can_upgrade():
+			var upgrade_cost := rune.get_upgrade_cost()
+			
+			# Check if player has enough resources
+			if GameManager.resources < upgrade_cost:
+				_show_error_snackbar("Not enough money!")
+				return
+			
+			# Spend resources and upgrade
+			if GameManager.spend_resources(upgrade_cost):
+				rune.upgrade()
+				print("GameScene: Upgraded rune at %s to level %d" % [grid_pos, rune.current_level])
 
 
 ## Handle placement failed signal

@@ -15,6 +15,8 @@ class_name BuildableItemDefinition
 @export var default_direction: String = "south"  # Default direction: "north", "south", "east", "west"
 @export var requires_paired_placement: bool = false  # Whether this item requires a second placement (e.g., portal entrance/exit)
 @export var paired_scene_path: String = ""  # Path to the paired scene (e.g., portal exit scene)
+@export var max_level: int = 1  # Maximum level for this item (1 = no upgrades)
+@export var upgrade_cost: int = 0  # Cost to upgrade to next level
 
 
 func _init(
@@ -28,7 +30,9 @@ func _init(
 	p_has_direction: bool = false,
 	p_default_direction: String = "south",
 	p_requires_paired_placement: bool = false,
-	p_paired_scene_path: String = ""
+	p_paired_scene_path: String = "",
+	p_max_level: int = 1,
+	p_upgrade_cost: int = 0
 ) -> void:
 	item_type = p_item_type
 	display_name = p_display_name
@@ -41,3 +45,5 @@ func _init(
 	default_direction = p_default_direction
 	requires_paired_placement = p_requires_paired_placement
 	paired_scene_path = p_paired_scene_path
+	max_level = p_max_level
+	upgrade_cost = p_upgrade_cost

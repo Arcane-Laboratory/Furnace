@@ -74,7 +74,6 @@ func _load_buildable_item_definitions() -> void:
 	var definition_paths: Array[String] = [
 		"res://resources/buildable_items/wall_definition.tres",
 		"res://resources/buildable_items/redirect_rune_definition.tres",
-		"res://resources/buildable_items/advanced_redirect_rune_definition.tres",
 		"res://resources/buildable_items/portal_rune_definition.tres",
 		"res://resources/buildable_items/reflect_rune_definition.tres",
 		"res://resources/buildable_items/explosive_rune_definition.tres",

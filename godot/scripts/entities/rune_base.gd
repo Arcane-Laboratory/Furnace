@@ -9,6 +9,9 @@ class_name RuneBase
 ## Number of uses remaining (0 = infinite)
 @export var uses_remaining: int = 0
 
+## Current level of this rune (starts at 1 when placed)
+var current_level: int = 1
+
 ## Grid position of this rune
 var grid_position: Vector2i = Vector2i.ZERO
 
@@ -20,6 +23,7 @@ var is_depleted: bool = false
 
 signal rune_activated(rune: RuneBase)
 signal rune_depleted(rune: RuneBase)
+signal rune_upgraded(rune: RuneBase, new_level: int)
 
 
 func _ready() -> void:
@@ -72,3 +76,45 @@ func set_grid_position(pos: Vector2i) -> void:
 ## Get the resource cost for this rune type
 func get_cost() -> int:
 	return GameConfig.get_rune_cost(rune_type)
+
+
+## Get the max level for this rune type
+func get_max_level() -> int:
+	var definition := GameConfig.get_item_definition(rune_type)
+	if definition:
+		return definition.max_level
+	return 1
+
+
+## Get the upgrade cost for this rune type
+func get_upgrade_cost() -> int:
+	var definition := GameConfig.get_item_definition(rune_type)
+	if definition:
+		return definition.upgrade_cost
+	return 0
+
+
+## Check if this rune can be upgraded
+func can_upgrade() -> bool:
+	return current_level < get_max_level()
+
+
+## Upgrade the rune to the next level
+func upgrade() -> bool:
+	if not can_upgrade():
+		return false
+	
+	current_level += 1
+	_on_upgrade(current_level)
+	rune_upgraded.emit(self, current_level)
+	return true
+
+
+## Override in subclasses to handle level-specific behavior
+func _on_upgrade(_new_level: int) -> void:
+	pass
+
+
+## Check if this rune is editable during active phase (override in subclasses)
+func is_editable_in_active_phase() -> bool:
+	return false
