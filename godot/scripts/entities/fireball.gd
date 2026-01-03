@@ -38,7 +38,10 @@ func _physics_process(delta: float) -> void:
 	var next_grid_pos := _world_to_grid(next_pos)
 	
 	# Check for boundary collision (bounce at grid edges)
-	if _is_out_of_bounds(next_grid_pos):
+	# Only bounce if we're currently IN bounds and about to go OUT
+	# This allows the fireball to enter the grid from outside (spawn position)
+	var current_in_bounds := not _is_out_of_bounds(current_grid_pos)
+	if current_in_bounds and _is_out_of_bounds(next_grid_pos):
 		_bounce()
 		return
 	
