@@ -1,13 +1,13 @@
 [gd_scene load_steps=4 format=3 uid="uid://t3stfxka0jty"]
 
-[ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_pause"]
+[ext_resource type="Script" uid="uid://4yq1hoiw5hwm" path="res://scripts/ui/pause_menu.gd" id="1_pause"]
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="2_0lmf7"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0lmf7"]
 
 [node name="PauseMenu" type="CanvasLayer"]
-layer = 100
 process_mode = 3
+layer = 100
 script = ExtResource("1_pause")
 
 [node name="ColorRect" type="ColorRect" parent="."]
@@ -50,7 +50,12 @@ layout_mode = 2
 [node name="ResumeButton" type="Button" parent="PanelContainer/VBoxContainer"]
 custom_minimum_size = Vector2(140, 36)
 layout_mode = 2
-text = "Resume"
+text = "Resume Game"
+
+[node name="ResumeButton2" type="Button" parent="PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(140, 36)
+layout_mode = 2
+text = "Restart Level"
 
 [node name="MenuButton" type="Button" parent="PanelContainer/VBoxContainer"]
 custom_minimum_size = Vector2(140, 36)

@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://ctcn512vpbrmx"]
+[gd_scene load_steps=4 format=3 uid="uid://ctcn512vpbrmx"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_aqpy5"]
-[ext_resource type="Script" uid="uid://jmyud21feeml" path="res://scripts/ui/title_screen.gd" id="1_title"]
+[ext_resource type="Script" uid="uid://cngyjb5d1j822" path="res://scripts/ui/title_screen.gd" id="1_title"]
+[ext_resource type="StyleBox" uid="uid://daxtmlmajhs7f" path="res://style_box_9p_fullscreen.tres" id="3_w8uqo"]
 
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
@@ -13,14 +14,14 @@ grow_vertical = 2
 theme = ExtResource("1_aqpy5")
 script = ExtResource("1_title")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.08, 0.08, 0.12, 1)
+theme_override_styles/panel = ExtResource("3_w8uqo")
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1

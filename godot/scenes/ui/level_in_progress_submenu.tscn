@@ -1,0 +1,194 @@
+[gd_scene load_steps=9 format=3 uid="uid://dx42pv0iig1xi"]
+
+[ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_xtru7"]
+[ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="2_utswl"]
+[ext_resource type="PackedScene" uid="uid://d3lefgipylt8o" path="res://scenes/ui/menu_label.tscn" id="3_pmnrq"]
+[ext_resource type="Texture2D" uid="uid://bfk22goopp3di" path="res://style_box_progressbar.tres" id="4_5ji2w"]
+[ext_resource type="StyleBox" uid="uid://biprx6rkh4548" path="res://style_box_9p_small.tres" id="5_37pao"]
+[ext_resource type="Texture2D" uid="uid://blugxvg6vsan5" path="res://resources/ui_assets/lvl.png" id="6_sj312"]
+[ext_resource type="Texture2D" uid="uid://b6g6hi3j00ebv" path="res://resources/ui_assets/spark.png" id="7_kncp7"]
+[ext_resource type="Texture2D" uid="uid://cpcubwevvr3qb" path="res://resources/ui_assets/heat.png" id="8_5flt0"]
+
+[node name="InProgressSubmenu" type="Control"]
+custom_minimum_size = Vector2(128, 240)
+layout_mode = 3
+anchor_left = 0.1
+anchor_right = 0.1
+offset_left = -64.0
+offset_right = 64.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_xtru7")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 240.0
+theme = ExtResource("1_xtru7")
+color = Color(0.07683582, 0.07683582, 0.07683582, 1)
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 240.0
+texture = ExtResource("2_utswl")
+patch_margin_left = 6
+patch_margin_top = 10
+patch_margin_right = 6
+patch_margin_bottom = 10
+
+[node name="MarginContainer2" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -64.0
+offset_top = -30.0
+offset_right = 64.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Button" type="Button" parent="MarginContainer2"]
+layout_mode = 2
+text = "Restart Level"
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 218.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+theme = ExtResource("1_xtru7")
+theme_override_constants/separation = 8
+
+[node name="MenuLabel" parent="CenterContainer/VBoxContainer" instance=ExtResource("3_pmnrq")]
+custom_minimum_size = Vector2(128, 12)
+layout_mode = 2
+
+[node name="Label" parent="CenterContainer/VBoxContainer/MenuLabel" index="0"]
+text = "Level Progress"
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme = ExtResource("1_xtru7")
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 0
+
+[node name="TextureProgressBar" type="TextureProgressBar" parent="CenterContainer/VBoxContainer/MarginContainer"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+size_flags_vertical = 0
+nine_patch_stretch = true
+stretch_margin_left = 4
+stretch_margin_top = 2
+stretch_margin_right = 4
+stretch_margin_bottom = 2
+texture_under = ExtResource("4_5ji2w")
+texture_over = ExtResource("4_5ji2w")
+texture_progress = ExtResource("4_5ji2w")
+tint_under = Color(0, 0, 0, 1)
+tint_over = Color(1, 0.6725376, 0.3336057, 1)
+tint_progress = Color(0.93271756, 0.40183282, 5.77569e-06, 1)
+
+[node name="MarginContainer2" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/MarginContainer2"]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="LevelRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/LevelRow"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("5_37pao")
+
+[node name="LevelValue" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/LevelRow/Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_right = 29.0
+offset_bottom = 9.0
+text = "1"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Icon" type="Sprite2D" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/LevelRow/Panel"]
+position = Vector2(6, 4.5)
+texture = ExtResource("6_sj312")
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/LevelRow"]
+layout_mode = 2
+text = "Soot Vanquished"
+
+[node name="MoneyRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/MoneyRow"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("5_37pao")
+
+[node name="MoneyValue" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/MoneyRow/Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_right = 29.0
+offset_bottom = 9.0
+text = "100"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Icon" type="Sprite2D" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/MoneyRow/Panel"]
+position = Vector2(6, 4.5)
+texture = ExtResource("7_kncp7")
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/MoneyRow"]
+layout_mode = 2
+text = "Sparks Earned"
+
+[node name="HeatRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/HeatRow"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("5_37pao")
+
+[node name="HeatValue" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/HeatRow/Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_right = 29.0
+offset_bottom = 9.0
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Icon" type="Sprite2D" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/HeatRow/Panel"]
+position = Vector2(6, 4.5)
+texture = ExtResource("8_5flt0")
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/HeatRow"]
+layout_mode = 2
+text = "Damage Dealt"
+
+[editable path="CenterContainer/VBoxContainer/MenuLabel"]

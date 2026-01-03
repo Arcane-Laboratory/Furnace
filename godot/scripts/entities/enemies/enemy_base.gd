@@ -30,6 +30,9 @@ var is_active: bool = false
 ## Reference to health bar node (if present)
 @onready var health_bar: EnemyHealthBar = $HealthBar
 
+## Reference to animation manager (if present)
+@onready var animation_manager: EnemyAnimationManager = $AnimationManager
+
 
 func _ready() -> void:
 	# Configure collision layers so enemies don't collide with each other
@@ -66,6 +69,10 @@ func set_path(path: Array[Vector2i]) -> void:
 		var start_pos := _grid_to_world(path[0])
 		position = start_pos
 		grid_position = path[0]
+		
+		# Play walk animation when path is set and enemy becomes active
+		if animation_manager:
+			animation_manager.play_walk()
 
 
 ## Take damage from fireball or explosion
@@ -79,6 +86,8 @@ func take_damage(amount: int) -> void:
 	if health <= 0:
 		_die()
 	else:
+		# Show floating damage number only if enemy survives
+		FloatingNumberManager.show_number(amount, global_position, Color.RED, null, 1.0, true)
 		_on_damaged(amount)
 
 
@@ -94,6 +103,22 @@ func _die() -> void:
 	health = 0
 	is_active = false
 	died.emit()
+	
+	# Hide health bar when enemy dies
+	if health_bar:
+		health_bar.visible = false
+	
+	# Play death animation if animation manager exists
+	if animation_manager:
+		animation_manager.play_death(_on_death_animation_complete)
+	else:
+		# No animation manager, call death callback and free immediately
+		_on_death()
+		queue_free()
+
+
+## Called when death animation completes (or immediately if no animation)
+func _on_death_animation_complete() -> void:
 	_on_death()
 	queue_free()
 
@@ -124,6 +149,10 @@ func _physics_process(_delta: float) -> void:
 		var direction := (target_pos - position).normalized()
 		velocity = direction * speed
 		move_and_slide()
+		
+		# Update sprite flip based on movement direction
+		if animation_manager:
+			animation_manager.set_flip_h(direction.x < 0)
 	else:
 		# Reached current node, move to next
 		current_path_index += 1

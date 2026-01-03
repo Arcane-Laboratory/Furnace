@@ -5,6 +5,7 @@ class_name DebugModal
 
 signal export_level_requested
 signal go_to_level_requested(level_number: int)
+signal restart_level_requested
 signal place_spawn_point_requested
 signal place_terrain_requested
 
@@ -15,6 +16,7 @@ signal place_terrain_requested
 @onready var level_list: VBoxContainer = $Panel/MarginContainer/VBoxContainer/LevelSubmenu/ScrollContainer/LevelList
 @onready var export_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/ExportButton
 @onready var go_to_level_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/GoToLevelButton
+@onready var restart_level_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/RestartLevelButton
 @onready var place_spawn_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/PlaceSpawnButton
 @onready var place_terrain_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/PlaceTerrainButton
 @onready var back_button: Button = $Panel/MarginContainer/VBoxContainer/LevelSubmenu/BackButton
@@ -26,6 +28,7 @@ func _ready() -> void:
 	# Connect button signals
 	export_button.pressed.connect(_on_export_pressed)
 	go_to_level_button.pressed.connect(_on_go_to_level_pressed)
+	restart_level_button.pressed.connect(_on_restart_level_pressed)
 	place_spawn_button.pressed.connect(_on_place_spawn_pressed)
 	place_terrain_button.pressed.connect(_on_place_terrain_pressed)
 	back_button.pressed.connect(_on_back_pressed)
@@ -88,6 +91,11 @@ func _on_export_pressed() -> void:
 func _on_go_to_level_pressed() -> void:
 	main_menu.visible = false
 	level_submenu.visible = true
+
+
+func _on_restart_level_pressed() -> void:
+	restart_level_requested.emit()
+	hide_modal()
 
 
 func _on_place_spawn_pressed() -> void:
