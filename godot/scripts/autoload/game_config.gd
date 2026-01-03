@@ -42,7 +42,7 @@ var buildable_item_definitions: Dictionary = {}  # Key: item_type, Value: Resour
 # Level Resources (indexed by level number)
 var level_resources: Array[int] = [
 	0,    # Level 0 (unused)
-	100,  # Level 1 - Tutorial
+	420,  # Level 1 - Tutorial
 	120,  # Level 2
 	150,  # Level 3
 	180,  # Level 4

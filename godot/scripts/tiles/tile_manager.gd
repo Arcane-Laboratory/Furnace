@@ -71,20 +71,21 @@ func register_tile(grid_pos: Vector2i, tile: TileBase) -> void:
 		_update_tile_occupancy_from_level_data(grid_pos, tile)
 
 
-## Update tile occupancy from level data
+## Update tile occupancy from level data (presets are not player-placed)
 func _update_tile_occupancy_from_level_data(grid_pos: Vector2i, tile: TileBase) -> void:
 	if not current_level_data:
 		return
 	
-	# Check for preset walls
+	# Check for preset walls (not player-placed)
 	if grid_pos in current_level_data.preset_walls:
-		tile.set_occupancy(TileBase.OccupancyType.WALL)
+		tile.set_occupancy(TileBase.OccupancyType.WALL, null, false, "wall")
 		return
 	
-	# Check for preset runes
+	# Check for preset runes (not player-placed)
 	for rune_data in current_level_data.preset_runes:
 		if rune_data.get("position") == grid_pos:
-			tile.set_occupancy(TileBase.OccupancyType.RUNE)
+			var rune_type: String = rune_data.get("type", "")
+			tile.set_occupancy(TileBase.OccupancyType.RUNE, null, false, rune_type)
 			return
 	
 	# Check for spawn points
@@ -127,12 +128,42 @@ func is_crossable(grid_pos: Vector2i) -> bool:
 	return tile.is_crossable()
 
 
-## Set occupancy at a position
-func set_occupancy(grid_pos: Vector2i, occupancy_type: TileBase.OccupancyType, structure: Node = null) -> void:
+## Set occupancy at a position (for player-placed items)
+func set_occupancy(grid_pos: Vector2i, occupancy_type: TileBase.OccupancyType, structure: Node = null, player_placed: bool = true, item_type: String = "") -> void:
 	var tile := get_tile(grid_pos)
 	if tile:
-		tile.set_occupancy(occupancy_type, structure)
+		tile.set_occupancy(occupancy_type, structure, player_placed, item_type)
 		occupancy_changed.emit(grid_pos)
+
+
+## Clear a tile's occupancy (for selling items)
+## Returns the item_type that was cleared (for refund calculation)
+func clear_tile(grid_pos: Vector2i) -> String:
+	var tile := get_tile(grid_pos)
+	if not tile:
+		return ""
+	
+	var item_type := tile.placed_item_type
+	tile.clear_occupancy()
+	occupancy_changed.emit(grid_pos)
+	return item_type
+
+
+## Check if a tile has a player-placed item that can be sold
+func can_sell_tile(grid_pos: Vector2i) -> bool:
+	var tile := get_tile(grid_pos)
+	if not tile:
+		return false
+	
+	return tile.is_player_placed and tile.occupancy != TileBase.OccupancyType.EMPTY
+
+
+## Get the item type placed on a tile
+func get_placed_item_type(grid_pos: Vector2i) -> String:
+	var tile := get_tile(grid_pos)
+	if not tile:
+		return ""
+	return tile.placed_item_type
 
 
 ## Clear the grid

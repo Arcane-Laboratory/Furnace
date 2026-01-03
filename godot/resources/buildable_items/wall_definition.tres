@@ -10,3 +10,4 @@ cost = 5
 unlocked_by_default = true
 icon_color = Color(0.5, 0.5, 0.5, 1)
 scene_path = ""
+blocks_path = true
