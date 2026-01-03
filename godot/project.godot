@@ -23,6 +23,7 @@ SceneManager="*res://scripts/autoload/scene_manager.gd"
 TileManager="*res://scripts/tiles/tile_manager.gd"
 PathfindingManager="*res://scripts/autoload/pathfinding_manager.gd"
 EnemyManager="*res://scripts/autoload/enemy_manager.gd"
+AudioManager="*res://scripts/autoload/audio_manager.gd"
 
 [display]
 
