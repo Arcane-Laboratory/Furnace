@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cportal_script" path="res://scripts/entities/runes/portal_rune.gd" id="1_portal"]
 
 [node name="PortalExit" type="Node2D"]
+z_index = -1
 script = ExtResource("1_portal")
 is_entrance = false
 

@@ -1,8 +1,10 @@
 [gd_scene load_steps=1 format=3 uid="uid://base_tile"]
 
 [node name="BaseTile" type="Node2D"]
+z_index = -2
 
 [node name="TerrainVisual" type="ColorRect" parent="."]
+visible = false
 offset_right = 32.0
 offset_bottom = 32.0
 color = Color(0.55, 0.45, 0.33, 1)

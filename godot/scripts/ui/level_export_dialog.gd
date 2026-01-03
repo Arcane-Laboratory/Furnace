@@ -1,133 +1,83 @@
 extends PanelContainer
 class_name LevelExportDialog
-## Dialog for exporting current level to a .tres file
-## Saves directly to res://resources/levels/level_N.tres and also copies to clipboard
+## Dialog for exporting level data to clipboard
 
 
 signal export_completed(success: bool)
 signal cancelled
 
-
-## UI references
-@onready var level_name_input: LineEdit = %LevelNameInput
-@onready var level_number_input: SpinBox = %LevelNumberInput
-@onready var starting_resources_input: SpinBox = %StartingResourcesInput
-@onready var hint_text_input: TextEdit = %HintTextInput
-@onready var export_button: Button = %ExportButton
-@onready var cancel_button: Button = %CancelButton
-
-## Additional spawn points from debug placement
-var additional_spawn_points: Array[Vector2i] = []
-
-## Override furnace position from debug placement
-var override_furnace_position: Vector2i = Vector2i(-1, -1)
+@onready var level_name_input: LineEdit = $MarginContainer/VBoxContainer/LevelNameRow/LevelNameInput
+@onready var level_number_input: SpinBox = $MarginContainer/VBoxContainer/LevelNumberRow/LevelNumberInput
+@onready var starting_resources_input: SpinBox = $MarginContainer/VBoxContainer/ResourcesRow/StartingResourcesInput
+@onready var hint_text_input: TextEdit = $MarginContainer/VBoxContainer/HintTextInput
+@onready var export_button: Button = $MarginContainer/VBoxContainer/ButtonRow/ExportButton
+@onready var cancel_button: Button = $MarginContainer/VBoxContainer/ButtonRow/CancelButton
 
 
 func _ready() -> void:
-	visible = false
+	hide()
 	
-	# Connect buttons
-	if export_button:
-		export_button.pressed.connect(_on_export_pressed)
-	if cancel_button:
-		cancel_button.pressed.connect(_on_cancel_pressed)
-	
-	# Set default values
-	_set_defaults()
+	# Connect button signals
+	export_button.pressed.connect(_on_export_pressed)
+	cancel_button.pressed.connect(_on_cancel_pressed)
 
 
-## Set default values for the inputs
-func _set_defaults() -> void:
-	if level_name_input:
-		level_name_input.text = "New Level"
-	if level_number_input:
-		level_number_input.value = 2
-	if starting_resources_input:
-		starting_resources_input.value = 100
-	if hint_text_input:
-		hint_text_input.text = ""
+## Store spawn points and furnace position for export
+var export_spawn_points: Array[Vector2i] = []
+var export_furnace_position: Vector2i = Vector2i(-1, -1)
+
+func show_dialog(spawn_points: Array[Vector2i], furnace_position: Vector2i) -> void:
+	export_spawn_points = spawn_points
+	export_furnace_position = furnace_position
+	show()
+	level_name_input.grab_focus()
 
 
-## Show the dialog with optional debug placement data
-func show_dialog(spawn_points: Array[Vector2i] = [], furnace_pos: Vector2i = Vector2i(-1, -1)) -> void:
-	additional_spawn_points = spawn_points
-	override_furnace_position = furnace_pos
-	
-	_set_defaults()
-	visible = true
-	
-	# Focus the level name input
-	if level_name_input:
-		level_name_input.grab_focus()
-		level_name_input.select_all()
-
-
-## Hide the dialog
 func hide_dialog() -> void:
-	visible = false
+	hide()
 
 
-## Handle export button pressed
 func _on_export_pressed() -> void:
-	var level_name := level_name_input.text if level_name_input else "New Level"
-	var level_number := int(level_number_input.value) if level_number_input else 2
-	var starting_resources := int(starting_resources_input.value) if starting_resources_input else 100
-	var hint_text := hint_text_input.text if hint_text_input else ""
+	var level_name := level_name_input.text.strip_edges()
+	if level_name.is_empty():
+		level_name = "New Level"
 	
-	# Generate the .tres content with debug placement data
-	var content := LevelExporter.export_current_level(
-		level_name,
-		level_number,
-		starting_resources,
-		hint_text,
-		additional_spawn_points,
-		override_furnace_position
-	)
+	var level_number := int(level_number_input.value)
+	var starting_resources := int(starting_resources_input.value)
+	var hint_text := hint_text_input.text.strip_edges()
 	
-	# Save directly to the levels folder
-	var file_path := "res://resources/levels/level_%d.tres" % level_number
-	var save_success := _save_to_file(file_path, content)
+	# Generate level data JSON
+	var level_data := _generate_level_data(level_name, level_number, starting_resources, hint_text)
 	
-	# Also copy to clipboard as backup
-	LevelExporter.copy_to_clipboard(content)
+	# Copy to clipboard
+	DisplayServer.clipboard_set(level_data)
 	
-	if save_success:
-		print("LevelExportDialog: Level saved to %s" % file_path)
-	else:
-		print("LevelExportDialog: Failed to save file, content copied to clipboard instead")
-	
-	if not additional_spawn_points.is_empty():
-		print("  - Includes %d additional spawn points" % additional_spawn_points.size())
-	if override_furnace_position != Vector2i(-1, -1):
-		print("  - Custom furnace position: %s" % override_furnace_position)
-	
+	export_completed.emit(true)
 	hide_dialog()
-	export_completed.emit(save_success)
 
 
-## Save content to a file
-func _save_to_file(path: String, content: String) -> bool:
-	var file := FileAccess.open(path, FileAccess.WRITE)
-	if not file:
-		push_error("LevelExportDialog: Could not open file for writing: %s (Error: %d)" % [path, FileAccess.get_open_error()])
-		return false
-	
-	file.store_string(content)
-	file.close()
-	return true
-
-
-## Handle cancel button pressed
 func _on_cancel_pressed() -> void:
-	hide_dialog()
 	cancelled.emit()
+	hide_dialog()
 
 
-## Handle input for closing with escape
-func _input(event: InputEvent) -> void:
-	if not visible:
-		return
+func _generate_level_data(level_name: String, level_number: int, starting_resources: int, hint_text: String) -> String:
+	# Build level data structure
+	var data := {
+		"level_number": level_number,
+		"level_name": level_name,
+		"starting_resources": starting_resources,
+		"spawn_points": export_spawn_points,
+		"furnace_position": export_furnace_position,
+		"terrain_blocked": [],
+		"preset_walls": [],
+		"preset_runes": [],
+		"enemy_waves": [],
+		"allowed_runes": [],
+		"hint_text": hint_text,
+		"par_time_seconds": 60.0
+	}
 	
-	if event.is_action_pressed("ui_cancel"):
-		_on_cancel_pressed()
-		get_viewport().set_input_as_handled()
+	# Convert to JSON
+	var json_string := JSON.stringify(data, "\t")
+	return json_string

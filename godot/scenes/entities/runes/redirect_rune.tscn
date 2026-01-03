@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://b2hcpsduchra0" path="res://scripts/entities/runes/redirect_rune.gd" id="1_redirect"]
 
 [node name="RedirectRune" type="Node2D"]
+z_index = -1
 script = ExtResource("1_redirect")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

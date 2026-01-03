@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://creflect_script" path="res://scripts/entities/runes/reflect_rune.gd" id="1_reflect"]
 
 [node name="ReflectRune" type="Node2D"]
+z_index = -1
 script = ExtResource("1_reflect")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

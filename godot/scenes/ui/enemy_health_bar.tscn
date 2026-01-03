@@ -5,4 +5,5 @@
 [node name="EnemyHealthBar" type="Control"]
 custom_minimum_size = Vector2(24, 4)
 size = Vector2(24, 4)
+z_index = 2
 script = ExtResource("1_health_bar")

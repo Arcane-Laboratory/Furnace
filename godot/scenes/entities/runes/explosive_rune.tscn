@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cexplosive_script" path="res://scripts/entities/runes/explosive_rune.gd" id="1_explosive"]
 
 [node name="ExplosiveRune" type="Node2D"]
+z_index = -1
 script = ExtResource("1_explosive")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
