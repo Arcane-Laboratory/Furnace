@@ -1,6 +1,7 @@
 extends Node
 ## Autoload class for managing tile grid state and queries
 
+signal occupancy_changed(grid_pos: Vector2i)
 
 ## Dictionary mapping grid positions to tile instances
 var tiles: Dictionary = {}
@@ -131,6 +132,7 @@ func set_occupancy(grid_pos: Vector2i, occupancy_type: TileBase.OccupancyType, s
 	var tile := get_tile(grid_pos)
 	if tile:
 		tile.set_occupancy(occupancy_type, structure)
+		occupancy_changed.emit(grid_pos)
 
 
 ## Clear the grid

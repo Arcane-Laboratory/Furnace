@@ -5,5 +5,5 @@ class_name BasicEnemy
 
 func _on_enemy_ready() -> void:
 	health = GameConfig.basic_enemy_health
-	max_health = health
+	max_health = GameConfig.basic_enemy_health
 	speed = GameConfig.basic_enemy_speed

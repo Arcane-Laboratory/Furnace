@@ -29,9 +29,12 @@ var is_active: bool = false
 
 
 func _ready() -> void:
-	max_health = health
-	add_to_group("enemies")
+	# Call subclass initialization first so it can set health/max_health/speed
 	_on_enemy_ready()
+	# Then set max_health to health if max_health wasn't explicitly set
+	if max_health == 50:  # Still default value
+		max_health = health
+	add_to_group("enemies")
 
 
 ## Override in subclasses for custom initialization
