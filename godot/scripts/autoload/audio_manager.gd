@@ -4,7 +4,7 @@ extends Node
 
 # Music track paths (to be configured when assets are added)
 var gameplay_theme_path: String = "res://assets/audio/furnace-flames.wav"
-var main_menu_theme_path: String = ""  # To be added
+var main_menu_theme_path: String = "res://assets/audio/last-ember.wav"
 var victory_theme_path: String = ""  # To be added
 var defeat_theme_path: String = ""  # To be added
 
@@ -31,8 +31,9 @@ func _ready() -> void:
 	if GameManager:
 		GameManager.state_changed.connect(_on_game_state_changed)
 	
-	# Don't start music on initial load - wait for game to start
-	# Music will start automatically when state changes to BUILD_PHASE
+	# Start music based on initial state (for title screen/main menu)
+	if GameManager:
+		_on_game_state_changed(GameManager.current_state)
 
 
 ## Play background music with optional fade in
@@ -122,8 +123,9 @@ func play_defeat_music() -> void:
 func _on_game_state_changed(new_state: GameManager.GameState) -> void:
 	match new_state:
 		GameManager.GameState.TITLE, GameManager.GameState.MENU:
-			# Don't start music in menu - wait until game starts
-			pass
+			# Play title theme (last-ember.wav) for title screen and main menu
+			if not main_menu_theme_path.is_empty():
+				play_music(main_menu_theme_path, true)
 		
 		GameManager.GameState.BUILD_PHASE, GameManager.GameState.ACTIVE_PHASE:
 			if not gameplay_theme_path.is_empty():
