@@ -9,6 +9,15 @@ var direction: Vector2 = Vector2.DOWN
 ## Current speed (can be modified by Acceleration Runes)
 var current_speed: float = 0.0
 
+## Base speed (without boosts)
+var base_speed: float = 0.0
+
+## Active speed boost amount
+var speed_boost: float = 0.0
+
+## Timer for speed boost duration
+var boost_timer: float = 0.0
+
 ## Whether the fireball is currently active/moving
 var is_active: bool = false
 
@@ -33,6 +42,12 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_active:
 		return
+	
+	# Update boost timer
+	if boost_timer > 0.0:
+		boost_timer -= delta
+		if boost_timer <= 0.0:
+			_remove_speed_boost()
 	
 	# Calculate next position
 	var next_pos := position + direction * current_speed * delta
@@ -63,7 +78,10 @@ func _physics_process(delta: float) -> void:
 func launch(start_position: Vector2) -> void:
 	position = start_position
 	direction = Vector2.DOWN  # Always starts going down from furnace
-	current_speed = GameConfig.fireball_speed
+	base_speed = GameConfig.fireball_speed
+	current_speed = base_speed
+	speed_boost = 0.0
+	boost_timer = 0.0
 	is_active = true
 	activated_tiles.clear()
 	current_grid_pos = _world_to_grid(position)
@@ -76,9 +94,31 @@ func set_direction(new_direction: Vector2) -> void:
 		direction = new_direction
 
 
-## Increase speed (called by acceleration runes)
+## Increase speed permanently (called by acceleration runes if needed)
 func accelerate(amount: float) -> void:
-	current_speed = min(current_speed + amount, GameConfig.fireball_max_speed)
+	base_speed = min(base_speed + amount, GameConfig.fireball_max_speed)
+	_update_current_speed()
+
+
+## Apply a temporary speed boost for a duration
+func apply_speed_boost(amount: float, duration: float) -> void:
+	speed_boost = amount
+	boost_timer = duration
+	_update_current_speed()
+	print("Fireball: Speed boost applied! +%d for %.1fs (speed: %d)" % [amount, duration, current_speed])
+
+
+## Remove the speed boost
+func _remove_speed_boost() -> void:
+	speed_boost = 0.0
+	boost_timer = 0.0
+	_update_current_speed()
+	print("Fireball: Speed boost expired (speed: %d)" % current_speed)
+
+
+## Update current speed based on base speed and boost
+func _update_current_speed() -> void:
+	current_speed = min(base_speed + speed_boost, GameConfig.fireball_max_speed)
 
 
 ## Check if we've crossed a tile center and should activate runes
