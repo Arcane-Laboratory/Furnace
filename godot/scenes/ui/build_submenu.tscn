@@ -2,6 +2,7 @@
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_bv72o"]
 [ext_resource type="PackedScene" uid="uid://d3lefgipylt8o" path="res://scenes/ui/menu_label.tscn" id="2_ljs7x"]
 [ext_resource type="PackedScene" uid="uid://cbahjpvjs4v7x" path="res://scenes/ui/build_menu_item.tscn" id="3_h57i6"]
@@ -14,6 +15,12 @@ anchors_preset = 15
 [ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_u5cdw"]
 [ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="3_dvviv"]
 
+=======
+[ext_resource type="Script" uid="uid://c0rix0gyi2o0x" path="res://scripts/game/game_scene.gd" id="1_h57i6"]
+[ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_u5cdw"]
+[ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="3_dvviv"]
+
+>>>>>>> Stashed changes
 =======
 [ext_resource type="Script" uid="uid://c0rix0gyi2o0x" path="res://scripts/game/game_scene.gd" id="1_h57i6"]
 [ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_u5cdw"]
@@ -77,6 +84,9 @@ anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
