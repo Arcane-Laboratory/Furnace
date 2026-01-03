@@ -28,6 +28,14 @@ var explosive_radius: int = 1  # In tiles
 # Acceleration Rune Parameters
 var acceleration_speed_increase: float = 50.0
 
+# Enemy Parameters
+var basic_enemy_health: int = 50
+var basic_enemy_speed: float = 50.0  # pixels per second
+var fast_enemy_health: int = 30
+var fast_enemy_speed: float = 80.0
+var tank_enemy_health: int = 150
+var tank_enemy_speed: float = 30.0
+
 # Resource Costs
 var wall_cost: int = 5
 var redirect_rune_cost: int = 10
