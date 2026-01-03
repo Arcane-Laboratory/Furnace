@@ -53,3 +53,6 @@ coverage/
 
 # Misc
 *.log
+
+# cursor integration
+.godot-watcher.pid
