@@ -29,9 +29,41 @@ func _ready() -> void:
 var export_spawn_points: Array[Vector2i] = []
 var export_terrain_tiles: Array[Vector2i] = []
 
-func show_dialog(spawn_points: Array[Vector2i], terrain_tiles: Array[Vector2i] = []) -> void:
+## Store removed items (to exclude from export)
+var removed_spawn_points: Array[Vector2i] = []
+var removed_terrain_tiles: Array[Vector2i] = []
+var removed_walls: Array[Vector2i] = []
+var removed_runes: Array[Vector2i] = []
+
+func show_dialog(
+	spawn_points: Array[Vector2i],
+	terrain_tiles: Array[Vector2i] = [],
+	level_data: LevelData = null,
+	p_removed_spawn_points: Array[Vector2i] = [],
+	p_removed_terrain_tiles: Array[Vector2i] = [],
+	p_removed_walls: Array[Vector2i] = [],
+	p_removed_runes: Array[Vector2i] = []
+) -> void:
 	export_spawn_points = spawn_points
 	export_terrain_tiles = terrain_tiles
+	removed_spawn_points = p_removed_spawn_points
+	removed_terrain_tiles = p_removed_terrain_tiles
+	removed_walls = p_removed_walls
+	removed_runes = p_removed_runes
+	
+	# Pre-fill fields from current level data if available
+	if level_data:
+		level_name_input.text = level_data.level_name
+		level_number_input.value = level_data.level_number
+		starting_resources_input.value = level_data.starting_resources
+		hint_text_input.text = level_data.hint_text
+	else:
+		# Default values
+		level_name_input.text = ""
+		level_number_input.value = GameManager.current_level
+		starting_resources_input.value = 100
+		hint_text_input.text = ""
+	
 	show()
 	level_name_input.grab_focus()
 
@@ -57,7 +89,11 @@ func _on_export_pressed() -> void:
 		hint_text,
 		export_spawn_points,
 		Vector2i(-1, -1),  # No furnace override
-		export_terrain_tiles
+		export_terrain_tiles,
+		removed_spawn_points,
+		removed_terrain_tiles,
+		removed_walls,
+		removed_runes
 	)
 	
 	# Copy to clipboard
@@ -84,7 +120,11 @@ func _on_save_pressed() -> void:
 		hint_text,
 		export_spawn_points,
 		Vector2i(-1, -1),  # No furnace override
-		export_terrain_tiles
+		export_terrain_tiles,
+		removed_spawn_points,
+		removed_terrain_tiles,
+		removed_walls,
+		removed_runes
 	)
 	
 	# Save to file

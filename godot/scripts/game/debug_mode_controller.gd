@@ -12,6 +12,12 @@ signal hide_info_requested()
 ## Emitted when error snackbar should be shown
 signal show_error_requested(message: String)
 
+## Emitted when level should be reloaded (after save)
+signal reload_level_requested(level_number: int)
+
+## Emitted when a structure should be removed from the game board
+signal structure_removal_requested(grid_pos: Vector2i)
+
 
 ## Debug placement mode (for placing spawn points, terrain, etc.)
 enum DebugPlacementMode { NONE, SPAWN_POINT, TERRAIN }
@@ -22,6 +28,18 @@ var debug_spawn_points: Array[Vector2i] = []
 
 ## Debug-placed terrain tiles (additional terrain placed by editor)
 var debug_terrain_tiles: Array[Vector2i] = []
+
+## Removed original spawn points (from level data)
+var removed_spawn_points: Array[Vector2i] = []
+
+## Removed original terrain tiles (from level data)
+var removed_terrain_tiles: Array[Vector2i] = []
+
+## Removed original walls (from level data or player-placed)
+var removed_walls: Array[Vector2i] = []
+
+## Removed original runes (from level data or player-placed)
+var removed_runes: Array[Vector2i] = []
 
 ## Level export dialog
 var level_export_dialog: LevelExportDialog = null
@@ -161,7 +179,15 @@ func _on_debug_fab_pressed() -> void:
 ## Handle export level requested from debug modal
 func _on_export_level_requested() -> void:
 	if level_export_dialog:
-		level_export_dialog.show_dialog(debug_spawn_points, debug_terrain_tiles)
+		level_export_dialog.show_dialog(
+			debug_spawn_points,
+			debug_terrain_tiles,
+			current_level_data,
+			removed_spawn_points,
+			removed_terrain_tiles,
+			removed_walls,
+			removed_runes
+		)
 
 
 ## Handle go to level requested from debug modal
@@ -267,44 +293,139 @@ func _create_debug_terrain_marker(grid_pos: Vector2i) -> void:
 		game_board.add_child(marker)
 
 
-## Remove a debug spawn point (right-click)
+## Remove a spawn point (right-click) - handles both debug-placed and original
 func _remove_debug_spawn_point(grid_pos: Vector2i) -> void:
 	# Check if it's a debug-placed spawn point
-	if grid_pos not in debug_spawn_points:
-		show_error_requested.emit("No debug spawn point here!")
+	if grid_pos in debug_spawn_points:
+		debug_spawn_points.erase(grid_pos)
+		
+		# Remove visual marker
+		if spawn_points_container:
+			var marker := spawn_points_container.get_node_or_null("DebugSpawn_%d_%d" % [grid_pos.x, grid_pos.y])
+			if marker:
+				marker.queue_free()
+		
+		print("DebugModeController: Removed debug spawn point at %s" % grid_pos)
+		show_info_requested.emit("Spawn point removed!")
 		return
 	
-	# Remove from array
-	debug_spawn_points.erase(grid_pos)
+	# Check if it's an original spawn point from level data
+	if current_level_data and grid_pos in current_level_data.spawn_points:
+		# Add to removed list (will be excluded from export)
+		if grid_pos not in removed_spawn_points:
+			removed_spawn_points.append(grid_pos)
+		
+		# Remove the visual marker (original spawn markers have a different name pattern)
+		if spawn_points_container:
+			# Find and remove the spawn point marker at this position
+			for child in spawn_points_container.get_children():
+				if child is Node2D:
+					var marker_pos := Vector2i(
+						int(child.position.x / GameConfig.TILE_SIZE),
+						int(child.position.y / GameConfig.TILE_SIZE)
+					)
+					if marker_pos == grid_pos:
+						child.queue_free()
+						break
+		
+		print("DebugModeController: Marked original spawn point at %s for removal" % grid_pos)
+		show_info_requested.emit("Original spawn point removed!")
+		return
 	
-	# Remove visual marker
-	if spawn_points_container:
-		var marker := spawn_points_container.get_node_or_null("DebugSpawn_%d_%d" % [grid_pos.x, grid_pos.y])
-		if marker:
-			marker.queue_free()
-	
-	print("DebugModeController: Removed debug spawn point at %s" % grid_pos)
-	show_info_requested.emit("Spawn point removed!")
+	# Also check if we can remove a rune/wall at this position (convenience for level editing)
+	_try_remove_structure(grid_pos)
 
 
-## Remove a debug terrain tile (right-click)
+## Remove a terrain tile (right-click) - handles both debug-placed and original
 func _remove_debug_terrain(grid_pos: Vector2i) -> void:
 	# Check if it's a debug-placed terrain tile
-	if grid_pos not in debug_terrain_tiles:
-		show_error_requested.emit("No debug terrain here!")
+	if grid_pos in debug_terrain_tiles:
+		debug_terrain_tiles.erase(grid_pos)
+		
+		# Remove visual marker
+		if game_board:
+			var marker := game_board.get_node_or_null("DebugTerrain_%d_%d" % [grid_pos.x, grid_pos.y])
+			if marker:
+				marker.queue_free()
+		
+		print("DebugModeController: Removed debug terrain at %s" % grid_pos)
+		show_info_requested.emit("Terrain removed!")
 		return
 	
-	# Remove from array
-	debug_terrain_tiles.erase(grid_pos)
+	# Check if it's original terrain from level data
+	if current_level_data and grid_pos in current_level_data.terrain_blocked:
+		# Add to removed list (will be excluded from export)
+		if grid_pos not in removed_terrain_tiles:
+			removed_terrain_tiles.append(grid_pos)
+		
+		# Remove the visual tile (terrain_rock tile)
+		var tile := TileManager.get_tile(grid_pos)
+		if tile and is_instance_valid(tile):
+			# Mark for visual removal - the tile system will handle this
+			tile.queue_free()
+			TileManager.tiles.erase(grid_pos)
+			
+			# Create an open terrain tile in its place
+			var open_scene := load("res://scenes/tiles/terrain_open.tscn")
+			if open_scene:
+				var open_tile := open_scene.instantiate() as TileBase
+				if open_tile:
+					# Get the tiles container from game_board
+					var tiles_container := game_board.get_node_or_null("Tiles")
+					if tiles_container:
+						tiles_container.add_child(open_tile)
+						open_tile.set_grid_position(grid_pos)
+						TileManager.tiles[grid_pos] = open_tile
+		
+		print("DebugModeController: Marked original terrain at %s for removal" % grid_pos)
+		show_info_requested.emit("Original terrain removed!")
+		return
 	
-	# Remove visual marker
-	if game_board:
-		var marker := game_board.get_node_or_null("DebugTerrain_%d_%d" % [grid_pos.x, grid_pos.y])
-		if marker:
-			marker.queue_free()
+	# Also check if we can remove a rune/wall at this position (convenience for level editing)
+	_try_remove_structure(grid_pos)
+
+
+## Try to remove a rune or wall structure at a position
+func _try_remove_structure(grid_pos: Vector2i) -> void:
+	var tile := TileManager.get_tile(grid_pos)
+	if not tile:
+		show_error_requested.emit("Nothing to remove here!")
+		return
 	
-	print("DebugModeController: Removed debug terrain at %s" % grid_pos)
-	show_info_requested.emit("Terrain removed!")
+	# Check if there's a structure to remove
+	match tile.occupancy:
+		TileBase.OccupancyType.WALL:
+			# Add to removed walls list
+			if grid_pos not in removed_walls:
+				removed_walls.append(grid_pos)
+			
+			# Remove the structure visually
+			structure_removal_requested.emit(grid_pos)
+			
+			# Clear the tile occupancy
+			tile.clear_occupancy()
+			TileManager.occupancy_changed.emit(grid_pos)
+			
+			print("DebugModeController: Removed wall at %s" % grid_pos)
+			show_info_requested.emit("Wall removed!")
+			
+		TileBase.OccupancyType.RUNE:
+			# Add to removed runes list
+			if grid_pos not in removed_runes:
+				removed_runes.append(grid_pos)
+			
+			# Remove the structure visually
+			structure_removal_requested.emit(grid_pos)
+			
+			# Clear the tile occupancy
+			tile.clear_occupancy()
+			TileManager.occupancy_changed.emit(grid_pos)
+			
+			print("DebugModeController: Removed rune at %s" % grid_pos)
+			show_info_requested.emit("Rune removed!")
+			
+		_:
+			show_error_requested.emit("Nothing to remove here!")
 
 
 ## Handle level export completed (copy to clipboard)
@@ -320,13 +441,30 @@ func _on_level_export_completed(success: bool) -> void:
 ## Handle level save completed (save to file)
 func _on_level_save_completed(success: bool, file_path: String) -> void:
 	if success:
-		show_info_requested.emit("Level saved to %s" % file_path)
+		show_info_requested.emit("Level saved! Reloading...")
+		# Extract level number from file path (e.g., "res://resources/levels/level_2.tres" -> 2)
+		var level_number := _extract_level_number_from_path(file_path)
+		# Short delay to show the message, then reload
+		var tween := create_tween()
+		tween.tween_interval(0.5)
+		tween.tween_callback(func(): reload_level_requested.emit(level_number))
 	else:
 		show_error_requested.emit("Failed to save level!")
-	# Auto-hide after 3 seconds
-	var tween := create_tween()
-	tween.tween_interval(3.0)
-	tween.tween_callback(func(): hide_info_requested.emit())
+		# Auto-hide after 3 seconds
+		var tween := create_tween()
+		tween.tween_interval(3.0)
+		tween.tween_callback(func(): hide_info_requested.emit())
+
+
+## Extract level number from file path
+func _extract_level_number_from_path(file_path: String) -> int:
+	# Extract from path like "res://resources/levels/level_2.tres"
+	var regex := RegEx.new()
+	regex.compile("level_(\\d+)\\.tres$")
+	var result := regex.search(file_path)
+	if result:
+		return int(result.get_string(1))
+	return GameManager.current_level  # Fallback to current level
 
 
 ## Handle level export cancelled

@@ -11,7 +11,11 @@ static func export_current_level(
 	hint_text: String = "",
 	additional_spawn_points: Array[Vector2i] = [],
 	override_furnace_position: Vector2i = Vector2i(-1, -1),
-	additional_terrain_tiles: Array[Vector2i] = []
+	additional_terrain_tiles: Array[Vector2i] = [],
+	removed_spawn_points: Array[Vector2i] = [],
+	removed_terrain_tiles: Array[Vector2i] = [],
+	removed_walls: Array[Vector2i] = [],
+	removed_runes: Array[Vector2i] = []
 ) -> String:
 	# Collect data from current game state
 	var walls: Array[Vector2i] = []
@@ -25,6 +29,13 @@ static func export_current_level(
 		spawn_points = TileManager.current_level_data.spawn_points.duplicate()
 		furnace_position = TileManager.current_level_data.furnace_position
 		terrain_blocked = TileManager.current_level_data.terrain_blocked.duplicate()
+	
+	# Remove items that were deleted
+	for sp in removed_spawn_points:
+		spawn_points.erase(sp)
+	
+	for terrain_pos in removed_terrain_tiles:
+		terrain_blocked.erase(terrain_pos)
 	
 	# Add additional debug-placed spawn points
 	for sp in additional_spawn_points:
@@ -48,11 +59,15 @@ static func export_current_level(
 		
 		match tile.occupancy:
 			TileBase.OccupancyType.WALL:
-				walls.append(grid_pos)
+				# Skip walls that were removed
+				if grid_pos not in removed_walls:
+					walls.append(grid_pos)
 			TileBase.OccupancyType.RUNE:
-				var rune_data := _extract_rune_data(tile, grid_pos)
-				if not rune_data.is_empty():
-					runes.append(rune_data)
+				# Skip runes that were removed
+				if grid_pos not in removed_runes:
+					var rune_data := _extract_rune_data(tile, grid_pos)
+					if not rune_data.is_empty():
+						runes.append(rune_data)
 	
 	# Generate the .tres file content
 	return _generate_tres_content(

@@ -1199,3 +1199,138 @@ func _setup_debug_controller() -> void:
 	debug_controller.show_info_requested.connect(_show_info_snackbar)
 	debug_controller.hide_info_requested.connect(_hide_info_snackbar)
 	debug_controller.show_error_requested.connect(_show_error_snackbar)
+	
+	# Connect level reload signal
+	debug_controller.reload_level_requested.connect(_on_reload_level_requested)
+	
+	# Connect structure removal signal
+	debug_controller.structure_removal_requested.connect(_on_structure_removal_requested)
+
+
+## Handle structure removal request (remove rune/wall visual from game board)
+func _on_structure_removal_requested(grid_pos: Vector2i) -> void:
+	# Find and remove the structure node from runes_container
+	for child in runes_container.get_children():
+		if child is Node2D:
+			# Check position (structures are positioned at tile center)
+			var expected_pos := Vector2(
+				grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+				grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
+			)
+			if child.position.distance_to(expected_pos) < 1.0:
+				child.queue_free()
+				print("GameScene: Removed structure visual at %s" % grid_pos)
+				return
+	
+	# Also check if it's a RuneBase with grid position
+	for child in runes_container.get_children():
+		if child is RuneBase:
+			var rune := child as RuneBase
+			if rune.grid_position == grid_pos:
+				child.queue_free()
+				print("GameScene: Removed rune visual at %s" % grid_pos)
+				return
+
+
+## Handle reload level request (hot-reload after level save)
+func _on_reload_level_requested(level_number: int) -> void:
+	print("GameScene: Hot-reloading level %d..." % level_number)
+	reload_level(level_number)
+
+
+## Hot-reload a level without restarting the scene
+func reload_level(level_number: int) -> void:
+	# Clear current game state
+	_clear_game_state()
+	
+	# Force-reload the level resource (bypass cache)
+	var level_path := "res://resources/levels/level_%d.tres" % level_number
+	current_level_data = ResourceLoader.load(level_path, "", ResourceLoader.CACHE_MODE_REPLACE) as LevelData
+	
+	if not current_level_data:
+		push_error("GameScene: Failed to reload level data from %s" % level_path)
+		current_level_data = _create_default_level_data()
+	
+	# Update game manager
+	GameManager.current_level = level_number
+	GameManager.reset_for_level(level_number)
+	
+	# Reinitialize the tile system
+	_initialize_tile_system()
+	
+	# Recreate spawn point markers
+	_create_spawn_point_markers()
+	
+	# Update build menu
+	_update_build_menu()
+	
+	# Update placement manager with new level data
+	if placement_manager:
+		placement_manager.set_level_data(current_level_data)
+	
+	# Update debug controller with new level data
+	if debug_controller:
+		debug_controller.current_level_data = current_level_data
+		# Clear debug-placed spawn points and terrain (they're now in the level file)
+		debug_controller.debug_spawn_points.clear()
+		debug_controller.debug_terrain_tiles.clear()
+		# Clear removed items (they're now removed from the level file)
+		debug_controller.removed_spawn_points.clear()
+		debug_controller.removed_terrain_tiles.clear()
+		debug_controller.removed_walls.clear()
+		debug_controller.removed_runes.clear()
+	
+	# Update path preview
+	if path_preview:
+		path_preview.update_paths(current_level_data)
+	
+	# Update game submenu
+	if game_submenu:
+		game_submenu.set_level(level_number)
+	
+	# Ensure we're in build phase
+	_start_build_phase()
+	
+	print("GameScene: Level %d hot-reloaded successfully!" % level_number)
+	_show_info_snackbar("Level %d reloaded!" % level_number)
+	
+	# Auto-hide after 2 seconds
+	var tween := create_tween()
+	tween.tween_interval(2.0)
+	tween.tween_callback(func(): _hide_info_snackbar())
+
+
+## Clear all game state for hot-reload
+func _clear_game_state() -> void:
+	# Clear all enemies and stop wave
+	EnemyManager.clear_enemies()
+	
+	# Clear all enemies from container
+	for child in enemies_container.get_children():
+		child.queue_free()
+	
+	# Clear all runes from container
+	for child in runes_container.get_children():
+		child.queue_free()
+	
+	# Clear spawn point markers
+	for child in spawn_points_container.get_children():
+		child.queue_free()
+	
+	# Clear debug markers and fireballs from game_board
+	for child in game_board.get_children():
+		if child.name.begins_with("DebugTerrain_") or child.name.begins_with("DebugSpawn_"):
+			child.queue_free()
+		elif child is Fireball:
+			child.queue_free()
+	
+	# Clear the tile manager (this will also free all tiles)
+	TileManager.clear_grid()
+	
+	# Clear tiles container
+	for child in tiles_container.get_children():
+		child.queue_free()
+	
+	# Disconnect tile occupancy signal temporarily (will reconnect in _initialize_tile_system)
+	if TileManager.occupancy_changed.is_connected(_on_tile_occupancy_changed):
+		TileManager.occupancy_changed.disconnect(_on_tile_occupancy_changed)
