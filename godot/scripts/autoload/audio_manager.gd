@@ -154,8 +154,11 @@ func _start_music(stream: AudioStream, fade_in: bool) -> void:
 	music_player.stream = stream
 	
 	if fade_in:
-		music_player.volume_db = -80.0  # Start silent
+		# Use a less extreme starting volume so beginning is audible
+		# -40dB is quiet but audible, preventing cut-off of first beats
+		music_player.volume_db = -40.0
 		music_player.play()
+		# Start fade-in immediately - tween will handle smooth transition
 		_fade_in_music()
 	else:
 		music_player.volume_db = 0.0
