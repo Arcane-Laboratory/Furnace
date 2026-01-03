@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dequ5qkc8ctjx" path="res://scenes/entities/runes/menu_rune.tscn" id="1_fu0ic"]
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="2_2dq7i"]
-[ext_resource type="Script" path="res://scripts/ui/build_menu_item.gd" id="3_item"]
+[ext_resource type="Script" uid="uid://cq7kejk1pnp7j" path="res://scripts/ui/build_menu_item.gd" id="3_item"]
 
 [node name="BuildMenuItem" type="Control"]
 custom_minimum_size = Vector2(48, 60)
@@ -26,6 +26,7 @@ offset_right = 20.0
 offset_bottom = 60.0
 grow_horizontal = 2
 theme = ExtResource("2_2dq7i")
+theme_override_constants/separation = 2
 
 [node name="MenuRune" parent="VBoxContainer" instance=ExtResource("1_fu0ic")]
 layout_mode = 2
