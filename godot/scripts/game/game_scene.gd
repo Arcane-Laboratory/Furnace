@@ -1401,7 +1401,7 @@ func _on_upgrade_requested(grid_pos: Vector2i) -> void:
 			var upgrade_cost := rune.get_upgrade_cost()
 			
 			# Check if player has enough resources
-			if GameManager.resources < upgrade_cost:
+			if not GameManager.infinite_money and GameManager.resources < upgrade_cost:
 				_show_error_snackbar("Not enough money!")
 				return
 			

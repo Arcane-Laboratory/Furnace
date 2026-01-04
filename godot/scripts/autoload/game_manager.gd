@@ -16,6 +16,7 @@ var _state_before_pause: GameState = GameState.BUILD_PHASE
 var current_level: int = 1
 var resources: int = 0
 var game_won: bool = false
+var infinite_money: bool = false  # Debug flag: when true, placements don't cost resources
 
 signal state_changed(new_state: GameState)
 signal resources_changed(new_amount: int)
@@ -36,6 +37,8 @@ func add_resources(amount: int) -> void:
 
 
 func spend_resources(amount: int) -> bool:
+	if infinite_money:
+		return true  # Skip spending when infinite money is enabled
 	if resources >= amount:
 		resources -= amount
 		resources_changed.emit(resources)
