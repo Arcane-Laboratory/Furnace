@@ -168,9 +168,9 @@ static func _generate_tres_content(
 	var resource_uid := "uid://%s" % _generate_uid()
 	content += "[gd_resource type=\"Resource\" script_class=\"LevelData\" load_steps=%d format=3 uid=\"%s\"]\n\n" % [load_steps, resource_uid]
 	
-	# External resources with UIDs (these are the actual UIDs from the project)
+	# External resources (Godot resolves UIDs from paths automatically)
 	content += "[ext_resource type=\"Script\" uid=\"uid://bbkvpakf3hhjq\" path=\"res://scripts/resources/level_data.gd\" id=\"1\"]\n"
-	content += "[ext_resource type=\"Script\" uid=\"uid://spawn_enemy_rule\" path=\"res://scripts/resources/spawn_enemy_rule.gd\" id=\"2\"]\n\n"
+	content += "[ext_resource type=\"Script\" path=\"res://scripts/resources/spawn_enemy_rule.gd\" id=\"2\"]\n\n"
 	
 	# Sub-resources (spawn rules)
 	for i in range(spawn_rules.size()):
@@ -181,8 +181,7 @@ static func _generate_tres_content(
 		content += "enemy_type = %d\n" % rule.enemy_type
 		content += "spawn_delay = %.1f\n" % rule.spawn_delay
 		content += "spawn_count = %d\n" % rule.spawn_count
-		content += "spawn_time = %.1f\n" % rule.spawn_time
-		content += "metadata/_custom_type_script = \"uid://spawn_enemy_rule\"\n\n"
+		content += "spawn_time = %.1f\n\n" % rule.spawn_time
 	
 	# If no rules, create a default one
 	if spawn_rules.is_empty():
@@ -192,8 +191,7 @@ static func _generate_tres_content(
 		content += "enemy_type = 0\n"
 		content += "spawn_delay = 0.0\n"
 		content += "spawn_count = 6\n"
-		content += "spawn_time = 60.0\n"
-		content += "metadata/_custom_type_script = \"uid://spawn_enemy_rule\"\n\n"
+		content += "spawn_time = 60.0\n\n"
 	
 	# Main resource
 	content += "[resource]\n"
