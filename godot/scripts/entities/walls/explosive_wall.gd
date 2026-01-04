@@ -1,0 +1,81 @@
+extends Node2D
+class_name ExplosiveWall
+## Wall that explodes when fireball passes adjacent, dealing damage in 8 surrounding tiles
+
+
+var grid_position: Vector2i = Vector2i.ZERO
+var cooldown_timer: float = 0.0
+var is_on_cooldown: bool = false
+
+
+func _ready() -> void:
+	add_to_group("explosive_walls")
+
+
+func _process(delta: float) -> void:
+	if is_on_cooldown:
+		cooldown_timer -= delta
+		if cooldown_timer <= 0.0:
+			is_on_cooldown = false
+			cooldown_timer = 0.0
+
+
+func set_grid_position(pos: Vector2i) -> void:
+	grid_position = pos
+	position = Vector2(
+		pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2,
+		pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2
+	)
+	# Set z_index for depth sorting (same as regular walls)
+	z_index = pos.y * 10 + 5
+
+
+func check_fireball_adjacent(fireball_pos: Vector2i) -> bool:
+	## Check if fireball is directly adjacent (cardinal directions only)
+	var distance := fireball_pos - grid_position
+	return abs(distance.x) + abs(distance.y) == 1
+
+
+func explode() -> void:
+	if is_on_cooldown:
+		return
+	
+	# Deal damage to enemies in 8 surrounding tiles (3x3 area)
+	var enemies := get_tree().get_nodes_in_group("enemies")
+	var enemies_hit: int = 0
+	
+	for enemy in enemies:
+		if enemy.has_method("get_grid_position"):
+			var enemy_pos := enemy.get_grid_position()
+			var distance := enemy_pos - grid_position
+			# Check if enemy is in 3x3 area (including center)
+			if abs(distance.x) <= 1 and abs(distance.y) <= 1:
+				if enemy.has_method("take_damage"):
+					enemy.take_damage(GameConfig.explosive_wall_damage)
+					enemies_hit += 1
+	
+	# Play explosion effect
+	_play_explosion_effect()
+	
+	# Start cooldown (post-MVP: will have cooldown, MVP: no cooldown or very short)
+	# is_on_cooldown = true
+	# cooldown_timer = GameConfig.explosive_wall_cooldown
+	
+	if enemies_hit > 0:
+		print("ExplosiveWall: Hit %d enemies for %d damage each" % [enemies_hit, GameConfig.explosive_wall_damage])
+
+
+func _play_explosion_effect() -> void:
+	## Visual effect similar to explosive rune
+	var explosion := ColorRect.new()
+	explosion.size = Vector2(8, 8)
+	explosion.position = Vector2(-4, -4)
+	explosion.color = Color(1.0, 0.6, 0.2, 0.8)
+	add_child(explosion)
+	
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(explosion, "size", Vector2(96, 96), 0.3)  # 3x3 tiles
+	tween.tween_property(explosion, "position", Vector2(-48, -48), 0.3)
+	tween.tween_property(explosion, "modulate:a", 0.0, 0.3)
+	tween.chain().tween_callback(explosion.queue_free)

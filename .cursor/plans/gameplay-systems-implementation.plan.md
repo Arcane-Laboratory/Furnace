@@ -15,6 +15,24 @@ This plan implements the core gameplay improvements identified in the iteration 
 5. **Asset integration** (as needed)
 6. **Game victory card** (MVP requirement)
 
+## Critical Process: QA and PR Between Phases
+
+**IMPORTANT**: After completing each phase (or logical group of phases), the following process MUST be followed before proceeding to the next phase:
+
+1. **Error Check**: Run `./cursor-integration/godot-check-errors.sh` to verify no errors or warnings
+2. **QA Testing**: Complete all QA test tasks listed for the phase(s) completed
+3. **Bug Verification**: Verify the game runs bug-free and all new features work as expected
+4. **Create PR**: Create a pull request with all changes from the completed phase(s)
+5. **Merge PR**: Merge the PR into main branch after QA approval
+6. **Continue**: Only proceed to next phase after PR is merged and main branch is stable
+
+This ensures:
+- Incremental, stable progress
+- Early detection of bugs before they compound
+- Clean git history with logical commits
+- Ability to rollback if issues are discovered
+- Clear separation of concerns between phases
+
 ---
 
 ## Phase 1: Core Rune System Changes

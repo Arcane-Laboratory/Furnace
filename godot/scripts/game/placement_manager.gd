@@ -131,7 +131,7 @@ func can_place_at(grid_pos: Vector2i) -> bool:
 			return false
 	
 	# Prevent walls from being placed directly in front of the furnace (allow runes)
-	if definition.item_type == "wall":
+	if definition.item_type == "wall" or definition.item_type == "explosive_wall":
 		if grid_pos == tile_in_front_of_furnace:
 			return false
 	
@@ -213,7 +213,7 @@ func try_place_item(grid_pos: Vector2i) -> bool:
 			return false
 	
 	# Prevent walls from being placed directly in front of the furnace (allow runes)
-	if definition.item_type == "wall":
+	if definition.item_type == "wall" or definition.item_type == "explosive_wall":
 		if grid_pos == tile_in_front_of_furnace_try:
 			placement_failed.emit("Cannot place walls directly in front of the furnace")
 			return false
@@ -261,7 +261,7 @@ func _execute_placement(grid_pos: Vector2i, definition: Resource) -> bool:
 	
 	# Determine occupancy type based on item
 	var occupancy_type: TileBase.OccupancyType
-	if definition.item_type == "wall":
+	if definition.item_type == "wall" or definition.item_type == "explosive_wall":
 		occupancy_type = TileBase.OccupancyType.WALL
 	else:
 		occupancy_type = TileBase.OccupancyType.RUNE
@@ -282,11 +282,15 @@ func _execute_placement(grid_pos: Vector2i, definition: Resource) -> bool:
 	if structure_node and runes_container:
 		runes_container.add_child(structure_node)
 		
-		# Set grid position for runes (required for fireball collision detection)
+		# Set grid position for runes, explosive walls, and mud tiles
 		if structure_node is RuneBase:
 			(structure_node as RuneBase).set_grid_position(grid_pos)
+		elif structure_node is ExplosiveWall:
+			(structure_node as ExplosiveWall).set_grid_position(grid_pos)
+		elif structure_node is MudTile:
+			(structure_node as MudTile).set_grid_position(grid_pos)
 		elif structure_node is Node2D:
-			# For non-rune items (like walls), just set world position
+			# For non-rune items (like regular walls), just set world position
 			var node_2d := structure_node as Node2D
 			node_2d.position = Vector2(
 				grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
@@ -471,7 +475,7 @@ func _create_fallback_visual(definition: Resource) -> Node2D:
 	visual.name = "PlacedItem_%s" % definition.item_type
 	
 	# Special handling for walls - use wall sprite
-	if definition.item_type == "wall":
+	if definition.item_type == "wall" or definition.item_type == "explosive_wall":
 		var wall_texture := load("res://assets/sprites/wall.png") as Texture2D
 		if wall_texture:
 			var sprite := Sprite2D.new()

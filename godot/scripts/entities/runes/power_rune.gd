@@ -1,16 +1,16 @@
 extends RuneBase
-class_name AccelerationRune
-## Permanently increases fireball speed when activated (stacking system)
+class_name PowerRune
+## Grants a stacking damage bonus to fireballs that pass over it
 
 
 func _on_rune_ready() -> void:
-	rune_type = "acceleration"
+	rune_type = "power"
 
 
 func _on_activate(fireball: Node2D) -> void:
-	# Add speed stack to fireball (permanent until lost on hit)
-	if fireball.has_method("add_speed_stack"):
-		fireball.add_speed_stack(GameConfig.acceleration_speed_increase)
+	# Apply power stack to fireball (increases damage)
+	if fireball.has_method("add_power_stack"):
+		fireball.add_power_stack()
 	
 	_play_activation_effect()
 

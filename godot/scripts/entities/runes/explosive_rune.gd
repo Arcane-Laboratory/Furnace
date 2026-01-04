@@ -5,8 +5,8 @@ class_name ExplosiveRune
 
 func _on_rune_ready() -> void:
 	rune_type = "explosive"
-	# Explosive runes are single-use by default
-	uses_remaining = 1
+	# Explosive runes are now multi-use (infinite uses)
+	uses_remaining = 0
 
 
 func _on_activate(fireball: Node2D) -> void:
@@ -58,8 +58,6 @@ func _play_explosion_effect() -> void:
 
 
 func _on_depleted() -> void:
+	# Explosive runes are now multi-use, so this should never be called
+	# (uses_remaining = 0 means infinite uses)
 	super._on_depleted()
-	# Fade out and remove the rune when depleted
-	var tween := create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 0.3)
-	tween.tween_callback(queue_free)

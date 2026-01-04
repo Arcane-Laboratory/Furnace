@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://mud_tile_scene"]
+
+[ext_resource type="Script" path="res://scripts/entities/tiles/mud_tile.gd" id="1_mud"]
+[ext_resource type="Texture2D" path="res://assets/sprites/wall.png" id="2_mud"]
+
+[node name="MudTile" type="Node2D"]
+script = ExtResource("1_mud")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_mud")
+modulate = Color(0.4, 0.3, 0.2, 1)
+
+[node name="TileVisual" type="ColorRect" parent="."]
+visible = false
+offset_left = -16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 16.0
+color = Color(0.4, 0.3, 0.2, 1)

@@ -86,6 +86,12 @@ func show_resource_loss(amount: int, world_pos: Vector2) -> void:
 	show_number("-%d" % amount, world_pos, Color.ORANGE)
 
 
+func show_status_modifier(text: String, world_pos: Vector2, color: Color = Color.WHITE) -> void:
+	## Display status modifier text (e.g., "+Speed x5", "+Power x3")
+	## Used for fireball speed/power stack indicators
+	show_number(text, world_pos, color)
+
+
 func _get_number() -> FloatingNumber:
 	# Ensure container exists
 	_ensure_container_in_tree()
