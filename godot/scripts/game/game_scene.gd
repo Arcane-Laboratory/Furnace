@@ -2119,6 +2119,9 @@ func _restore_player_placed_tiles() -> void:
 			# Apply upgrades if level > 1
 			while rune.current_level < level and rune.can_upgrade():
 				rune.upgrade()
+		elif structure_node.has_method("set_grid_position"):
+			# Handle other entities with set_grid_position (like ExplosiveWall)
+			structure_node.set_grid_position(grid_pos)
 		elif structure_node is Node2D:
 			var node_2d := structure_node as Node2D
 			node_2d.position = Vector2(
