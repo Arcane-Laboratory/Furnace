@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://ctcn512vpbrmx"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_aqpy5"]
-[ext_resource type="Script" uid="uid://cngyjb5d1j822" path="res://scripts/ui/title_screen.gd" id="1_title"]
+[ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
 [ext_resource type="StyleBox" uid="uid://daxtmlmajhs7f" path="res://style_box_9p_fullscreen.tres" id="3_w8uqo"]
 
 [node name="TitleScreen" type="Control"]

@@ -40,6 +40,7 @@ offset_bottom = 12.0
 color = Color(1, 1, 1, 0.8)
 
 [node name="EntranceLabel" type="ColorRect" parent="."]
+visible = false
 offset_left = -3.0
 offset_top = -14.0
 offset_right = 3.0
