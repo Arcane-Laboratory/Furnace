@@ -53,6 +53,7 @@ texture = ExtResource("4_wordmark")
 stretch_mode = 5
 
 [node name="CenterContainer" type="CenterContainer" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer/CenterContainer"]
