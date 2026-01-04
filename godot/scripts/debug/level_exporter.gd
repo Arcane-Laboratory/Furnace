@@ -144,6 +144,11 @@ static func _extract_item_data(tile: TileBase, grid_pos: Vector2i, override_type
 	else:
 		item_data["uses"] = 0
 	
+	# For portal runes, save is_entrance to distinguish entrance from exit
+	if tile.structure is PortalRune:
+		var portal := tile.structure as PortalRune
+		item_data["is_entrance"] = portal.is_entrance
+	
 	return item_data
 
 
@@ -303,6 +308,11 @@ static func _format_item_array(items: Array[Dictionary]) -> String:
 		dict_str += "\"type\": \"%s\", " % item_type
 		dict_str += "\"direction\": \"%s\", " % direction
 		dict_str += "\"uses\": %d" % uses
+		
+		# Include is_entrance for portal runes
+		if item.has("is_entrance"):
+			dict_str += ", \"is_entrance\": %s" % ("true" if item.get("is_entrance") else "false")
+		
 		dict_str += "}"
 		parts.append(dict_str)
 	

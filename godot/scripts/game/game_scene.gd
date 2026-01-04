@@ -56,6 +56,9 @@ var victory_screen: CanvasLayer = null
 ## Defeat screen overlay (shown when furnace is destroyed)
 var defeat_screen: CanvasLayer = null
 
+## Visual effects manager (vignette, bloom, heat haze, ash particles)
+var visual_effects_manager: VisualEffectsManager = null
+
 ## Track if we've shown the level hint (only show once per level load)
 var has_shown_level_hint: bool = false
 
@@ -126,6 +129,9 @@ func _ready() -> void:
 	# Create victory and defeat screen overlays
 	_setup_victory_screen()
 	_setup_defeat_screen()
+	
+	# Setup visual effects (vignette, bloom, heat haze, ash particles)
+	_setup_visual_effects()
 	
 	# Create debug controller (only in debug mode)
 	if GameConfig.debug_mode:
@@ -338,6 +344,20 @@ func _on_defeat_restart() -> void:
 	SceneManager.reload_current_scene()
 
 
+## Setup visual effects (vignette, bloom, heat haze, ash particles)
+func _setup_visual_effects() -> void:
+	visual_effects_manager = VisualEffectsManager.new()
+	add_child(visual_effects_manager)
+	
+	# Get UI layer reference for proper layering
+	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
+	
+	# Initialize with required references
+	visual_effects_manager.initialize(ui_layer, game_board)
+	
+	print("GameScene: Visual effects initialized")
+
+
 func _process(_delta: float) -> void:
 	_update_hover_highlight()
 
@@ -466,6 +486,10 @@ func _create_preset_structures() -> void:
 	if not current_level_data:
 		return
 	
+	# Track portal runes for linking after creation
+	var portal_entrances: Array[PortalRune] = []
+	var portal_exits: Array[PortalRune] = []
+	
 	# Create wall visuals for terrain_blocked (immovable walls/terrain)
 	if current_level_data.terrain_blocked.size() > 0:
 		for terrain_pos in current_level_data.terrain_blocked:
@@ -482,6 +506,7 @@ func _create_preset_structures() -> void:
 		var item_pos: Vector2i = item_data.get("position", Vector2i.ZERO)
 		var item_type: String = item_data.get("type", "")
 		var item_direction: String = item_data.get("direction", "south")
+		var is_entrance: bool = item_data.get("is_entrance", true)  # Default to entrance for backwards compatibility
 		
 		# Get item definition to check if it has a scene
 		var definition := GameConfig.get_item_definition(item_type)
@@ -489,7 +514,7 @@ func _create_preset_structures() -> void:
 		
 		if definition and not definition.scene_path.is_empty():
 			# Item has a scene - use scene-based visual (runes, explosive walls, etc.)
-			item_visual = _create_item_visual(item_pos, item_type, item_direction)
+			item_visual = _create_item_visual(item_pos, item_type, item_direction, is_entrance)
 		else:
 			# No scene - use basic wall visual (for "wall" type)
 			item_visual = _create_wall_visual(item_pos)
@@ -500,6 +525,17 @@ func _create_preset_structures() -> void:
 			var tile := TileManager.get_tile(item_pos)
 			if tile:
 				tile.structure = item_visual
+			
+			# Track portal runes for linking
+			if item_visual is PortalRune:
+				var portal := item_visual as PortalRune
+				if portal.is_entrance:
+					portal_entrances.append(portal)
+				else:
+					portal_exits.append(portal)
+	
+	# Link portal pairs (entrance to exit in order)
+	_link_portal_pairs(portal_entrances, portal_exits)
 
 
 ## Create a visual for a preset wall
@@ -556,7 +592,7 @@ func _create_wall_visual(grid_pos: Vector2i) -> Node2D:
 
 
 ## Create a visual for a preset item with a scene (runes, explosive walls, etc.)
-func _create_item_visual(grid_pos: Vector2i, item_type: String, direction: String) -> Node2D:
+func _create_item_visual(grid_pos: Vector2i, item_type: String, direction: String, is_entrance: bool = true) -> Node2D:
 	# Get the item definition to find the scene path
 	var definition := GameConfig.get_item_definition(item_type)
 	if not definition:
@@ -567,9 +603,16 @@ func _create_item_visual(grid_pos: Vector2i, item_type: String, direction: Strin
 		push_warning("GameScene: No scene path for item type: %s" % item_type)
 		return null
 	
-	var scene := load(definition.scene_path) as PackedScene
+	# For portals, use the correct scene based on is_entrance
+	var scene_path := definition.scene_path
+	if item_type == "portal" and not is_entrance:
+		# Use paired_scene_path for portal exits
+		if not definition.paired_scene_path.is_empty():
+			scene_path = definition.paired_scene_path
+	
+	var scene := load(scene_path) as PackedScene
 	if not scene:
-		push_warning("GameScene: Failed to load item scene: %s" % definition.scene_path)
+		push_warning("GameScene: Failed to load item scene: %s" % scene_path)
 		return null
 	
 	var item_node := scene.instantiate()
@@ -596,6 +639,20 @@ func _create_item_visual(grid_pos: Vector2i, item_type: String, direction: Strin
 		)
 	
 	return item_node
+
+
+## Link portal pairs (entrance to exit in order of creation)
+func _link_portal_pairs(entrances: Array[PortalRune], exits: Array[PortalRune]) -> void:
+	var pair_count := mini(entrances.size(), exits.size())
+	
+	if entrances.size() != exits.size():
+		push_warning("GameScene: Mismatched portal count - %d entrances, %d exits" % [entrances.size(), exits.size()])
+	
+	for i in range(pair_count):
+		var entrance := entrances[i]
+		var exit := exits[i]
+		entrance.link_to(exit)
+		print("GameScene: Linked portal pair %d - entrance at %s, exit at %s" % [i, entrance.grid_position, exit.grid_position])
 
 
 ## Convert direction string to Vector2
@@ -1014,6 +1071,10 @@ func _start_build_phase() -> void:
 	
 	# Show level hint snackbar (only on initial level start, not when returning from active phase)
 	_show_level_hint()
+	
+	# Set visual effects to build phase intensity
+	if visual_effects_manager:
+		visual_effects_manager.set_build_phase_intensity()
 
 
 func _start_active_phase() -> void:
@@ -1053,6 +1114,10 @@ func _start_active_phase() -> void:
 	
 	# Start enemy wave
 	EnemyManager.start_wave()
+	
+	# Intensify visual effects for active phase
+	if visual_effects_manager:
+		visual_effects_manager.set_active_phase_intensity()
 	
 	_launch_fireball()
 
