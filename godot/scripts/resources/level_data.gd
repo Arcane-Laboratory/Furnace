@@ -31,14 +31,11 @@ enum RuneType {
 ## Starting resources for this level
 @export var starting_resources: int = 100
 
-## Pre-placed walls (grid positions that are blocked)
+## Pre-placed buildable items (walls, runes, etc.)
 ## These cannot be edited by the player
-@export var preset_walls: Array[Vector2i] = []
-
-## Pre-placed runes (grid position + rune type)
-## These cannot be edited by the player
-@export var preset_runes: Array[Dictionary] = []
-# Format: [{ "position": Vector2i, "type": RuneType, "direction": "south", "uses": 0 }]
+@export var preset_items: Array[Dictionary] = []
+# Format: [{ "position": Vector2i, "type": String, "direction": String, "uses": int }]
+# type: item_type from BuildableItemDefinition (e.g., "wall", "redirect", "portal")
 
 ## Impassable terrain tiles (rock/mountain)
 @export var terrain_blocked: Array[Vector2i] = []
@@ -94,12 +91,31 @@ func is_valid() -> bool:
 	return true
 
 
-## Get all blocked tiles (terrain + preset walls)
+## Get all blocked tiles (terrain + items that block paths)
 func get_blocked_tiles() -> Array[Vector2i]:
 	var blocked: Array[Vector2i] = []
 	blocked.append_array(terrain_blocked)
-	blocked.append_array(preset_walls)
+	
+	# Add preset items that block paths (walls, explosive walls, etc.)
+	for item_data in preset_items:
+		var item_type: String = item_data.get("type", "")
+		if _item_blocks_path(item_type):
+			var pos: Vector2i = item_data.get("position", Vector2i.ZERO)
+			blocked.append(pos)
+	
 	return blocked
+
+
+## Check if an item type blocks pathfinding
+func _item_blocks_path(item_type: String) -> bool:
+	# Try to get definition from GameConfig if available
+	if GameConfig and GameConfig.buildable_item_definitions.has(item_type):
+		var definition = GameConfig.buildable_item_definitions[item_type]
+		if definition:
+			return definition.blocks_path
+	
+	# Fallback: known blocking item types
+	return item_type in ["wall", "explosive_wall"]
 
 
 ## Check if a tile is buildable (not blocked by terrain or preset elements)
@@ -114,13 +130,9 @@ func is_tile_buildable(grid_pos: Vector2i) -> bool:
 	if grid_pos in terrain_blocked:
 		return false
 	
-	# Check preset walls
-	if grid_pos in preset_walls:
-		return false
-	
-	# Check preset runes
-	for rune_data in preset_runes:
-		if rune_data.get("position") == grid_pos:
+	# Check preset items (walls, runes, etc.)
+	for item_data in preset_items:
+		if item_data.get("position") == grid_pos:
 			return false
 	
 	# Check spawn points
