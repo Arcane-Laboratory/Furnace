@@ -72,12 +72,13 @@ func _is_item_available(definition: Resource) -> bool:
 		return unlocked_by_default
 	
 	# Check if item is in level's allowed_runes
-	# Empty allowed_runes array means all default runes are available
+	# Empty allowed_runes array means only default unlocked runes are available
 	if current_level_data.allowed_runes.is_empty():
-		# All default unlocked items are available
+		# Only default unlocked items are available
 		return unlocked_by_default
 	else:
-		# Only items in allowed_runes are available (use helper method for enum conversion)
+		# Default unlocked runes (wall, redirect) PLUS runes in allowed_runes are available
+		# (use helper method for enum conversion and default checking)
 		return current_level_data.is_rune_allowed(item_type)
 
 

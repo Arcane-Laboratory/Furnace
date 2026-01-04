@@ -17,7 +17,7 @@ enum RuneType {
 	WALL,              # Wall (blocks enemy movement)
 	REFLECT,           # Reflect rune (bounces fireball back)
 	EXPLOSIVE,         # Explosive rune (area damage)
-	ACCELERATION,      # Acceleration rune (speeds up fireball)
+	POWER,             # Power rune (speeds up fireball)
 	PORTAL,            # Portal rune (teleports fireball)
 }
 
@@ -183,8 +183,8 @@ static func rune_type_to_string(rune_type: RuneType) -> String:
 			return "reflect"
 		RuneType.EXPLOSIVE:
 			return "explosive"
-		RuneType.ACCELERATION:
-			return "acceleration"
+		RuneType.POWER:
+			return "power"
 		RuneType.PORTAL:
 			return "portal"
 		_:
@@ -200,12 +200,19 @@ func get_allowed_runes_strings() -> Array[String]:
 
 
 ## Check if a rune type is allowed (by string)
+## Returns true if the rune is either:
+## 1. Unlocked by default (wall, redirect), OR
+## 2. In the allowed_runes array (if not empty)
 func is_rune_allowed(rune_type_string: String) -> bool:
-	if allowed_runes.is_empty():
-		# Empty array means all default unlocked runes are available
+	# Check if rune is unlocked by default (wall, redirect)
+	if GameConfig.is_rune_unlocked_by_default(rune_type_string):
 		return true
 	
-	# Convert string to enum and check
+	# If allowed_runes is empty, only default unlocked runes are available (already checked above)
+	if allowed_runes.is_empty():
+		return false
+	
+	# Check if rune is in the allowed_runes array (additional runes beyond defaults)
 	var rune_type: RuneType = string_to_rune_type(rune_type_string)
 	return rune_type in allowed_runes
 
@@ -223,8 +230,8 @@ static func string_to_rune_type(rune_type_string: String) -> RuneType:
 			return RuneType.REFLECT
 		"explosive":
 			return RuneType.EXPLOSIVE
-		"acceleration":
-			return RuneType.ACCELERATION
+		"power", "acceleration":  # "acceleration" is legacy support
+			return RuneType.POWER
 		"portal":
 			return RuneType.PORTAL
 		_:
