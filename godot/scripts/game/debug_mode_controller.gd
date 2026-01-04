@@ -216,6 +216,10 @@ func _on_restart_level_requested() -> void:
 	
 	# Reset resources to starting resources for this level
 	GameManager.reset_for_level(GameManager.current_level)
+	# Override resources from level data if available
+	if current_level_data and current_level_data.starting_resources > 0:
+		GameManager.resources = current_level_data.starting_resources
+		GameManager.resources_changed.emit(GameManager.resources)
 	
 	# Clear all enemies using EnemyManager
 	EnemyManager.clear_enemies()

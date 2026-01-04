@@ -59,6 +59,10 @@ func _is_item_available(definition: Resource) -> bool:
 	if GameConfig.debug_all_items_unlocked:
 		return true
 	
+	# Level-specific unlock all items (e.g., debug level 0)
+	if current_level_data and current_level_data.unlock_all_items:
+		return true
+	
 	# Access properties directly (they're @export properties on BuildableItemDefinition)
 	var item_type: String = definition.item_type
 	var unlocked_by_default: bool = definition.unlocked_by_default

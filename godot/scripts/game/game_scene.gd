@@ -97,7 +97,11 @@ func _ready() -> void:
 	_create_hover_highlight()
 	_create_spawn_point_markers()
 	
+	# Reset game state for level, then override resources from level data if available
 	GameManager.reset_for_level(GameManager.current_level)
+	if current_level_data and current_level_data.starting_resources > 0:
+		GameManager.resources = current_level_data.starting_resources
+		GameManager.resources_changed.emit(GameManager.resources)
 	GameManager.resources_changed.connect(_on_resources_changed)
 	GameManager.state_changed.connect(_on_state_changed)
 	
@@ -1781,6 +1785,10 @@ func reload_level(level_number: int) -> void:
 	# Update game manager
 	GameManager.current_level = level_number
 	GameManager.reset_for_level(level_number)
+	# Override resources from level data if available
+	if current_level_data and current_level_data.starting_resources > 0:
+		GameManager.resources = current_level_data.starting_resources
+		GameManager.resources_changed.emit(GameManager.resources)
 	
 	# Reinitialize the tile system
 	_initialize_tile_system()

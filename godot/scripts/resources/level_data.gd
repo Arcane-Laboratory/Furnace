@@ -70,6 +70,9 @@ enum RuneType {
 ## Set to 0.0 to disable heat increase over time
 @export_range(0.0, 60.0, 0.1) var heat_increase_interval: float = 0.0
 
+## Unlock all buildable items for this level (overrides unlocked_by_default)
+@export var unlock_all_items: bool = false
+
 
 ## Validate that the level data is properly configured
 func is_valid() -> bool:

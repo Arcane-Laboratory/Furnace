@@ -23,3 +23,4 @@ enemy_waves = Array[ExtResource("2")]([SubResource("Resource_debug1"), SubResour
 par_time_seconds = 999.0
 hint_text = "[DEBUG] Test level with all items unlocked and invincibility enabled."
 heat_increase_interval = 4.0
+unlock_all_items = true
