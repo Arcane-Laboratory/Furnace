@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://b06ob7kxsjkag"]
+[gd_scene load_steps=40 format=3 uid="uid://b06ob7kxsjkag"]
 
 [ext_resource type="Script" uid="uid://bvxxnk05lkk4q" path="res://scripts/game/game_scene.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="2_pause"]
@@ -7,6 +7,7 @@
 [ext_resource type="StyleBox" path="res://style_box_9p_large.tres" id="3_p0de3"]
 [ext_resource type="Script" uid="uid://bkx4rum0dc8ux" path="res://scripts/game/path_preview.gd" id="3_path_preview"]
 [ext_resource type="Script" uid="uid://ca8c2y1y2nhgc" path="res://scripts/game/furnace_animation.gd" id="4_furnace_anim"]
+[ext_resource type="PackedScene" path="res://scenes/effects/dust_particles.tscn" id="6_dust_particles"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_f0"]
 atlas = ExtResource("3_furnace_sprite")
@@ -233,6 +234,7 @@ script = ExtResource("1_game")
 z_index = -100
 offset_right = 640.0
 offset_bottom = 360.0
+scale = Vector2(0.95499873, 0.9469654)
 color = Color(0.12, 0.12, 0.14, 1)
 
 [node name="Background" type="Sprite2D" parent="."]
@@ -329,6 +331,14 @@ theme_override_constants/separation = 8
 
 [node name="GameMenu" parent="UILayer/RightPanel/VBoxContainer" instance=ExtResource("2_ydf3n")]
 layout_mode = 2
+
+[node name="DustParticles" parent="." instance=ExtResource("6_dust_particles")]
+z_index = 40
+position = Vector2(608, 184)
+rotation = -1.5745414
+scale = Vector2(6.0927258, -0.2539295)
+lifetime = 14.87
+randomness = 0.2
 
 [node name="PauseMenu" parent="." instance=ExtResource("2_pause")]
 visible = false

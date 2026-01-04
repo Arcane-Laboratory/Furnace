@@ -1,8 +1,172 @@
-[gd_scene load_steps=4 format=3 uid="uid://ctcn512vpbrmx"]
+[gd_scene load_steps=29 format=3 uid="uid://ctcn512vpbrmx"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_aqpy5"]
-[ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
-[ext_resource type="StyleBox" uid="uid://daxtmlmajhs7f" path="res://style_box_9p_fullscreen.tres" id="3_w8uqo"]
+[ext_resource type="Script" uid="uid://jmyud21feeml" path="res://scripts/ui/title_screen.gd" id="1_title"]
+[ext_resource type="Texture2D" uid="uid://cnoxany01jqqv" path="res://assets/sprites/title-bg.png" id="2_title_bg"]
+[ext_resource type="Script" uid="uid://b41scntp1y6hc" path="res://scripts/ui/title_background.gd" id="3_title_bg"]
+[ext_resource type="Texture2D" uid="uid://cr3jk73e4bv1y" path="res://assets/sprites/wordmark.png" id="4_wordmark"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a4ium"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 0, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r23qo"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 360, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cfe2f"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 720, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6ik4u"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 1080, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aqu7r"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 1440, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jsbfx"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 1800, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7oraf"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 2160, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lddph"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 2520, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g5qcc"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 2880, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1oiph"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 3240, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5p4sa"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 3600, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tqags"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 3960, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_to824"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 4320, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y77df"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 4680, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jqmgk"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 5040, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_una1u"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 5400, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rtmth"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 5760, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7avnr"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 6120, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5c0cl"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 6480, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ytagk"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 6840, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qo84g"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 7200, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nccv4"]
+atlas = ExtResource("2_title_bg")
+region = Rect2(0, 7560, 640, 360)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_title"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a4ium")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r23qo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cfe2f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6ik4u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aqu7r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jsbfx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7oraf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lddph")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g5qcc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1oiph")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5p4sa")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tqags")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_to824")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y77df")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jqmgk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_una1u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rtmth")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7avnr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5c0cl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ytagk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qo84g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nccv4")
+}],
+"loop": true,
+"name": &"title_loop",
+"speed": 10.0
+}]
 
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
@@ -14,14 +178,14 @@ grow_vertical = 2
 theme = ExtResource("1_aqpy5")
 script = ExtResource("1_title")
 
-[node name="Background" type="Panel" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = ExtResource("3_w8uqo")
+[node name="Background" type="AnimatedSprite2D" parent="."]
+position = Vector2(320, 180)
+scale = Vector2(1.044381, 1.0064197)
+sprite_frames = SubResource("SpriteFrames_title")
+animation = &"title_loop"
+autoplay = "true"
+speed_scale = 2.0
+script = ExtResource("3_title_bg")
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -35,12 +199,10 @@ grow_vertical = 2
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="Wordmark" type="TextureRect" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme = ExtResource("1_aqpy5")
-theme_override_font_sizes/font_size = 48
-text = "FURNACE"
-horizontal_alignment = 1
+texture = ExtResource("4_wordmark")
+stretch_mode = 5
 
 [node name="PromptLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2

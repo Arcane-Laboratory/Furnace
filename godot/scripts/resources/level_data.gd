@@ -16,7 +16,7 @@ enum RuneType {
 	ADVANCED_REDIRECT, # Advanced redirect (can change direction during active phase)
 	WALL,              # Wall (blocks enemy movement)
 	REFLECT,           # Reflect rune (bounces fireball back)
-	EXPLOSIVE,         # Explosive rune (area damage)
+	EXPLOSIVE_WALL,    # Explosive wall (area damage when fireball passes adjacent)
 	POWER,             # Power rune (speeds up fireball)
 	MUD,               # Mud tile (slows enemies)
 	PORTAL,            # Portal rune (teleports fireball)
@@ -182,8 +182,8 @@ static func rune_type_to_string(rune_type: RuneType) -> String:
 			return "wall"
 		RuneType.REFLECT:
 			return "reflect"
-		RuneType.EXPLOSIVE:
-			return "explosive"
+		RuneType.EXPLOSIVE_WALL:
+			return "explosive_wall"
 		RuneType.POWER:
 			return "power"
 		RuneType.MUD:
@@ -231,8 +231,8 @@ static func string_to_rune_type(rune_type_string: String) -> RuneType:
 			return RuneType.WALL
 		"reflect":
 			return RuneType.REFLECT
-		"explosive":
-			return RuneType.EXPLOSIVE
+		"explosive_wall", "explosive":  # "explosive" is legacy support
+			return RuneType.EXPLOSIVE_WALL
 		"power", "acceleration":  # "acceleration" is legacy support
 			return RuneType.POWER
 		"mud_tile", "mud":
