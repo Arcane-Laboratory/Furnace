@@ -102,6 +102,52 @@ func show_for_tile(grid_pos: Vector2i, refund_amount: int, screen_pos: Vector2, 
 	visible = true
 
 
+## Calculate the best position for the tooltip to avoid covering the tile and staying on screen
+## tile_screen_pos: The top-left corner of the tile in screen coordinates
+## tile_size: The size of the tile (usually 32x32)
+## viewport_size: The size of the viewport
+## gap: Minimum gap between tooltip and tile
+func calculate_best_position(tile_screen_pos: Vector2, tile_size: Vector2, viewport_size: Vector2, gap: float = 4.0) -> Vector2:
+	# We need to know the tooltip size - force layout update to get accurate size
+	# First make visible temporarily to get size, then position
+	var was_visible := visible
+	visible = true
+	
+	# Wait for layout to update - use the minimum size as fallback
+	var tooltip_size := size
+	if tooltip_size == Vector2.ZERO:
+		tooltip_size = get_combined_minimum_size()
+	
+	visible = was_visible
+	
+	# Calculate tile center for horizontal positioning
+	var tile_center_x := tile_screen_pos.x + tile_size.x / 2.0
+	
+	# Try to center tooltip horizontally on the tile
+	var pos_x := tile_center_x - tooltip_size.x / 2.0
+	
+	# Clamp horizontal position to stay on screen with a small margin
+	var margin := 4.0
+	pos_x = clampf(pos_x, margin, viewport_size.x - tooltip_size.x - margin)
+	
+	# Try to position above the tile first (preferred)
+	var pos_y_above := tile_screen_pos.y - tooltip_size.y - gap
+	
+	# If above would go off the top of the screen, position below instead
+	var pos_y: float
+	if pos_y_above < margin:
+		# Position below the tile
+		pos_y = tile_screen_pos.y + tile_size.y + gap
+		
+		# If below would also go off screen, clamp to bottom
+		if pos_y + tooltip_size.y > viewport_size.y - margin:
+			pos_y = viewport_size.y - tooltip_size.y - margin
+	else:
+		pos_y = pos_y_above
+	
+	return Vector2(pos_x, pos_y)
+
+
 ## Update upgrade button based on structure's upgrade capability
 func _update_upgrade_button(structure: Node, show_upgrade: bool) -> void:
 	if not upgrade_button:

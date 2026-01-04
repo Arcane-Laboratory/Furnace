@@ -455,23 +455,13 @@ func _initialize_tile_system() -> void:
 	_test_pathfinding()
 
 
-## Create visual structures for preset walls and runes from level data
+## Create visual structures for preset items and terrain from level data
 func _create_preset_structures() -> void:
 	if not current_level_data:
 		return
 	
-	# Create preset wall visuals
-	for wall_pos in current_level_data.preset_walls:
-		var wall_visual := _create_wall_visual(wall_pos)
-		if wall_visual:
-			runes_container.add_child(wall_visual)
-			# Update tile to reference this structure
-			var tile := TileManager.get_tile(wall_pos)
-			if tile:
-				tile.structure = wall_visual
-	
 	# Create wall visuals for terrain_blocked (immovable walls/terrain)
-	if current_level_data and current_level_data.terrain_blocked.size() > 0:
+	if current_level_data.terrain_blocked.size() > 0:
 		for terrain_pos in current_level_data.terrain_blocked:
 			var wall_visual := _create_wall_visual(terrain_pos)
 			if wall_visual:
@@ -481,19 +471,29 @@ func _create_preset_structures() -> void:
 				if tile:
 					tile.structure = wall_visual
 	
-	# Create preset rune visuals
-	for rune_data in current_level_data.preset_runes:
-		var rune_pos: Vector2i = rune_data.get("position", Vector2i.ZERO)
-		var rune_type: String = rune_data.get("type", "")
-		var rune_direction: String = rune_data.get("direction", "south")
+	# Create preset item visuals (walls, runes, etc.)
+	for item_data in current_level_data.preset_items:
+		var item_pos: Vector2i = item_data.get("position", Vector2i.ZERO)
+		var item_type: String = item_data.get("type", "")
+		var item_direction: String = item_data.get("direction", "south")
 		
-		var rune_visual := _create_rune_visual(rune_pos, rune_type, rune_direction)
-		if rune_visual:
-			runes_container.add_child(rune_visual)
+		# Get item definition to check if it has a scene
+		var definition := GameConfig.get_item_definition(item_type)
+		var item_visual: Node2D = null
+		
+		if definition and not definition.scene_path.is_empty():
+			# Item has a scene - use scene-based visual (runes, explosive walls, etc.)
+			item_visual = _create_item_visual(item_pos, item_type, item_direction)
+		else:
+			# No scene - use basic wall visual (for "wall" type)
+			item_visual = _create_wall_visual(item_pos)
+		
+		if item_visual:
+			runes_container.add_child(item_visual)
 			# Update tile to reference this structure
-			var tile := TileManager.get_tile(rune_pos)
+			var tile := TileManager.get_tile(item_pos)
 			if tile:
-				tile.structure = rune_visual
+				tile.structure = item_visual
 
 
 ## Create a visual for a preset wall
@@ -549,47 +549,47 @@ func _create_wall_visual(grid_pos: Vector2i) -> Node2D:
 	return visual
 
 
-## Create a visual for a preset rune
-func _create_rune_visual(grid_pos: Vector2i, rune_type: String, direction: String) -> Node2D:
-	# Get the rune definition to find the scene path
-	var definition := GameConfig.get_item_definition(rune_type)
+## Create a visual for a preset item with a scene (runes, explosive walls, etc.)
+func _create_item_visual(grid_pos: Vector2i, item_type: String, direction: String) -> Node2D:
+	# Get the item definition to find the scene path
+	var definition := GameConfig.get_item_definition(item_type)
 	if not definition:
-		push_warning("GameScene: No definition found for rune type: %s" % rune_type)
+		push_warning("GameScene: No definition found for item type: %s" % item_type)
 		return null
 	
 	if definition.scene_path.is_empty():
-		push_warning("GameScene: No scene path for rune type: %s" % rune_type)
+		push_warning("GameScene: No scene path for item type: %s" % item_type)
 		return null
 	
 	var scene := load(definition.scene_path) as PackedScene
 	if not scene:
-		push_warning("GameScene: Failed to load rune scene: %s" % definition.scene_path)
+		push_warning("GameScene: Failed to load item scene: %s" % definition.scene_path)
 		return null
 	
-	var rune_node := scene.instantiate()
-	if not rune_node:
-		push_warning("GameScene: Failed to instantiate rune scene")
+	var item_node := scene.instantiate()
+	if not item_node:
+		push_warning("GameScene: Failed to instantiate item scene")
 		return null
 	
 	# Set position and direction
-	if rune_node is RuneBase:
-		var rune := rune_node as RuneBase
+	if item_node is RuneBase:
+		var rune := item_node as RuneBase
 		rune.set_grid_position(grid_pos)
 		
 		# Set direction (redirect runes and portal runes use set_direction_by_string)
 		if rune.has_method("set_direction_by_string"):
 			rune.set_direction_by_string(direction)
 		elif rune.has_method("set_direction"):
-			# Fallback for other rune types that might use Vector2 direction
+			# Fallback for other item types that might use Vector2 direction
 			var dir_vector := _direction_string_to_vector(direction)
 			rune.set_direction(dir_vector)
-	elif rune_node is Node2D:
-		(rune_node as Node2D).position = Vector2(
+	elif item_node is Node2D:
+		(item_node as Node2D).position = Vector2(
 			grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
 			grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 		)
 	
-	return rune_node
+	return item_node
 
 
 ## Convert direction string to Vector2
@@ -1316,18 +1316,16 @@ func _show_tile_tooltip_active_phase(grid_pos: Vector2i, structure: Node) -> voi
 	if not tile_tooltip:
 		return
 	
-	# Calculate screen position (tile position + game board offset)
+	# Calculate tile's screen position (top-left corner)
 	var tile_screen_pos := Vector2(
 		grid_pos.x * GameConfig.TILE_SIZE + game_board.position.x,
 		grid_pos.y * GameConfig.TILE_SIZE + game_board.position.y
 	)
 	
-	# Position above the tile, with height for direction controls only
-	var tooltip_height := 50  # Shorter since no sell/upgrade buttons
-	var tooltip_pos := Vector2(
-		tile_screen_pos.x + GameConfig.TILE_SIZE / 2.0 - 30,
-		tile_screen_pos.y - tooltip_height
-	)
+	# Calculate best position using helper (avoids covering tile and stays on screen)
+	var tile_size := Vector2(GameConfig.TILE_SIZE, GameConfig.TILE_SIZE)
+	var viewport_size := Vector2(GameConfig.VIEWPORT_WIDTH, GameConfig.VIEWPORT_HEIGHT)
+	var tooltip_pos := tile_tooltip.calculate_best_position(tile_screen_pos, tile_size, viewport_size)
 	
 	# Show tooltip with direction controls but NO sell button and NO upgrade button
 	tile_tooltip.show_for_tile(grid_pos, 0, tooltip_pos, true, structure, false, false)
@@ -1533,22 +1531,16 @@ func _show_tile_tooltip(grid_pos: Vector2i) -> void:
 	if definition.has_method("get") or "has_direction" in definition:
 		has_direction = definition.has_direction
 	
-	# Calculate screen position (tile position + game board offset)
+	# Calculate tile's screen position (top-left corner)
 	var tile_screen_pos := Vector2(
 		grid_pos.x * GameConfig.TILE_SIZE + game_board.position.x,
 		grid_pos.y * GameConfig.TILE_SIZE + game_board.position.y
 	)
 	
-	# Position above the tile, centered horizontally
-	# Adjust position based on whether direction controls are shown
-	var tooltip_height := 26  # Base height
-	if has_direction:
-		tooltip_height = 70  # Taller with direction buttons
-	
-	var tooltip_pos := Vector2(
-		tile_screen_pos.x + GameConfig.TILE_SIZE / 2.0 - 30,  # Center the ~60px button
-		tile_screen_pos.y - tooltip_height  # Above the tile
-	)
+	# Calculate best position using helper (avoids covering tile and stays on screen)
+	var tile_size := Vector2(GameConfig.TILE_SIZE, GameConfig.TILE_SIZE)
+	var viewport_size := Vector2(GameConfig.VIEWPORT_WIDTH, GameConfig.VIEWPORT_HEIGHT)
+	var tooltip_pos := tile_tooltip.calculate_best_position(tile_screen_pos, tile_size, viewport_size)
 	
 	tile_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos, has_direction, structure)
 
@@ -1812,8 +1804,7 @@ func reload_level(level_number: int) -> void:
 		# Clear removed items (they're now removed from the level file)
 		debug_controller.removed_spawn_points.clear()
 		debug_controller.removed_terrain_tiles.clear()
-		debug_controller.removed_walls.clear()
-		debug_controller.removed_runes.clear()
+		debug_controller.removed_items.clear()
 	
 	# Update path preview
 	if path_preview:
@@ -1921,3 +1912,19 @@ func _clear_game_state() -> void:
 	# Disconnect tile occupancy signal temporarily (will reconnect in _initialize_tile_system)
 	if TileManager.occupancy_changed.is_connected(_on_tile_occupancy_changed):
 		TileManager.occupancy_changed.disconnect(_on_tile_occupancy_changed)
+	
+	# Disconnect EnemyManager signals (will reconnect in _initialize_tile_system)
+	if EnemyManager.all_enemies_defeated.is_connected(_on_all_enemies_defeated):
+		EnemyManager.all_enemies_defeated.disconnect(_on_all_enemies_defeated)
+	if EnemyManager.furnace_destroyed.is_connected(_on_furnace_destroyed):
+		EnemyManager.furnace_destroyed.disconnect(_on_furnace_destroyed)
+	if EnemyManager.debug_wave_restarted.is_connected(_on_debug_wave_restarted):
+		EnemyManager.debug_wave_restarted.disconnect(_on_debug_wave_restarted)
+	if EnemyManager.enemy_died.is_connected(_on_enemy_died):
+		EnemyManager.enemy_died.disconnect(_on_enemy_died)
+	
+	# Disconnect FireballManager signals (will reconnect in _initialize_tile_system)
+	if FireballManager.fireball_destroyed.is_connected(_on_fireball_destroyed):
+		FireballManager.fireball_destroyed.disconnect(_on_fireball_destroyed)
+	if FireballManager.fireball_enemy_hit.is_connected(_on_fireball_enemy_hit):
+		FireballManager.fireball_enemy_hit.disconnect(_on_fireball_enemy_hit)

@@ -80,16 +80,16 @@ func _update_tile_occupancy_from_level_data(grid_pos: Vector2i, tile: TileBase) 
 	if not current_level_data:
 		return
 	
-	# Check for preset walls (not player-placed)
-	if grid_pos in current_level_data.preset_walls:
-		tile.set_occupancy(TileBase.OccupancyType.WALL, null, false, "wall")
-		return
-	
-	# Check for preset runes (not player-placed)
-	for rune_data in current_level_data.preset_runes:
-		if rune_data.get("position") == grid_pos:
-			var rune_type: String = rune_data.get("type", "")
-			tile.set_occupancy(TileBase.OccupancyType.RUNE, null, false, rune_type)
+	# Check for preset items (walls, runes, etc. - not player-placed)
+	for item_data in current_level_data.preset_items:
+		if item_data.get("position") == grid_pos:
+			var item_type: String = item_data.get("type", "")
+			# Determine occupancy type based on item definition
+			var definition = GameConfig.get_item_definition(item_type)
+			if definition and definition.blocks_path:
+				tile.set_occupancy(TileBase.OccupancyType.WALL, null, false, item_type)
+			else:
+				tile.set_occupancy(TileBase.OccupancyType.RUNE, null, false, item_type)
 			return
 	
 	# Check for spawn points
