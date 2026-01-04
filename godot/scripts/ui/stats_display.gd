@@ -2,6 +2,7 @@ extends Control
 class_name StatsDisplay
 ## Stats display - tracks and displays game statistics (soot vanquished, sparks used, damage dealt)
 ## This component can be used standalone or controlled by a parent script.
+## Automatically tracks sparks spent via GameManager.resources_changed signal.
 
 
 ## Reference to UI elements (using unique names)
@@ -20,6 +21,9 @@ var currency_tween: Tween
 
 
 func _ready() -> void:
+	# Ensure labels are ready
+	_ensure_labels_ready()
+	
 	# Connect to GameManager resources signal to track spending
 	GameManager.resources_changed.connect(_on_resources_changed)
 	
@@ -27,12 +31,17 @@ func _ready() -> void:
 	previous_resources = GameManager.resources
 	
 	# Initialize display
-	_update_display()
-
-
-## Update all display labels
-func _update_display() -> void:
 	_update_sparks_display()
+
+
+## Ensure label references are initialized (handles timing issues)
+func _ensure_labels_ready() -> void:
+	if not level_value:
+		level_value = get_node_or_null("%LevelValue") as Label
+	if not money_value:
+		money_value = get_node_or_null("%MoneyValue") as Label
+	if not heat_value:
+		heat_value = get_node_or_null("%HeatValue") as Label
 
 
 ## Handle resources changed signal - track spending
@@ -49,30 +58,35 @@ func _on_resources_changed(new_amount: int) -> void:
 
 ## Update sparks spent display
 func _update_sparks_display() -> void:
+	_ensure_labels_ready()
 	if money_value:
 		money_value.text = str(sparks_spent)
 
 
-## Set level/soot vanquished display
-func set_level(value: int) -> void:
+## Set all stats at once (for end screens)
+func set_stats(soot: int, sparks: int, damage: int) -> void:
+	_ensure_labels_ready()
+	set_soot_vanquished(soot)
+	set_sparks_used(sparks)
+	set_damage_dealt(damage)
+
+
+## Set soot vanquished value
+func set_soot_vanquished(value: int) -> void:
+	_ensure_labels_ready()
 	if level_value:
 		level_value.text = str(value)
 
 
-## Set sparks spent display directly
-func set_sparks_spent(value: int) -> void:
+## Set sparks used/spent value directly
+func set_sparks_used(value: int) -> void:
 	sparks_spent = value
 	_update_sparks_display()
 
 
-## Add to sparks spent
-func add_sparks_spent(amount: int) -> void:
-	sparks_spent += amount
-	_update_sparks_display()
-
-
-## Set damage dealt display
-func set_damage(value: int) -> void:
+## Set damage dealt value
+func set_damage_dealt(value: int) -> void:
+	_ensure_labels_ready()
 	if heat_value:
 		heat_value.text = str(value)
 
@@ -82,6 +96,7 @@ func set_damage(value: int) -> void:
 func reset_stats() -> void:
 	# Don't reset sparks_spent - it tracks spending from build phase
 	# Only reset level and heat which are active-phase stats
+	_ensure_labels_ready()
 	if level_value:
 		level_value.text = "0"
 	if heat_value:
@@ -92,6 +107,7 @@ func reset_stats() -> void:
 func reset_all() -> void:
 	sparks_spent = 0
 	previous_resources = GameManager.resources
+	_ensure_labels_ready()
 	if level_value:
 		level_value.text = "0"
 	if money_value:

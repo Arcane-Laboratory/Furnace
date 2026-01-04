@@ -55,8 +55,8 @@ func _is_item_available(definition: Resource) -> bool:
 	if not definition:
 		return false
 	
-	# Debug mode: all items available
-	if GameConfig.debug_mode:
+	# Debug all items unlocked: all items available
+	if GameConfig.debug_all_items_unlocked:
 		return true
 	
 	# Access properties directly (they're @export properties on BuildableItemDefinition)
@@ -125,48 +125,60 @@ func _populate_menu() -> void:
 	# Populate each grid container with items
 	var item_index := 0
 	for grid in grid_containers:
-		if not grid or item_index >= available_items.size():
-			break
+		if not grid:
+			continue
 		
 		# Get existing placeholder items
 		var placeholders := grid.get_children()
 		
-		# Configure first placeholder
-		if placeholders.size() > 0 and item_index < available_items.size():
-			var definition: Resource = available_items[item_index] as Resource
+		# Configure or hide first placeholder
+		if placeholders.size() > 0:
 			var item1: Control = placeholders[0] as Control
-			if item1 and item1.has_method("configure") and definition:
-				# Access properties directly (they're @export properties on BuildableItemDefinition)
-				item1.configure(
-					definition.item_type,
-					definition.display_name,
-					definition.cost,
-					definition.icon_color
-				)
-				_connect_menu_item_signals(item1)
-			item_index += 1
+			if item_index < available_items.size():
+				var definition: Resource = available_items[item_index] as Resource
+				if item1 and item1.has_method("configure") and definition:
+					# Access properties directly (they're @export properties on BuildableItemDefinition)
+					item1.configure(
+						definition.item_type,
+						definition.display_name,
+						definition.cost,
+						definition.icon_color
+					)
+					_connect_menu_item_signals(item1)
+					item1.visible = true
+				item_index += 1
+			else:
+				# Hide unused placeholder
+				if item1:
+					item1.visible = false
 		
-		# Configure second placeholder
-		if placeholders.size() > 1 and item_index < available_items.size():
-			var definition: Resource = available_items[item_index] as Resource
+		# Configure or hide second placeholder
+		if placeholders.size() > 1:
 			var item2: Control = placeholders[1] as Control
-			if item2 and item2.has_method("configure") and definition:
-				# Access properties directly (they're @export properties on BuildableItemDefinition)
-				item2.configure(
-					definition.item_type,
-					definition.display_name,
-					definition.cost,
-					definition.icon_color
-				)
-				_connect_menu_item_signals(item2)
-			item_index += 1
+			if item_index < available_items.size():
+				var definition: Resource = available_items[item_index] as Resource
+				if item2 and item2.has_method("configure") and definition:
+					# Access properties directly (they're @export properties on BuildableItemDefinition)
+					item2.configure(
+						definition.item_type,
+						definition.display_name,
+						definition.cost,
+						definition.icon_color
+					)
+					_connect_menu_item_signals(item2)
+					item2.visible = true
+				item_index += 1
+			else:
+				# Hide unused placeholder
+				if item2:
+					item2.visible = false
 	
-	# Hide unused grid containers
-	if item_index >= available_items.size():
-		if grid_container_2 and item_index <= 2:
-			grid_container_2.get_parent().visible = false
-		if grid_container_3 and item_index <= 4:
-			grid_container_3.get_parent().visible = false
+	# Hide unused grid containers (entire rows)
+	var items_configured := item_index
+	if grid_container_2:
+		grid_container_2.get_parent().visible = items_configured > 2
+	if grid_container_3:
+		grid_container_3.get_parent().visible = items_configured > 4
 
 
 ## Connect signals from a menu item
