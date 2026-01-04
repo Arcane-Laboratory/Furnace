@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 item_type = "mud_tile"
-display_name = "Mud Tile"
+display_name = "Mud"
 cost = 10
 unlocked_by_default = false
 icon_color = Color(0.4, 0.3, 0.2, 1)
