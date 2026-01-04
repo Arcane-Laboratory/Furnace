@@ -18,6 +18,9 @@ signal reload_level_requested(level_number: int)
 ## Emitted when a structure should be removed from the game board
 signal structure_removal_requested(grid_pos: Vector2i)
 
+## Emitted when items unlocked state changes (need to refresh build menu)
+signal items_unlocked_changed
+
 
 ## Debug placement mode (for placing spawn points, terrain, etc.)
 enum DebugPlacementMode { NONE, SPAWN_POINT, TERRAIN }
@@ -143,6 +146,7 @@ func _create_debug_modal() -> void:
 	debug_modal.restart_level_requested.connect(_on_restart_level_requested)
 	debug_modal.place_spawn_point_requested.connect(_on_place_spawn_point_requested)
 	debug_modal.place_terrain_requested.connect(_on_place_terrain_requested)
+	debug_modal.items_unlocked_changed.connect(_on_items_unlocked_changed)
 	
 	# Add to UI layer so it's on top
 	if ui_layer:
@@ -255,6 +259,11 @@ func _on_place_terrain_requested() -> void:
 	show_info_requested.emit("Left-click to place, right-click to remove (ESC to cancel)")
 	# Highlight all tiles as potential placement spots
 	TileManager.highlight_tiles(func(tile): return tile.is_buildable() or tile.occupancy == TileBase.OccupancyType.EMPTY, "buildable")
+
+
+## Handle items unlocked toggle changed
+func _on_items_unlocked_changed() -> void:
+	items_unlocked_changed.emit()
 
 
 ## Place a debug spawn point

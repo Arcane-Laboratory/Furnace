@@ -823,9 +823,11 @@ func _on_furnace_destroyed() -> void:
 	lose_level()
 
 
-# Called when debug wave restarts (debug mode only)
+# Called when debug wave restarts (immune mode only)
 func _on_debug_wave_restarted() -> void:
-	print("GameScene: [DEBUG] Wave restarted - respawning fireball...")
+	print("GameScene: [DEBUG] Wave restarted - clearing fireball and respawning...")
+	# Clear existing fireball before spawning new one (full level reset)
+	FireballManager.clear_all_fireballs()
 	_launch_fireball()
 
 
@@ -1650,6 +1652,16 @@ func _setup_debug_controller() -> void:
 	
 	# Connect structure removal signal
 	debug_controller.structure_removal_requested.connect(_on_structure_removal_requested)
+	
+	# Connect items unlocked changed signal
+	debug_controller.items_unlocked_changed.connect(_on_items_unlocked_changed)
+
+
+## Handle items unlocked changed (refresh build menu)
+func _on_items_unlocked_changed() -> void:
+	if build_submenu and build_submenu.has_method("set_level_data"):
+		build_submenu.set_level_data(current_level_data)
+		print("GameScene: Build menu refreshed due to items unlocked change")
 
 
 ## Handle structure removal request (remove rune/wall visual from game board)

@@ -21,9 +21,7 @@ func goto_menu() -> void:
 
 
 func goto_game() -> void:
-	# In debug mode, start at level 0 (debug level)
-	if GameConfig.debug_mode:
-		GameManager.current_level = 0
+	# Always start at level 1 (level 0 is accessible via debug modal)
 	get_tree().change_scene_to_file(GAME_SCENE)
 
 
