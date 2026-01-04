@@ -14,3 +14,6 @@ has_direction = true
 default_direction = "south"
 max_level = 2
 upgrade_cost = 10
+sprite_overrides = {
+2: "res://assets/sprites/rune-advanced-redirect.png"
+}
