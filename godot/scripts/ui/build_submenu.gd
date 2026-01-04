@@ -5,6 +5,9 @@ extends Control
 ## Emitted when selection changes (empty string means deselected)
 signal item_selection_changed(item_type: String)
 
+## Emitted when details are requested for an item
+signal show_details_requested(definition: BuildableItemDefinition)
+
 ## Available buildable items (runes + wall)
 ## Array of Resource (BuildableItemDefinition) resources
 var available_items: Array = []
@@ -172,6 +175,8 @@ func _connect_menu_item_signals(item: Control) -> void:
 		item.item_selected.connect(_on_item_selected)
 	if item.has_signal("item_drag_started") and not item.item_drag_started.is_connected(_on_item_drag_started):
 		item.item_drag_started.connect(_on_item_drag_started)
+	if item.has_signal("details_requested") and not item.details_requested.is_connected(_on_details_requested):
+		item.details_requested.connect(_on_details_requested)
 
 
 ## Get all menu item controls
@@ -223,3 +228,11 @@ func _on_item_drag_started(item_type: String) -> void:
 		selected_item_type = item_type
 		_update_menu_item_selection_visuals()
 		item_selection_changed.emit(selected_item_type)
+
+
+## Handle details requested for an item
+func _on_details_requested(item_type: String) -> void:
+	# Look up the item definition
+	var definition := GameConfig.get_item_definition(item_type) as BuildableItemDefinition
+	if definition:
+		show_details_requested.emit(definition)

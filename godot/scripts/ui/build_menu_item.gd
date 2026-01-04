@@ -4,6 +4,7 @@ extends Control
 
 signal item_selected(item_type: String)
 signal item_drag_started(item_type: String)
+signal details_requested(item_type: String)
 
 ## Item type identifier (e.g., "redirect", "wall", "portal")
 var item_type: String = ""
@@ -161,5 +162,4 @@ func _create_drag_preview() -> Control:
 
 ## Handle details button press
 func _on_details_pressed() -> void:
-	# Placeholder - show item details/info
-	print("Details for %s (Cost: %d)" % [item_name, item_cost])
+	details_requested.emit(item_type)

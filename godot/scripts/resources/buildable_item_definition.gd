@@ -17,6 +17,7 @@ class_name BuildableItemDefinition
 @export var paired_scene_path: String = ""  # Path to the paired scene (e.g., portal exit scene)
 @export var max_level: int = 1  # Maximum level for this item (1 = no upgrades)
 @export var upgrade_cost: int = 0  # Cost to upgrade to next level
+@export_multiline var description: String = ""  # Item description for details panel
 
 
 func _init(
@@ -32,7 +33,8 @@ func _init(
 	p_requires_paired_placement: bool = false,
 	p_paired_scene_path: String = "",
 	p_max_level: int = 1,
-	p_upgrade_cost: int = 0
+	p_upgrade_cost: int = 0,
+	p_description: String = ""
 ) -> void:
 	item_type = p_item_type
 	display_name = p_display_name
@@ -47,3 +49,4 @@ func _init(
 	paired_scene_path = p_paired_scene_path
 	max_level = p_max_level
 	upgrade_cost = p_upgrade_cost
+	description = p_description
