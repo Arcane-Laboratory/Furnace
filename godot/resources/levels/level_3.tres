@@ -1,53 +1,52 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=9 format=3 uid="uid://titkk75rbfq3"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=9 format=3 uid="uid://e2hlaomwttiq"]
 
-[ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
-[ext_resource type="Script" uid="uid://bk64wrron438c" path="res://scripts/resources/spawn_enemy_rule.gd" id="2"]
+[ext_resource type="Script" uid="uid://ijuvyt3lnwhc" path="res://scripts/resources/level_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://chwvrska7acvx" path="res://scripts/resources/spawn_enemy_rule.gd" id="2"]
 
 [sub_resource type="Resource" id="Resource_rule0"]
 script = ExtResource("2")
-spawn_count = 20
-spawn_time = 30.0
+spawn_count = 30
+spawn_time = 25.0
 
 [sub_resource type="Resource" id="Resource_rule1"]
 script = ExtResource("2")
 enemy_type = 1
-spawn_delay = 15.0
-spawn_count = 5
+spawn_delay = 10.0
+spawn_count = 15
 spawn_time = 15.0
 
 [sub_resource type="Resource" id="Resource_rule2"]
 script = ExtResource("2")
 enemy_type = 1
 spawn_delay = 25.0
-spawn_count = 10
+spawn_count = 7
 spawn_time = 5.0
 
 [sub_resource type="Resource" id="Resource_rule3"]
 script = ExtResource("2")
 spawn_point_index = 1
-spawn_count = 20
-spawn_time = 30.0
+spawn_count = 30
+spawn_time = 25.0
 
 [sub_resource type="Resource" id="Resource_rule4"]
 script = ExtResource("2")
 spawn_point_index = 1
 enemy_type = 1
-spawn_delay = 15.0
-spawn_count = 5
+spawn_delay = 10.0
+spawn_count = 10
 spawn_time = 15.0
 
 [sub_resource type="Resource" id="Resource_rule5"]
 script = ExtResource("2")
 spawn_point_index = 1
 spawn_delay = 25.0
-spawn_count = 10
+spawn_count = 7
 spawn_time = 5.0
 
 [resource]
 script = ExtResource("1")
 level_number = 3
 level_name = "Level 3 (Final)"
-starting_resources = 120
 preset_items = Array[Dictionary]([{
 "direction": "south",
 "position": Vector2i(0, 0),
@@ -339,4 +338,4 @@ spawn_points = Array[Vector2i]([Vector2i(2, 4), Vector2i(2, 5)])
 spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1"), SubResource("Resource_rule2"), SubResource("Resource_rule3"), SubResource("Resource_rule4"), SubResource("Resource_rule5")])
 hint_text = "The soot swarm is back, but we dusted off some Acceleration Runes to power up our flame. Keep them at bay!"
 allowed_runes = Array[int]([5])
-difficulty = 1
+difficulty = 2
