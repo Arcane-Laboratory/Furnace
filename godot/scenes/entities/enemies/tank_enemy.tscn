@@ -1,0 +1,177 @@
+[gd_scene load_steps=25 format=3 uid="uid://hrimlnulcmv7"]
+
+[ext_resource type="Script" uid="uid://slsjs1f5yctu" path="res://scripts/entities/enemies/tank_enemy.gd" id="1_tank_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/ui/enemy_health_bar.tscn" id="2_health_bar"]
+[ext_resource type="Script" path="res://scripts/entities/enemies/enemy_animation_manager.gd" id="3_animation_manager"]
+[ext_resource type="Texture2D" uid="uid://xwtp7vwfwm1g" path="res://assets/sprites/enemy-tanky-sheet.png" id="3_tank_sprite"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xyb8w"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(0, 62, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hx4ok"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(52, 62, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vbriy"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(104, 62, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j3um2"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(156, 62, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ipuqk"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(208, 62, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bji0x"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(260, 62, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d1gyg"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(312, 62, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_478q5"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(364, 62, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h436w"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(416, 62, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n8hij"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(0, 0, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xdmm1"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(52, 0, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vapn6"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(104, 0, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pwkaa"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(156, 0, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ef4sd"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(208, 0, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_33ogq"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(260, 0, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_evjn8"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(312, 0, 52, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3mbsu"]
+atlas = ExtResource("3_tank_sprite")
+region = Rect2(364, 0, 52, 62)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_tank"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xyb8w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hx4ok")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vbriy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j3um2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ipuqk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bji0x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d1gyg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_478q5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h436w")
+}],
+"loop": false,
+"name": &"death",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n8hij")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xdmm1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vapn6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pwkaa")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ef4sd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_33ogq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_evjn8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3mbsu")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2"]
+radius = 12.0
+
+[node name="TankEnemy" type="CharacterBody2D"]
+collision_mask = 0
+script = ExtResource("1_tank_enemy")
+
+[node name="AnimationManager" type="Node2D" parent="."]
+script = ExtResource("3_animation_manager")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="AnimationManager"]
+sprite_frames = SubResource("SpriteFrames_tank")
+animation = &"walk"
+
+[node name="EnemyVisual" type="ColorRect" parent="."]
+visible = false
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+color = Color(0.59607846, 0.09803922, 0.3137255, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_2")
+
+[node name="HealthBar" parent="." instance=ExtResource("2_health_bar")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 24.0
+offset_bottom = 4.0
