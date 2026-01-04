@@ -1036,6 +1036,10 @@ func _handle_build_phase_click() -> void:
 	if not placement_manager:
 		return
 	
+	# Prevent tile placement when debug menu is open
+	if debug_controller and debug_controller.debug_modal and debug_controller.debug_modal.visible:
+		return
+	
 	# Check if click is on the game board (not UI)
 	var mouse_pos := get_global_mouse_position()
 	var grid_pos_local := mouse_pos - game_board.global_position
@@ -1421,6 +1425,10 @@ func _on_drop_received(data: Dictionary, at_position: Vector2) -> void:
 		return
 	
 	if not placement_manager:
+		return
+	
+	# Prevent tile placement when debug menu is open
+	if debug_controller and debug_controller.debug_modal and debug_controller.debug_modal.visible:
 		return
 	
 	# at_position is already in drop_target local coordinates, which matches game_board
