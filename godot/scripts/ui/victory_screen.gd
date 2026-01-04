@@ -21,6 +21,9 @@ func _ready() -> void:
 ## Show the victory screen with level info and stats
 ## stats should contain: { soot: int, sparks: int, damage: int }
 func show_screen(level: int, stats: Dictionary) -> void:
+	# Mute gameplay sounds (fireball bouncing, runes, etc.) while modal is shown
+	AudioManager.mute_gameplay_sounds()
+	
 	# Update title with level number
 	title_label.text = "LEVEL %d\nCLEARED" % level
 	
@@ -31,7 +34,7 @@ func show_screen(level: int, stats: Dictionary) -> void:
 		var damage: int = stats.get("damage", 0)
 		stats_display.set_stats(soot, sparks, damage)
 	
-	# Play victory sound
+	# Play victory sound (allowed even when gameplay sounds are muted)
 	AudioManager.play_sound_effect("level-complete")
 	
 	# Show the overlay
