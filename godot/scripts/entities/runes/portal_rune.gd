@@ -53,8 +53,8 @@ func _on_activate(fireball: Node2D) -> void:
 	if fireball.has_method("teleport_to"):
 		fireball.teleport_to(destination_position, exit_direction)
 	
-	# Play activation sound
-	AudioManager.play_sound_effect("rune-generic")
+	# Play activation sound (use accelerate sound for portal teleportation)
+	AudioManager.play_sound_effect("rune-accelerate")
 	
 	# Play teleport effects on both portals
 	_play_teleport_effect()
