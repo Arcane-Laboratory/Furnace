@@ -64,11 +64,10 @@ var current_track_path: String = ""
 
 
 func _ready() -> void:
-	# Create audio players
-	music_player = AudioStreamPlayer.new()
+	# Create audio players (music_player is created fresh for each track in _start_music)
+	music_player = null  # Will be created when needed
 	sfx_player = AudioStreamPlayer.new()
 	
-	add_child(music_player)
 	add_child(sfx_player)
 	
 	# Create fireball travel player (for looping sound)
@@ -88,8 +87,7 @@ func _ready() -> void:
 	# Load sound config resource if it exists
 	_load_sound_config()
 	
-	# Connect to finished signal for looping
-	music_player.finished.connect(_on_music_finished)
+	# Note: music_player.finished signal is connected in _start_music when player is created
 	
 	# Connect to game state changes
 	if GameManager:
@@ -107,7 +105,7 @@ func play_music(track_path: String, fade_in: bool = true) -> void:
 		return
 	
 	# If same track is already playing, don't restart
-	if current_track_path == track_path and music_player.playing:
+	if current_track_path == track_path and music_player and is_instance_valid(music_player) and music_player.playing:
 		return
 	
 	# Load the audio stream
@@ -116,11 +114,8 @@ func play_music(track_path: String, fade_in: bool = true) -> void:
 		push_warning("AudioManager: Failed to load music track: %s" % track_path)
 		return
 	
-	# Duplicate stream to avoid modifying shared resources
-	stream = stream.duplicate()
-	
 	# If music is playing, fade out first, then play new track (crossfade)
-	if music_player.playing:
+	if music_player and is_instance_valid(music_player) and music_player.playing:
 		is_transition = true
 		pending_track_path = track_path
 		pending_fade_in = fade_in
@@ -134,7 +129,7 @@ func play_music(track_path: String, fade_in: bool = true) -> void:
 
 ## Stop music with optional fade out
 func stop_music(fade_out: bool = true) -> void:
-	if not music_player.playing:
+	if not music_player or not is_instance_valid(music_player) or not music_player.playing:
 		return
 	
 	# Clear any pending track and current track path when stopping
@@ -383,15 +378,30 @@ func _fade_in_music() -> void:
 	if tween:
 		tween.kill()
 	
+	if not music_player or not is_instance_valid(music_player):
+		return
+	
 	tween = create_tween()
 	tween.tween_property(music_player, "volume_db", 0.0, fade_duration)
 
 
 ## Start playing music (internal helper)
 func _start_music(stream: AudioStream, fade_in: bool, track_path: String = "") -> void:
+	# Stop and remove old player if it exists
+	if music_player and is_instance_valid(music_player):
+		music_player.stop()
+		if music_player.finished.is_connected(_on_music_finished):
+			music_player.finished.disconnect(_on_music_finished)
+		music_player.queue_free()
+	
+	# Create a fresh player for each track (avoids state issues with reused players)
+	music_player = AudioStreamPlayer.new()
+	add_child(music_player)
+	music_player.finished.connect(_on_music_finished)
+	
 	music_player.stream = stream
 	
-	# Store the original track path (duplicated streams have empty resource_path)
+	# Store the original track path for looping detection
 	if not track_path.is_empty():
 		current_track_path = track_path
 	
@@ -400,7 +410,6 @@ func _start_music(stream: AudioStream, fade_in: bool, track_path: String = "") -
 	
 	if fade_in:
 		# Set starting volume and prepare tween before playing
-		# This ensures the fade-in starts immediately when playback begins
 		music_player.volume_db = -40.0
 		
 		# Kill any existing tween first
@@ -414,7 +423,7 @@ func _start_music(stream: AudioStream, fade_in: bool, track_path: String = "") -
 		tween = create_tween()
 		tween.tween_property(music_player, "volume_db", 0.0, fade_time)
 		
-		# Now start playback - the tween is already set up and will animate immediately
+		# Now start playback
 		music_player.play()
 	else:
 		# No fade-in - play at full volume
@@ -427,6 +436,10 @@ func _fade_out_music() -> void:
 	if tween:
 		tween.kill()
 	
+	if not music_player or not is_instance_valid(music_player):
+		_on_fade_out_complete()
+		return
+	
 	tween = create_tween()
 	tween.tween_property(music_player, "volume_db", -80.0, fade_duration)
 	tween.tween_callback(_on_fade_out_complete)
@@ -434,7 +447,8 @@ func _fade_out_music() -> void:
 
 ## Called when fade out completes
 func _on_fade_out_complete() -> void:
-	music_player.stop()
+	if music_player and is_instance_valid(music_player):
+		music_player.stop()
 	
 	# If there's a pending track, play it now (this is a transition)
 	if not pending_track_path.is_empty():
@@ -444,8 +458,7 @@ func _on_fade_out_complete() -> void:
 		pending_track_path = ""  # Clear before starting
 		
 		if stream:
-			# Duplicate stream to avoid modifying shared resources
-			stream = stream.duplicate()
+			# NOTE: Not duplicating stream - was causing music to not play
 			# For transitions, use fade-in (pass original track_path for looping detection)
 			_start_music(stream, should_fade, track_path)
 	else:
@@ -454,32 +467,33 @@ func _on_fade_out_complete() -> void:
 
 
 ## Set looping on audio stream based on track path
-## Uses current_track_path since duplicated streams have empty resource_path
+## For WAV files, looping is handled manually via _on_music_finished()
 func _set_stream_looping() -> void:
+	if not music_player or not is_instance_valid(music_player):
+		return
+	
 	var stream: AudioStream = music_player.stream
 	if not stream:
 		return
 	
 	# Gameplay and main menu themes should loop
-	# Use stored current_track_path since duplicated streams have empty resource_path
 	var should_loop: bool = (
 		current_track_path == gameplay_theme_path or 
 		current_track_path == main_menu_theme_path
 	)
 	
 	# Set looping based on stream type
+	# WAV files: looping handled manually via _on_music_finished() to avoid playback issues
 	if stream is AudioStreamOggVorbis:
 		(stream as AudioStreamOggVorbis).loop = should_loop
 	elif stream is AudioStreamMP3:
 		(stream as AudioStreamMP3).loop = should_loop
-	elif stream is AudioStreamWAV:
-		(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD if should_loop else AudioStreamWAV.LOOP_DISABLED
 
 
 ## Handle music finished signal - restart looping tracks
 ## Uses current_track_path since duplicated streams have empty resource_path
 func _on_music_finished() -> void:
-	if not music_player.stream:
+	if not music_player or not is_instance_valid(music_player) or not music_player.stream:
 		return
 	
 	# Only restart if this is a looping track (gameplay or main menu)
