@@ -1,13 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://dx42pv0iig1xi"]
+[gd_scene load_steps=7 format=3 uid="uid://dx42pv0iig1xi"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_xtru7"]
 [ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="2_utswl"]
 [ext_resource type="PackedScene" uid="uid://d3lefgipylt8o" path="res://scenes/ui/menu_label.tscn" id="3_pmnrq"]
 [ext_resource type="Texture2D" uid="uid://bfk22goopp3di" path="res://style_box_progressbar.tres" id="4_5ji2w"]
-[ext_resource type="StyleBox" uid="uid://biprx6rkh4548" path="res://style_box_9p_small.tres" id="5_37pao"]
-[ext_resource type="Texture2D" uid="uid://blugxvg6vsan5" path="res://resources/ui_assets/lvl.png" id="6_sj312"]
-[ext_resource type="Texture2D" uid="uid://b6g6hi3j00ebv" path="res://resources/ui_assets/spark.png" id="7_kncp7"]
-[ext_resource type="Texture2D" uid="uid://cpcubwevvr3qb" path="res://resources/ui_assets/heat.png" id="8_5flt0"]
 [ext_resource type="Script" uid="uid://bm3vyx42r32vr" path="res://scripts/ui/level_in_progress_submenu.gd" id="9_script"]
 [ext_resource type="PackedScene" uid="uid://q6vu7kf32cel" path="res://scenes/ui/stats_display.tscn" id="10_sj312"]
 
@@ -103,97 +99,6 @@ texture_progress = ExtResource("4_5ji2w")
 tint_under = Color(0, 0, 0, 1)
 tint_over = Color(1, 0.6725376, 0.3336057, 1)
 tint_progress = Color(0.93271756, 0.40183282, 5.77569e-06, 1)
-
-[node name="MarginContainer2" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
-visible = false
-layout_mode = 2
-theme_override_constants/margin_left = 4
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 4
-theme_override_constants/margin_bottom = 4
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/MarginContainer2"]
-layout_mode = 2
-size_flags_horizontal = 4
-alignment = 1
-
-[node name="LevelRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer"]
-layout_mode = 2
-
-[node name="Panel" type="Panel" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/LevelRow"]
-custom_minimum_size = Vector2(32, 0)
-layout_mode = 2
-theme_override_styles/panel = ExtResource("5_37pao")
-
-[node name="LevelValue" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/LevelRow/Panel"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 8.0
-offset_right = 29.0
-offset_bottom = 9.0
-text = "1"
-horizontal_alignment = 2
-vertical_alignment = 1
-
-[node name="Icon" type="Sprite2D" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/LevelRow/Panel"]
-position = Vector2(6, 4.5)
-texture = ExtResource("6_sj312")
-
-[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/LevelRow"]
-layout_mode = 2
-text = "Soot Vanquished"
-
-[node name="MoneyRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer"]
-layout_mode = 2
-
-[node name="Panel" type="Panel" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/MoneyRow"]
-custom_minimum_size = Vector2(32, 0)
-layout_mode = 2
-theme_override_styles/panel = ExtResource("5_37pao")
-
-[node name="MoneyValue" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/MoneyRow/Panel"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 8.0
-offset_right = 29.0
-offset_bottom = 9.0
-text = "100"
-horizontal_alignment = 2
-vertical_alignment = 1
-
-[node name="Icon" type="Sprite2D" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/MoneyRow/Panel"]
-position = Vector2(6, 4.5)
-texture = ExtResource("7_kncp7")
-
-[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/MoneyRow"]
-layout_mode = 2
-text = "Sparks Earned"
-
-[node name="HeatRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer"]
-layout_mode = 2
-
-[node name="Panel" type="Panel" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/HeatRow"]
-custom_minimum_size = Vector2(32, 0)
-layout_mode = 2
-theme_override_styles/panel = ExtResource("5_37pao")
-
-[node name="HeatValue" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/HeatRow/Panel"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 8.0
-offset_right = 29.0
-offset_bottom = 9.0
-text = "0"
-horizontal_alignment = 2
-vertical_alignment = 1
-
-[node name="Icon" type="Sprite2D" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/HeatRow/Panel"]
-position = Vector2(6, 4.5)
-texture = ExtResource("8_5flt0")
-
-[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/HeatRow"]
-layout_mode = 2
-text = "Damage Dealt"
 
 [node name="StatsDisplay" parent="CenterContainer/VBoxContainer" instance=ExtResource("10_sj312")]
 layout_mode = 2
