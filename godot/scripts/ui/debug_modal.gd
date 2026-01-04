@@ -8,6 +8,7 @@ signal go_to_level_requested(level_number: int)
 signal restart_level_requested
 signal place_spawn_point_requested
 signal place_terrain_requested
+signal items_unlocked_changed
 
 @onready var background: ColorRect = $Background
 @onready var panel: PanelContainer = $Panel
@@ -19,6 +20,8 @@ signal place_terrain_requested
 @onready var restart_level_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/RestartLevelButton
 @onready var place_spawn_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/PlaceSpawnButton
 @onready var place_terrain_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/PlaceTerrainButton
+@onready var immune_toggle: CheckBox = $Panel/MarginContainer/VBoxContainer/MainMenu/ImmuneToggle
+@onready var unlock_all_toggle: CheckBox = $Panel/MarginContainer/VBoxContainer/MainMenu/UnlockAllToggle
 @onready var infinite_money_toggle: CheckButton = $Panel/MarginContainer/VBoxContainer/MainMenu/InfiniteMoneyToggle
 @onready var back_button: Button = $Panel/MarginContainer/VBoxContainer/LevelSubmenu/BackButton
 
@@ -32,14 +35,13 @@ func _ready() -> void:
 	restart_level_button.pressed.connect(_on_restart_level_pressed)
 	place_spawn_button.pressed.connect(_on_place_spawn_pressed)
 	place_terrain_button.pressed.connect(_on_place_terrain_pressed)
+	immune_toggle.toggled.connect(_on_immune_toggled)
+	unlock_all_toggle.toggled.connect(_on_unlock_all_toggled)
 	infinite_money_toggle.toggled.connect(_on_infinite_money_toggled)
 	back_button.pressed.connect(_on_back_pressed)
 	
 	# Connect background click to close modal
 	background.gui_input.connect(_on_background_input)
-	
-	# Initialize toggle state
-	infinite_money_toggle.button_pressed = GameManager.infinite_money
 	
 	# Populate level list
 	_populate_level_list()
@@ -67,6 +69,10 @@ func show_modal() -> void:
 	show()
 	main_menu.visible = true
 	level_submenu.visible = false
+	# Sync checkbox states with current values
+	immune_toggle.button_pressed = GameConfig.debug_immune_to_death
+	unlock_all_toggle.button_pressed = GameConfig.debug_all_items_unlocked
+	infinite_money_toggle.button_pressed = GameManager.infinite_money
 	export_button.grab_focus()
 
 
@@ -116,6 +122,19 @@ func _on_place_terrain_pressed() -> void:
 	AudioManager.play_ui_click()
 	place_terrain_requested.emit()
 	hide_modal()
+
+
+func _on_immune_toggled(toggled_on: bool) -> void:
+	AudioManager.play_ui_click()
+	GameConfig.debug_immune_to_death = toggled_on
+	print("DebugModal: Immune to death = %s" % toggled_on)
+
+
+func _on_unlock_all_toggled(toggled_on: bool) -> void:
+	AudioManager.play_ui_click()
+	GameConfig.debug_all_items_unlocked = toggled_on
+	print("DebugModal: All items unlocked = %s" % toggled_on)
+	items_unlocked_changed.emit()
 
 
 func _on_infinite_money_toggled(toggled_on: bool) -> void:

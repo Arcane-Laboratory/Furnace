@@ -50,6 +50,12 @@ var debug_controller: DebugModeController = null
 ## Help snackbar for showing level hints
 var help_snackbar: HelpSnackbar = null
 
+## Victory screen overlay (shown when level is cleared)
+var victory_screen: CanvasLayer = null
+
+## Defeat screen overlay (shown when furnace is destroyed)
+var defeat_screen: CanvasLayer = null
+
 ## Track if we've shown the level hint (only show once per level load)
 var has_shown_level_hint: bool = false
 
@@ -74,6 +80,11 @@ var drop_target: Control = null
 
 ## Track if we're currently dragging
 var is_dragging: bool = false
+
+## Bulk placement state - for click-to-select then drag-to-place workflow
+var is_bulk_placing: bool = false
+var bulk_placed_tiles: Array[Vector2i] = []
+var had_selection_before_drag: bool = false
 
 
 func _ready() -> void:
@@ -107,6 +118,10 @@ func _ready() -> void:
 	
 	# Create drop target for drag-and-drop
 	_create_drop_target()
+	
+	# Create victory and defeat screen overlays
+	_setup_victory_screen()
+	_setup_defeat_screen()
 	
 	# Create debug controller (only in debug mode)
 	if GameConfig.debug_mode:
@@ -250,6 +265,72 @@ func _on_level_progress_pause_pressed() -> void:
 ## Handle restart requested from level in progress menu
 func _on_level_progress_restart_requested() -> void:
 	# Restart the current level
+	SceneManager.reload_current_scene()
+
+
+## Setup the victory screen overlay
+func _setup_victory_screen() -> void:
+	var victory_scene := load("res://scenes/ui/victory_screen.tscn") as PackedScene
+	if not victory_scene:
+		push_warning("GameScene: Failed to load victory_screen.tscn")
+		return
+	
+	victory_screen = victory_scene.instantiate() as CanvasLayer
+	if not victory_screen:
+		push_warning("GameScene: Failed to instantiate victory screen")
+		return
+	
+	# Add to scene tree
+	add_child(victory_screen)
+	victory_screen.hide()
+	
+	# Connect signals
+	if victory_screen.has_signal("continue_pressed"):
+		victory_screen.continue_pressed.connect(_on_victory_continue)
+	if victory_screen.has_signal("restart_pressed"):
+		victory_screen.restart_pressed.connect(_on_victory_restart)
+
+
+## Setup the defeat screen overlay
+func _setup_defeat_screen() -> void:
+	var defeat_scene := load("res://scenes/ui/defeat_screen.tscn") as PackedScene
+	if not defeat_scene:
+		push_warning("GameScene: Failed to load defeat_screen.tscn")
+		return
+	
+	defeat_screen = defeat_scene.instantiate() as CanvasLayer
+	if not defeat_screen:
+		push_warning("GameScene: Failed to instantiate defeat screen")
+		return
+	
+	# Add to scene tree
+	add_child(defeat_screen)
+	defeat_screen.hide()
+	
+	# Connect signals
+	if defeat_screen.has_signal("menu_pressed"):
+		defeat_screen.menu_pressed.connect(_on_defeat_menu)
+	if defeat_screen.has_signal("restart_pressed"):
+		defeat_screen.restart_pressed.connect(_on_defeat_restart)
+
+
+## Handle victory screen continue button
+func _on_victory_continue() -> void:
+	SceneManager.goto_next_level()
+
+
+## Handle victory screen restart button
+func _on_victory_restart() -> void:
+	SceneManager.reload_current_scene()
+
+
+## Handle defeat screen main menu button
+func _on_defeat_menu() -> void:
+	SceneManager.goto_menu()
+
+
+## Handle defeat screen restart button
+func _on_defeat_restart() -> void:
 	SceneManager.reload_current_scene()
 
 
@@ -747,9 +828,11 @@ func _on_furnace_destroyed() -> void:
 	lose_level()
 
 
-# Called when debug wave restarts (debug mode only)
+# Called when debug wave restarts (immune mode only)
 func _on_debug_wave_restarted() -> void:
-	print("GameScene: [DEBUG] Wave restarted - respawning fireball...")
+	print("GameScene: [DEBUG] Wave restarted - clearing fireball and respawning...")
+	# Clear existing fireball before spawning new one (full level reset)
+	FireballManager.clear_all_fireballs()
 	_launch_fireball()
 
 
@@ -786,6 +869,9 @@ func _input(event: InputEvent) -> void:
 			return
 		
 		if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+			# End any bulk placement in progress
+			_end_bulk_placement()
+			
 			# First, check if we're in portal exit placement mode
 			if placement_manager and placement_manager.is_in_portal_exit_mode():
 				placement_manager.cancel_portal_placement()
@@ -813,24 +899,46 @@ func _input(event: InputEvent) -> void:
 		_toggle_pause()
 	
 	# Handle mouse clicks during build phase
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Handle debug placement mode clicks first (left click = place)
-		if debug_controller and debug_controller.is_in_placement_mode():
-			var grid_pos := _get_grid_pos_from_mouse()
-			if grid_pos != Vector2i(-1, -1):
-				debug_controller.handle_placement_click(grid_pos)
-			return
-		
-		if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
-			# Skip if click is over the sell tooltip (let button handle it)
-			if _is_mouse_over_tile_tooltip():
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			# Handle debug placement mode clicks first (left click = place)
+			if debug_controller and debug_controller.is_in_placement_mode():
+				var grid_pos := _get_grid_pos_from_mouse()
+				if grid_pos != Vector2i(-1, -1):
+					debug_controller.handle_placement_click(grid_pos)
 				return
-			_handle_build_phase_click()
-		elif GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
-			# Skip if click is over the tile tooltip (let button handle it)
-			if _is_mouse_over_tile_tooltip():
-				return
-			_handle_active_phase_click()
+			
+			if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+				# Skip if click is over the sell tooltip (let button handle it)
+				if _is_mouse_over_tile_tooltip():
+					return
+				
+				# Check if we have a selection BEFORE processing the click
+				# This enables bulk placement only for "click to select, then drag to place" workflow
+				had_selection_before_drag = placement_manager and placement_manager.has_selection()
+				
+				_handle_build_phase_click()
+				
+				# Start bulk placement if we had a selection and placed successfully
+				if had_selection_before_drag and placement_manager and placement_manager.has_selection():
+					var grid_pos := _get_grid_pos_from_mouse()
+					if grid_pos != Vector2i(-1, -1):
+						is_bulk_placing = true
+						bulk_placed_tiles.clear()
+						bulk_placed_tiles.append(grid_pos)
+			elif GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
+				# Skip if click is over the tile tooltip (let button handle it)
+				if _is_mouse_over_tile_tooltip():
+					return
+				_handle_active_phase_click()
+		else:
+			# Mouse button released - end bulk placement
+			_end_bulk_placement()
+	
+	# Handle mouse motion for bulk placement during drag
+	if event is InputEventMouseMotion:
+		if is_bulk_placing and GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+			_handle_bulk_placement_drag()
 	
 	# Handle right-click for debug placement mode (right click = remove)
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
@@ -975,6 +1083,9 @@ func _on_resources_changed(new_amount: int) -> void:
 
 
 func _on_state_changed(new_state: GameManager.GameState) -> void:
+	# End bulk placement on any state change
+	_end_bulk_placement()
+	
 	match new_state:
 		GameManager.GameState.BUILD_PHASE:
 			right_panel.show()
@@ -1034,13 +1145,53 @@ func _update_path_preview_deferred() -> void:
 
 ## Called when level is won
 func win_level() -> void:
-	GameManager.end_game(true)
+	# Stop heat timer
+	_stop_heat_timer()
+	
+	# Get stats from active phase
+	var stats := _get_active_phase_stats()
+	
+	# Show victory screen overlay (don't navigate away)
+	if victory_screen:
+		victory_screen.show_screen(GameManager.current_level, stats)
 
 
 ## Called when furnace is destroyed
 func lose_level() -> void:
-	AudioManager.play_sound_effect("level-failed")
-	GameManager.end_game(false)
+	# Stop heat timer
+	_stop_heat_timer()
+	
+	# Get stats from active phase
+	var stats := _get_active_phase_stats()
+	
+	# Show defeat screen overlay (don't navigate away)
+	if defeat_screen:
+		defeat_screen.show_screen(GameManager.current_level, stats)
+
+
+## Get stats from the active phase for end-of-level screens
+func _get_active_phase_stats() -> Dictionary:
+	var stats := {
+		"soot": 0,
+		"sparks": 0,
+		"damage": 0
+	}
+	
+	if level_in_progress_menu:
+		var in_progress: Control = null
+		if level_in_progress_menu.has_method("get_in_progress_submenu"):
+			in_progress = level_in_progress_menu.get_in_progress_submenu()
+		if in_progress:
+			if "soot_vanquished" in in_progress:
+				stats["soot"] = in_progress.soot_vanquished
+			if "damage_dealt" in in_progress:
+				stats["damage"] = in_progress.damage_dealt
+			# Get sparks_spent from the StatsDisplay child component
+			if "stats_display" in in_progress and in_progress.stats_display:
+				if "sparks_spent" in in_progress.stats_display:
+					stats["sparks"] = in_progress.stats_display.sparks_spent
+	
+	return stats
 
 
 ## Get grid position from current mouse position
@@ -1122,6 +1273,38 @@ func _handle_active_phase_click() -> void:
 		var rune := tile.structure as RuneBase
 		if rune.is_editable_in_active_phase():
 			_show_tile_tooltip_active_phase(grid_pos, tile.structure)
+
+
+## Handle mouse drag during bulk placement
+func _handle_bulk_placement_drag() -> void:
+	if not placement_manager or not placement_manager.has_selection():
+		_end_bulk_placement()
+		return
+	
+	var grid_pos := _get_grid_pos_from_mouse()
+	if grid_pos == Vector2i(-1, -1):
+		return
+	
+	# Skip if we've already placed on this tile during this drag
+	if grid_pos in bulk_placed_tiles:
+		return
+	
+	# Skip items that require paired placement (portals) - bulk placement doesn't make sense for these
+	var definition := placement_manager.get_selected_definition()
+	if definition and definition.requires_paired_placement:
+		_end_bulk_placement()
+		return
+	
+	# Try to place the item
+	if placement_manager.try_place_item(grid_pos):
+		bulk_placed_tiles.append(grid_pos)
+
+
+## End bulk placement mode
+func _end_bulk_placement() -> void:
+	is_bulk_placing = false
+	bulk_placed_tiles.clear()
+	had_selection_before_drag = false
 
 
 ## Show tile tooltip during active phase (direction controls only, no sell/upgrade buttons)
@@ -1536,6 +1719,16 @@ func _setup_debug_controller() -> void:
 	
 	# Connect structure removal signal
 	debug_controller.structure_removal_requested.connect(_on_structure_removal_requested)
+	
+	# Connect items unlocked changed signal
+	debug_controller.items_unlocked_changed.connect(_on_items_unlocked_changed)
+
+
+## Handle items unlocked changed (refresh build menu)
+func _on_items_unlocked_changed() -> void:
+	if build_submenu and build_submenu.has_method("set_level_data"):
+		build_submenu.set_level_data(current_level_data)
+		print("GameScene: Build menu refreshed due to items unlocked change")
 
 
 ## Handle structure removal request (remove rune/wall visual from game board)

@@ -97,7 +97,9 @@ func _get_rune_sprite_path(rune_type: String) -> String:
 			return "res://assets/sprites/rune-magic.png"
 		"explosive":
 			return "res://assets/sprites/rune-explosion.png"
-		"acceleration":
+		"power":
+			return "res://assets/sprites/rune-accelerate.png"
+		"acceleration":  # Legacy support (should not be used)
 			return "res://assets/sprites/rune-accelerate.png"
 		"portal":
 			return "res://assets/sprites/rune-magic.png"  # Portal uses rune-magic sprite

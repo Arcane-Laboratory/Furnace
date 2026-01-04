@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/entities/runes/acceleration_rune.gd" id="1_accel"]
 [ext_resource type="Texture2D" path="res://assets/sprites/rune-accelerate.png" id="2_accel"]
 
-[node name="AccelerationRune" type="Node2D"]
+[node name="PowerRune" type="Node2D"]
 script = ExtResource("1_accel")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

@@ -224,9 +224,9 @@ func _on_enemy_died(enemy: EnemyBase) -> void:
 func _on_enemy_reached_furnace(enemy: EnemyBase) -> void:
 	enemy_reached_furnace.emit(enemy)
 	
-	# In debug mode, don't end the game when enemies reach furnace
-	if GameConfig.debug_mode:
-		print("EnemyManager: [DEBUG] Enemy reached furnace - ignoring (debug mode)")
+	# In debug immune mode, don't end the game when enemies reach furnace
+	if GameConfig.debug_immune_to_death:
+		print("EnemyManager: [DEBUG] Enemy reached furnace - ignoring (immune mode)")
 		# Remove enemy from tracking so win condition can still trigger
 		var index := active_enemies.find(enemy)
 		if index >= 0:
@@ -244,9 +244,9 @@ func _on_enemy_reached_furnace(enemy: EnemyBase) -> void:
 func _check_win_condition() -> void:
 	# Check if wave is active, all enemies spawned, and all defeated
 	if is_wave_active and enemies_spawned >= total_enemies_to_spawn and active_enemies.is_empty():
-		# In debug mode, respawn the wave instead of ending the game
-		if GameConfig.debug_mode:
-			print("EnemyManager: [DEBUG] All enemies defeated - respawning wave...")
+		# In debug immune mode, respawn the wave instead of ending the game
+		if GameConfig.debug_immune_to_death:
+			print("EnemyManager: [DEBUG] All enemies defeated - respawning wave (immune mode)...")
 			_restart_wave_debug()
 			return
 		

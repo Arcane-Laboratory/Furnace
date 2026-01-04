@@ -1,9 +1,17 @@
 extends Node
 ## Developer tunable parameters - all game balance values in one place
 
-## Developer debug mode - when true, starts at debug level with all items unlocked
+## Developer debug mode - when true, shows debug FAB with all items unlocked
 ## Set to true in editor for testing, leave false for production
 var debug_mode: bool = true
+
+## Debug immunity - when true, immune to lose condition and enemies respawn
+## Controlled by toggle in debug modal (default OFF for normal gameplay)
+var debug_immune_to_death: bool = false
+
+## Debug all items unlocked - when true, all buildable items are available
+## Controlled by toggle in debug modal (default OFF for normal gameplay)
+var debug_all_items_unlocked: bool = false
 
 # Grid Configuration
 const GRID_COLUMNS: int = 13
@@ -28,13 +36,10 @@ var reflect_rune_cooldown: float = 0.5
 var explosive_damage: int = 15
 var explosive_radius: int = 1  # In tiles
 
-# Acceleration Rune Parameters
-var acceleration_speed_increase: float = 20.0  # Reduced from 50.0 (less than half)
-var acceleration_max_stacks: int = 40  # Maximum speed stacks allowed
-
-# Power Rune Parameters
-var power_damage_increase: int = 2  # Damage increase per power stack
-var power_max_stacks: int = 20  # Maximum power stacks allowed
+# Power Rune Parameters (formerly Acceleration Rune)
+# Power stacks provide: speed boost (half rate), +1 damage per stack, sprite size increase
+var acceleration_speed_increase: float = 20.0  # Base speed increase (power stacks use half: 10.0 per stack)
+var acceleration_max_stacks: int = 40  # Maximum power stacks allowed
 
 # Explosive Wall Parameters
 var explosive_wall_damage: int = 2
@@ -89,7 +94,6 @@ func _load_buildable_item_definitions() -> void:
 		"res://resources/buildable_items/reflect_rune_definition.tres",
 		"res://resources/buildable_items/explosive_rune_definition.tres",
 		"res://resources/buildable_items/acceleration_rune_definition.tres",
-		"res://resources/buildable_items/power_rune_definition.tres",
 	]
 	
 	for path in definition_paths:
@@ -118,9 +122,8 @@ func get_all_item_definitions() -> Array:
 		"explosive_wall",
 		"mud_tile",
 		"redirect",
-		"acceleration",
-		"portal",  # Portal above power (for QA testing)
-		"power",  # Power below portal
+		"power",  # Power rune (formerly acceleration)
+		"portal",
 		"reflect",
 		"explosive",
 	]

@@ -114,9 +114,27 @@ func upgrade() -> bool:
 		return false
 	
 	current_level += 1
+	_apply_sprite_override(current_level)
 	_on_upgrade(current_level)
 	rune_upgraded.emit(self, current_level)
 	return true
+
+
+## Apply sprite override for a specific level if one is defined
+func _apply_sprite_override(level: int) -> void:
+	var definition := GameConfig.get_item_definition(rune_type)
+	if not definition:
+		return
+	
+	var sprite_path := definition.get_sprite_for_level(level)
+	if sprite_path.is_empty():
+		return
+	
+	# Load and apply the new sprite
+	var new_texture := load(sprite_path) as Texture2D
+	if new_texture and sprite:
+		sprite.texture = new_texture
+		print("RuneBase: Applied sprite override for level %d: %s" % [level, sprite_path])
 
 
 ## Override in subclasses to handle level-specific behavior

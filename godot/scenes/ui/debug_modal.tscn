@@ -85,6 +85,19 @@ text = "Restart Level"
 [node name="HSeparator2" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
 layout_mode = 2
 
+[node name="ImmuneToggle" type="CheckBox" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Immune to Death"
+
+[node name="UnlockAllToggle" type="CheckBox" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "All Items Unlocked"
+
+[node name="HSeparator3" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
+layout_mode = 2
+
 [node name="PlaceSpawnButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(150, 28)
@@ -97,7 +110,7 @@ custom_minimum_size = Vector2(150, 28)
 layout_mode = 2
 text = "Place Terrain"
 
-[node name="HSeparator3" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
+[node name="HSeparator4" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
 layout_mode = 2
 
 [node name="InfiniteMoneyToggle" type="CheckButton" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
