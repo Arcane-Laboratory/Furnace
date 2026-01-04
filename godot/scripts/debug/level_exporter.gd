@@ -61,7 +61,10 @@ static func export_current_level(
 		
 		match tile.occupancy:
 			TileBase.OccupancyType.WALL:
-				var item_data := _extract_item_data(tile, grid_pos, "wall")
+				# Use actual placed_item_type (could be "wall" or "explosive_wall")
+				# Only fallback to "wall" if placed_item_type is empty
+				var fallback_type := "wall" if tile.placed_item_type.is_empty() else ""
+				var item_data := _extract_item_data(tile, grid_pos, fallback_type)
 				items.append(item_data)
 			TileBase.OccupancyType.RUNE:
 				var item_data := _extract_item_data(tile, grid_pos)
