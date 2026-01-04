@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3 uid="uid://cnxh1d1it8v2e"]
 
-[ext_resource type="Script" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://bq8idblqfeb5l" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 item_type = "explosive"
 display_name = "Explosive"
-cost = 18
-unlocked_by_default = false
+cost = 40
 icon_color = Color(0.9, 0.3, 0.2, 1)
 scene_path = "res://scenes/entities/runes/explosive_rune.tscn"
+description = "A device that triggers a fiery explosion when touched by the hearthflame. "

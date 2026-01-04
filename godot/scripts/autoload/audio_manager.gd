@@ -16,10 +16,12 @@ var sfx_player: AudioStreamPlayer
 var sound_effects: Dictionary = {
 	"rune-accelerate": "res://assets/audio/rune-accelerate.wav",
 	"rune-generic": "res://assets/audio/rune-generic.wav",
+	"rune-explosive": "res://assets/audio/rune-generic.wav",  # Uses generic rune sound
 	"burn": "res://assets/audio/burn.wav",
 	"fireball-spawn": "res://assets/audio/fireball-spawn.wav",
 	"enemy-death": "res://assets/audio/enemy-death.wav",
 	"furnace-death": "res://assets/audio/furnace-death.wav",
+	"level-complete": "res://assets/audio/level-complete.wav",  # TODO: Add audio file
 	"level-failed": "res://assets/audio/level-failed.wav",
 	"click": "res://assets/audio/click.wav",
 	"structure-sell": "res://assets/audio/structure-sell.wav",
@@ -46,6 +48,9 @@ var fireball_travel_player: AudioStreamPlayer = null
 var pitch_modulation_range: float = 0.15  # ±15% pitch variation
 var use_pitch_modulation: bool = true  # Can be disabled if needed
 
+# Gameplay audio muting (for victory/defeat modals)
+var gameplay_sounds_muted: bool = false
+
 # Fade transition settings
 var fade_duration: float = 1.0  # seconds for transitions
 var initial_fade_duration: float = 0.1  # seconds for initial playback from silence
@@ -53,6 +58,9 @@ var tween: Tween
 var pending_track_path: String = ""  # Track to play after fade out completes
 var pending_fade_in: bool = true
 var is_transition: bool = false  # Track if we're transitioning between tracks
+
+# Current track path (stored because duplicated streams have empty resource_path)
+var current_track_path: String = ""
 
 
 func _ready() -> void:
@@ -99,9 +107,8 @@ func play_music(track_path: String, fade_in: bool = true) -> void:
 		return
 	
 	# If same track is already playing, don't restart
-	if music_player.stream and music_player.stream.resource_path == track_path:
-		if music_player.playing:
-			return
+	if current_track_path == track_path and music_player.playing:
+		return
 	
 	# Load the audio stream
 	var stream: AudioStream = load(track_path)
@@ -122,7 +129,7 @@ func play_music(track_path: String, fade_in: bool = true) -> void:
 	
 	# No music playing - start with fade-in
 	is_transition = false
-	_start_music(stream, fade_in)
+	_start_music(stream, fade_in, track_path)
 
 
 ## Stop music with optional fade out
@@ -130,8 +137,9 @@ func stop_music(fade_out: bool = true) -> void:
 	if not music_player.playing:
 		return
 	
-	# Clear any pending track when stopping
+	# Clear any pending track and current track path when stopping
 	pending_track_path = ""
+	current_track_path = ""
 	
 	if fade_out:
 		_fade_out_music()
@@ -174,6 +182,10 @@ func play_sfx(sfx_path: String) -> void:
 func play_sound_effect(effect_name: String) -> void:
 	if not sound_effects.has(effect_name):
 		push_warning("AudioManager: Unknown sound effect: %s" % effect_name)
+		return
+	
+	# Skip gameplay sounds when muted (but allow UI/feedback sounds)
+	if gameplay_sounds_muted and _is_gameplay_sound(effect_name):
 		return
 	
 	var sfx_path: String = sound_effects[effect_name]
@@ -249,6 +261,10 @@ func start_fireball_travel() -> void:
 	if not fireball_travel_player:
 		return
 	
+	# Don't start fireball travel sound when gameplay sounds are muted
+	if gameplay_sounds_muted:
+		return
+	
 	var sfx_path: String = sound_effects.get("fireball-travel", "")
 	if sfx_path.is_empty():
 		return
@@ -275,6 +291,36 @@ func start_fireball_travel() -> void:
 func stop_fireball_travel() -> void:
 	if fireball_travel_player and fireball_travel_player.playing:
 		fireball_travel_player.stop()
+
+
+## Mute all gameplay sounds (for victory/defeat modals)
+## This stops active gameplay sounds and prevents new ones from playing
+## UI sounds (clicks) and victory/defeat sounds still play
+func mute_gameplay_sounds() -> void:
+	gameplay_sounds_muted = true
+	# Stop the looping fireball travel sound immediately
+	stop_fireball_travel()
+	# Stop any currently playing sounds in the pool
+	for player in sfx_pool:
+		if player.playing:
+			player.stop()
+
+
+## Unmute gameplay sounds (called when starting a new level)
+func unmute_gameplay_sounds() -> void:
+	gameplay_sounds_muted = false
+
+
+## Check if a sound effect is a gameplay sound (should be muted during modals)
+## Returns false for UI sounds that should always play
+func _is_gameplay_sound(effect_name: String) -> bool:
+	# These sounds should play even when gameplay is muted (UI/feedback sounds)
+	var always_allowed := [
+		"click",
+		"level-complete",
+		"level-failed",
+	]
+	return effect_name not in always_allowed
 
 
 ## Play victory theme
@@ -310,8 +356,16 @@ func _on_game_state_changed(new_state: GameManager.GameState) -> void:
 			# Play title theme (last-ember.wav) for title screen and main menu
 			if not main_menu_theme_path.is_empty():
 				play_music(main_menu_theme_path, true)
+			# Unmute gameplay sounds when returning to menu (reset state)
+			unmute_gameplay_sounds()
 		
-		GameManager.GameState.BUILD_PHASE, GameManager.GameState.ACTIVE_PHASE:
+		GameManager.GameState.BUILD_PHASE:
+			if not gameplay_theme_path.is_empty():
+				play_music(gameplay_theme_path, true)
+			# Unmute gameplay sounds when starting a new level/build phase
+			unmute_gameplay_sounds()
+		
+		GameManager.GameState.ACTIVE_PHASE:
 			if not gameplay_theme_path.is_empty():
 				play_music(gameplay_theme_path, true)
 		
@@ -334,11 +388,15 @@ func _fade_in_music() -> void:
 
 
 ## Start playing music (internal helper)
-func _start_music(stream: AudioStream, fade_in: bool) -> void:
+func _start_music(stream: AudioStream, fade_in: bool, track_path: String = "") -> void:
 	music_player.stream = stream
 	
+	# Store the original track path (duplicated streams have empty resource_path)
+	if not track_path.is_empty():
+		current_track_path = track_path
+	
 	# Set looping based on track type
-	_set_stream_looping(stream)
+	_set_stream_looping()
 	
 	if fade_in:
 		# Set starting volume and prepare tween before playing
@@ -382,27 +440,31 @@ func _on_fade_out_complete() -> void:
 	if not pending_track_path.is_empty():
 		var stream: AudioStream = load(pending_track_path)
 		var should_fade: bool = pending_fade_in
-		var _track_path: String = pending_track_path  # Stored for potential future logging
+		var track_path: String = pending_track_path  # Store path before clearing
 		pending_track_path = ""  # Clear before starting
 		
 		if stream:
 			# Duplicate stream to avoid modifying shared resources
 			stream = stream.duplicate()
-			# For transitions, use fade-in
-			_start_music(stream, should_fade)
+			# For transitions, use fade-in (pass original track_path for looping detection)
+			_start_music(stream, should_fade, track_path)
+	else:
+		# No pending track - music was just stopped, clear current track path
+		current_track_path = ""
 
 
 ## Set looping on audio stream based on track path
-func _set_stream_looping(stream: AudioStream) -> void:
+## Uses current_track_path since duplicated streams have empty resource_path
+func _set_stream_looping() -> void:
+	var stream: AudioStream = music_player.stream
 	if not stream:
 		return
 	
-	var stream_path: String = stream.resource_path
-	
 	# Gameplay and main menu themes should loop
+	# Use stored current_track_path since duplicated streams have empty resource_path
 	var should_loop: bool = (
-		stream_path == gameplay_theme_path or 
-		stream_path == main_menu_theme_path
+		current_track_path == gameplay_theme_path or 
+		current_track_path == main_menu_theme_path
 	)
 	
 	# Set looping based on stream type
@@ -415,13 +477,13 @@ func _set_stream_looping(stream: AudioStream) -> void:
 
 
 ## Handle music finished signal - restart looping tracks
+## Uses current_track_path since duplicated streams have empty resource_path
 func _on_music_finished() -> void:
 	if not music_player.stream:
 		return
 	
-	var stream_path: String = music_player.stream.resource_path
-	
 	# Only restart if this is a looping track (gameplay or main menu)
-	if stream_path == gameplay_theme_path or stream_path == main_menu_theme_path:
+	# Use stored current_track_path since duplicated streams have empty resource_path
+	if current_track_path == gameplay_theme_path or current_track_path == main_menu_theme_path:
 		# Restart the track (it will loop automatically if stream looping is set)
 		music_player.play()

@@ -1,19 +1,18 @@
-[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3 uid="uid://bivvhs7q4chih"]
 
-[ext_resource type="Script" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://bq8idblqfeb5l" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 item_type = "redirect"
 display_name = "Redirect"
-cost = 10
 unlocked_by_default = true
 icon_color = Color(0.9, 0.8, 0.2, 1)
 scene_path = "res://scenes/entities/runes/redirect_rune.tscn"
 has_direction = true
-default_direction = "south"
 max_level = 2
 upgrade_cost = 10
+description = "A rune that redirects the hearthflame. Click on the placed rune to change direction."
 sprite_overrides = {
 2: "res://assets/sprites/rune-advanced-redirect.png"
 }

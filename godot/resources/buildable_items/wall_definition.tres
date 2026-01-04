@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3 uid="uid://c1fpdct1rc0ad"]
 
-[ext_resource type="Script" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://bq8idblqfeb5l" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
@@ -9,5 +9,5 @@ display_name = "Wall"
 cost = 5
 unlocked_by_default = true
 icon_color = Color(0.5, 0.5, 0.5, 1)
-scene_path = ""
 blocks_path = true
+description = "A simple wall. Cheap, effective, and 100% soot-resistant!"

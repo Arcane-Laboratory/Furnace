@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=6 format=3 uid="uid://bvvewxbw67s7"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=6 format=3 uid="uid://k3n8ewu56x7n"]
 
 [ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/spawn_enemy_rule.gd" id="2"]
@@ -74,6 +74,11 @@ preset_items = Array[Dictionary]([{
 "uses": 0
 }, {
 "direction": "south",
+"position": Vector2i(2, 1),
+"type": "explosive_wall",
+"uses": 0
+}, {
+"direction": "south",
 "position": Vector2i(2, 6),
 "type": "wall",
 "uses": 0
@@ -111,6 +116,11 @@ preset_items = Array[Dictionary]([{
 "direction": "south",
 "position": Vector2i(9, 6),
 "type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(10, 1),
+"type": "explosive_wall",
 "uses": 0
 }, {
 "direction": "south",

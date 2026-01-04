@@ -1,16 +1,14 @@
-[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3 uid="uid://n4riyuchuep1"]
 
-[ext_resource type="Script" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://bq8idblqfeb5l" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 item_type = "portal"
 display_name = "Portal"
 cost = 20
-unlocked_by_default = false
 icon_color = Color(0.6, 0.2, 0.9, 1)
 scene_path = "res://scenes/entities/runes/portal_entrance.tscn"
-has_direction = false
-default_direction = "south"
 requires_paired_placement = true
 paired_scene_path = "res://scenes/entities/runes/portal_exit.tscn"
+description = "Warps the hearthflame to the other portal, but maintains direction. Must be placed in pairs."
