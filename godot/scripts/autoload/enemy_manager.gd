@@ -98,23 +98,19 @@ func _schedule_rule_spawns(rule: SpawnEnemyRule) -> void:
 	if rule.spawn_count <= 0:
 		return
 	
-	var interval := rule.get_spawn_interval()
-	
-	# Schedule "spawn soon" notification before first spawn
-	var first_spawn_time := rule.spawn_delay
-	var soon_time: float = max(0.0, first_spawn_time - SPAWN_SOON_TIME)
-	
-	# Notify spawn soon (2-3 seconds before first spawn)
-	if soon_time > 0:
-		_schedule_spawn_soon_notification(rule.spawn_point_index, soon_time)
-	else:
-		# Spawn is immediate, show soon state right away
-		_notify_spawn_soon(rule.spawn_point_index)
-	
-	# Schedule each enemy spawn
+	# Schedule each enemy spawn with "spawn soon" notification before each
 	for i in range(rule.spawn_count):
 		var spawn_time := rule.get_spawn_time_for_index(i)
-		_schedule_enemy_spawn(rule, spawn_time, i == 0)
+		var soon_time: float = max(0.0, spawn_time - SPAWN_SOON_TIME)
+		
+		# Schedule "spawn soon" notification before this spawn
+		if soon_time > 0:
+			_schedule_spawn_soon_notification(rule.spawn_point_index, soon_time)
+		elif i == 0:
+			# First spawn is immediate, show soon state right away
+			_notify_spawn_soon(rule.spawn_point_index)
+		
+		_schedule_enemy_spawn(rule, spawn_time)
 
 
 ## Schedule a "spawn soon" notification
@@ -147,14 +143,13 @@ func _notify_spawn_active(spawn_index: int) -> void:
 
 
 ## Schedule a single enemy spawn
-func _schedule_enemy_spawn(rule: SpawnEnemyRule, delay: float, is_first: bool) -> void:
+func _schedule_enemy_spawn(rule: SpawnEnemyRule, delay: float) -> void:
 	var generation := _wave_generation
 	get_tree().create_timer(delay).timeout.connect(func():
 		# Ignore if wave was stopped/restarted since this was scheduled
 		if generation != _wave_generation:
 			return
-		if is_first:
-			_notify_spawn_active(rule.spawn_point_index)
+		_notify_spawn_active(rule.spawn_point_index)
 		_spawn_enemy_from_rule(rule)
 	)
 
