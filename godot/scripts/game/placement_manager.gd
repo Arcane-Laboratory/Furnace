@@ -114,20 +114,35 @@ func can_place_at(grid_pos: Vector2i) -> bool:
 			return false
 		return TileManager.is_buildable(grid_pos)
 	
-	# Check if tile is buildable
-	if not TileManager.is_buildable(grid_pos):
-		return false
-	
 	# Check if player has enough money
 	var definition := get_selected_definition()
 	if not definition:
 		return false
 	
+	# Calculate furnace position - furnace is off-grid at top, so "in front" is top row (y=0)
+	var furnace_pos := level_data.furnace_position if level_data else Vector2i(6, 0)
+	var tile_in_front_of_furnace := Vector2i(furnace_pos.x, 0)  # Top row, same X as furnace
+	var is_rune_in_front_of_furnace_can: bool = (definition.item_type != "wall") and (grid_pos == tile_in_front_of_furnace)
+	
+	# Check if tile is buildable (with exception for runes in front of furnace)
+	# Allow runes to be placed even if tile is marked as non-buildable (e.g., spawn point)
+	if not is_rune_in_front_of_furnace_can:
+		if not TileManager.is_buildable(grid_pos):
+			return false
+	
+	# Prevent walls from being placed directly in front of the furnace (allow runes)
+	if definition.item_type == "wall":
+		if grid_pos == tile_in_front_of_furnace:
+			return false
+	
 	if GameManager.resources < definition.cost:
 		return false
 	
 	# Check if this would block all paths (only for path-blocking items)
-	if definition.blocks_path:
+	# Exception: Allow runes to be placed directly in front of the furnace (top row)
+	# (is_rune_in_front_of_furnace_can already calculated above)
+	
+	if definition.blocks_path and not is_rune_in_front_of_furnace_can:
 		if would_block_all_paths(grid_pos):
 			return false
 	
@@ -185,10 +200,23 @@ func try_place_item(grid_pos: Vector2i) -> bool:
 		placement_failed.emit("Invalid item type")
 		return false
 	
-	# Check if tile is buildable
-	if not TileManager.is_buildable(grid_pos):
-		placement_failed.emit("Cannot build here")
-		return false
+	# Calculate furnace position - furnace is off-grid at top, so "in front" is top row (y=0)
+	var furnace_pos_try := level_data.furnace_position if level_data else Vector2i(6, 0)
+	var tile_in_front_of_furnace_try := Vector2i(furnace_pos_try.x, 0)  # Top row, same X as furnace
+	var is_rune_in_front_of_furnace_try: bool = (definition.item_type != "wall") and (grid_pos == tile_in_front_of_furnace_try)
+	
+	# Check if tile is buildable (with exception for runes in front of furnace)
+	# Allow runes to be placed even if tile is marked as non-buildable (e.g., spawn point)
+	if not is_rune_in_front_of_furnace_try:
+		if not TileManager.is_buildable(grid_pos):
+			placement_failed.emit("Cannot build here")
+			return false
+	
+	# Prevent walls from being placed directly in front of the furnace (allow runes)
+	if definition.item_type == "wall":
+		if grid_pos == tile_in_front_of_furnace_try:
+			placement_failed.emit("Cannot place walls directly in front of the furnace")
+			return false
 	
 	# Check if player has enough money
 	if GameManager.resources < definition.cost:
@@ -196,7 +224,9 @@ func try_place_item(grid_pos: Vector2i) -> bool:
 		return false
 	
 	# Check if this would block all paths (only for path-blocking items)
-	if definition.blocks_path:
+	# Exception: Allow runes to be placed directly in front of the furnace (top row)
+	# (is_rune_in_front_of_furnace_try already calculated above)
+	if definition.blocks_path and not is_rune_in_front_of_furnace_try:
 		if would_block_all_paths(grid_pos):
 			placement_failed.emit("Would block all paths!")
 			return false
