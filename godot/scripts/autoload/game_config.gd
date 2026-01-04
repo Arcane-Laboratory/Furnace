@@ -118,9 +118,9 @@ func get_all_item_definitions() -> Array:
 		"explosive_wall",
 		"mud_tile",
 		"redirect",
-		"power",  # Power before acceleration (for QA testing)
 		"acceleration",
-		"portal",  # Portal below acceleration
+		"portal",  # Portal above power (for QA testing)
+		"power",  # Power below portal
 		"reflect",
 		"explosive",
 	]
