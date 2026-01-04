@@ -81,6 +81,11 @@ var drop_target: Control = null
 ## Track if we're currently dragging
 var is_dragging: bool = false
 
+## Bulk placement state - for click-to-select then drag-to-place workflow
+var is_bulk_placing: bool = false
+var bulk_placed_tiles: Array[Vector2i] = []
+var had_selection_before_drag: bool = false
+
 
 func _ready() -> void:
 	_load_background()
@@ -864,6 +869,9 @@ func _input(event: InputEvent) -> void:
 			return
 		
 		if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+			# End any bulk placement in progress
+			_end_bulk_placement()
+			
 			# First, check if we're in portal exit placement mode
 			if placement_manager and placement_manager.is_in_portal_exit_mode():
 				placement_manager.cancel_portal_placement()
@@ -891,24 +899,46 @@ func _input(event: InputEvent) -> void:
 		_toggle_pause()
 	
 	# Handle mouse clicks during build phase
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Handle debug placement mode clicks first (left click = place)
-		if debug_controller and debug_controller.is_in_placement_mode():
-			var grid_pos := _get_grid_pos_from_mouse()
-			if grid_pos != Vector2i(-1, -1):
-				debug_controller.handle_placement_click(grid_pos)
-			return
-		
-		if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
-			# Skip if click is over the sell tooltip (let button handle it)
-			if _is_mouse_over_tile_tooltip():
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			# Handle debug placement mode clicks first (left click = place)
+			if debug_controller and debug_controller.is_in_placement_mode():
+				var grid_pos := _get_grid_pos_from_mouse()
+				if grid_pos != Vector2i(-1, -1):
+					debug_controller.handle_placement_click(grid_pos)
 				return
-			_handle_build_phase_click()
-		elif GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
-			# Skip if click is over the tile tooltip (let button handle it)
-			if _is_mouse_over_tile_tooltip():
-				return
-			_handle_active_phase_click()
+			
+			if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+				# Skip if click is over the sell tooltip (let button handle it)
+				if _is_mouse_over_tile_tooltip():
+					return
+				
+				# Check if we have a selection BEFORE processing the click
+				# This enables bulk placement only for "click to select, then drag to place" workflow
+				had_selection_before_drag = placement_manager and placement_manager.has_selection()
+				
+				_handle_build_phase_click()
+				
+				# Start bulk placement if we had a selection and placed successfully
+				if had_selection_before_drag and placement_manager and placement_manager.has_selection():
+					var grid_pos := _get_grid_pos_from_mouse()
+					if grid_pos != Vector2i(-1, -1):
+						is_bulk_placing = true
+						bulk_placed_tiles.clear()
+						bulk_placed_tiles.append(grid_pos)
+			elif GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
+				# Skip if click is over the tile tooltip (let button handle it)
+				if _is_mouse_over_tile_tooltip():
+					return
+				_handle_active_phase_click()
+		else:
+			# Mouse button released - end bulk placement
+			_end_bulk_placement()
+	
+	# Handle mouse motion for bulk placement during drag
+	if event is InputEventMouseMotion:
+		if is_bulk_placing and GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+			_handle_bulk_placement_drag()
 	
 	# Handle right-click for debug placement mode (right click = remove)
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
@@ -1053,6 +1083,9 @@ func _on_resources_changed(new_amount: int) -> void:
 
 
 func _on_state_changed(new_state: GameManager.GameState) -> void:
+	# End bulk placement on any state change
+	_end_bulk_placement()
+	
 	match new_state:
 		GameManager.GameState.BUILD_PHASE:
 			right_panel.show()
@@ -1238,6 +1271,38 @@ func _handle_active_phase_click() -> void:
 		var rune := tile.structure as RuneBase
 		if rune.is_editable_in_active_phase():
 			_show_tile_tooltip_active_phase(grid_pos, tile.structure)
+
+
+## Handle mouse drag during bulk placement
+func _handle_bulk_placement_drag() -> void:
+	if not placement_manager or not placement_manager.has_selection():
+		_end_bulk_placement()
+		return
+	
+	var grid_pos := _get_grid_pos_from_mouse()
+	if grid_pos == Vector2i(-1, -1):
+		return
+	
+	# Skip if we've already placed on this tile during this drag
+	if grid_pos in bulk_placed_tiles:
+		return
+	
+	# Skip items that require paired placement (portals) - bulk placement doesn't make sense for these
+	var definition := placement_manager.get_selected_definition()
+	if definition and definition.requires_paired_placement:
+		_end_bulk_placement()
+		return
+	
+	# Try to place the item
+	if placement_manager.try_place_item(grid_pos):
+		bulk_placed_tiles.append(grid_pos)
+
+
+## End bulk placement mode
+func _end_bulk_placement() -> void:
+	is_bulk_placing = false
+	bulk_placed_tiles.clear()
+	had_selection_before_drag = false
 
 
 ## Show tile tooltip during active phase (direction controls only, no sell/upgrade buttons)
