@@ -184,8 +184,9 @@ script = ExtResource("1_basic_enemy")
 script = ExtResource("3_animation_manager")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="AnimationManager"]
+position = Vector2(0, -5)
 sprite_frames = SubResource("SpriteFrames_sa1uq")
-animation = &"spawn"
+animation = &"walk"
 
 [node name="EnemyVisual" type="ColorRect" parent="."]
 visible = false
