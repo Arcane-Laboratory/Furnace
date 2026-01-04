@@ -295,10 +295,11 @@ func _hit_enemy(enemy: Node2D) -> void:
 		var damage: int = GameConfig.fireball_damage + capped_power_stacks  # +1 per stack
 		# Store health before damage to check if enemy was alive
 		var health_before: int = enemy.health if "health" in enemy else 0
-		enemy.take_damage(damage)
-		# Only emit hit signal if enemy was alive before taking damage
+		# Emit hit signal BEFORE dealing damage so damage is tracked before any death cascade
+		# (death -> all_enemies_defeated -> win_level captures stats synchronously)
 		if health_before > 0:
 			enemy_hit.emit(enemy, damage)
+		enemy.take_damage(damage)
 
 
 ## Called when an enemy enters the fireball's collision area

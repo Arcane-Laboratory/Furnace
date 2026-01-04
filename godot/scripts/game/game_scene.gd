@@ -1184,10 +1184,12 @@ func _get_active_phase_stats() -> Dictionary:
 		if in_progress:
 			if "soot_vanquished" in in_progress:
 				stats["soot"] = in_progress.soot_vanquished
-			if "sparks_earned" in in_progress:
-				stats["sparks"] = in_progress.sparks_earned
 			if "damage_dealt" in in_progress:
 				stats["damage"] = in_progress.damage_dealt
+			# Get sparks_spent from the StatsDisplay child component
+			if "stats_display" in in_progress and in_progress.stats_display:
+				if "sparks_spent" in in_progress.stats_display:
+					stats["sparks"] = in_progress.stats_display.sparks_spent
 	
 	return stats
 
