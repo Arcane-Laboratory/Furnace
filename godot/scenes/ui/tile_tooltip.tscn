@@ -47,6 +47,14 @@ icon = ExtResource("3_iq88k")
 icon_alignment = 2
 expand_icon = true
 
+[node name="PresetLabel" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "tied to level"
+horizontal_alignment = 1
+
 [node name="DirectionContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
