@@ -9,8 +9,9 @@ func _on_rune_ready() -> void:
 
 func _on_activate(fireball: Node2D) -> void:
 	# Apply power stack to fireball (increases damage)
+	# Pass rune's global position so status text appears above the rune
 	if fireball.has_method("add_power_stack"):
-		fireball.add_power_stack()
+		fireball.add_power_stack(global_position)
 	
 	_play_activation_effect()
 

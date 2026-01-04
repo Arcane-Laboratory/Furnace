@@ -15,6 +15,14 @@ func _on_activate(fireball: Node2D) -> void:
 	var enemies_hit: int = 0
 	
 	for enemy in enemies:
+		# Skip dead enemies
+		if not is_instance_valid(enemy):
+			continue
+		if "health" in enemy and enemy.health <= 0:
+			continue
+		if "is_active" in enemy and not enemy.is_active:
+			continue
+		
 		if enemy.has_method("get_grid_position") and enemy.get_grid_position() == grid_position:
 			if enemy.has_method("take_damage"):
 				enemy.take_damage(GameConfig.explosive_damage)

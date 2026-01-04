@@ -80,6 +80,10 @@ func set_path(path: Array[Vector2i]) -> void:
 
 ## Take damage from fireball or explosion
 func take_damage(amount: int) -> void:
+	# Don't deal damage to dead enemies
+	if health <= 0 or not is_active:
+		return
+	
 	health -= amount
 	
 	# Update health bar if present
@@ -104,6 +108,10 @@ func _on_damaged(_amount: int) -> void:
 
 ## Handle enemy death
 func _die() -> void:
+	# Prevent multiple death calls
+	if health <= 0 and not is_active:
+		return
+	
 	health = 0
 	is_active = false
 	died.emit()
@@ -154,7 +162,7 @@ func _physics_process(_delta: float) -> void:
 		# Check if enemy is on a mud tile and apply speed reduction
 		var effective_speed := speed
 		if _is_on_mud_tile():
-			effective_speed *= 0.5  # 50% speed reduction
+			effective_speed *= 0.25  # 75% speed reduction (50% more than previous 50%)
 		velocity = direction * effective_speed
 		move_and_slide()
 		
@@ -192,12 +200,25 @@ func get_grid_position() -> Vector2i:
 
 ## Check if enemy is currently on a mud tile
 func _is_on_mud_tile() -> bool:
+	# Use current world position to determine grid position, not stored grid_position
+	# This ensures detection happens when enemy is actually on the tile
+	var current_grid_pos := _world_to_grid(position)
 	var mud_tiles := get_tree().get_nodes_in_group("mud_tiles")
 	for mud_tile in mud_tiles:
 		if mud_tile is MudTile:
-			if mud_tile.grid_position == grid_position:
+			if mud_tile.grid_position == current_grid_pos:
 				return true
 	return false
+
+
+## Convert world position to grid position
+func _world_to_grid(world_pos: Vector2) -> Vector2i:
+	# Use floori to correctly handle negative positions (left/top of grid)
+	# int() truncates toward zero, so int(-0.5) = 0, but we need -1
+	return Vector2i(
+		floori(world_pos.x / GameConfig.TILE_SIZE),
+		floori(world_pos.y / GameConfig.TILE_SIZE)
+	)
 
 
 ## Convert grid position to world position (tile center)

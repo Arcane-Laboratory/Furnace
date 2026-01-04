@@ -17,7 +17,7 @@ const VIEWPORT_WIDTH: int = 640
 const VIEWPORT_HEIGHT: int = 360
 
 # Fireball Parameters
-var fireball_damage: int = 10
+var fireball_damage: int = 5
 var fireball_speed: float = 200.0
 var fireball_max_speed: float = 5000.0  # Increased 10x for stacking system
 
@@ -29,13 +29,15 @@ var explosive_damage: int = 15
 var explosive_radius: int = 1  # In tiles
 
 # Acceleration Rune Parameters
-var acceleration_speed_increase: float = 50.0
+var acceleration_speed_increase: float = 20.0  # Reduced from 50.0 (less than half)
+var acceleration_max_stacks: int = 40  # Maximum speed stacks allowed
 
 # Power Rune Parameters
-var power_damage_increase: int = 5  # Damage increase per power stack
+var power_damage_increase: int = 2  # Damage increase per power stack
+var power_max_stacks: int = 20  # Maximum power stacks allowed
 
 # Explosive Wall Parameters
-var explosive_wall_damage: int = 15
+var explosive_wall_damage: int = 2
 var explosive_wall_cooldown: float = 0.0  # MVP: no cooldown, post-MVP: add cooldown
 
 # Enemy Parameters
@@ -108,11 +110,26 @@ func get_item_definition(item_type: String) -> Resource:
 	return buildable_item_definitions.get(item_type, null)
 
 
-## Get all buildable item definitions
+## Get all buildable item definitions in a specific order
 func get_all_item_definitions() -> Array:
+	# Return definitions in the desired display order
+	var ordered_types: Array[String] = [
+		"wall",
+		"explosive_wall",
+		"mud_tile",
+		"redirect",
+		"portal",
+		"power",  # Power before acceleration (for QA testing)
+		"acceleration",
+		"reflect",
+		"explosive",
+	]
+	
 	var definitions: Array = []
-	for item_type in buildable_item_definitions:
-		definitions.append(buildable_item_definitions[item_type])
+	for item_type in ordered_types:
+		if buildable_item_definitions.has(item_type):
+			definitions.append(buildable_item_definitions[item_type])
+	
 	return definitions
 
 
