@@ -191,10 +191,17 @@ func _spawn_enemy_by_type(enemy_type: String, spawn_point_index: int) -> void:
 
 ## Called when an enemy dies
 func _on_enemy_died(enemy: EnemyBase) -> void:
-	# Remove from active enemies
+	# Validate enemy is actually dead and not already processed
+	if not is_instance_valid(enemy):
+		return
+	
+	# Check if enemy is already removed (prevent double counting)
 	var index := active_enemies.find(enemy)
-	if index >= 0:
-		active_enemies.remove_at(index)
+	if index < 0:
+		return  # Enemy already removed, don't count again
+	
+	# Remove from active enemies
+	active_enemies.remove_at(index)
 	
 	enemy_died.emit(enemy)
 	

@@ -9,8 +9,9 @@ func _on_rune_ready() -> void:
 
 func _on_activate(fireball: Node2D) -> void:
 	# Add speed stack to fireball (permanent until lost on hit)
+	# Pass rune's global position so status text appears above the rune
 	if fireball.has_method("add_speed_stack"):
-		fireball.add_speed_stack(GameConfig.acceleration_speed_increase)
+		fireball.add_speed_stack(GameConfig.acceleration_speed_increase, global_position)
 	
 	_play_activation_effect()
 

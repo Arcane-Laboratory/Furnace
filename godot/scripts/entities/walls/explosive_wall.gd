@@ -6,6 +6,8 @@ class_name ExplosiveWall
 var grid_position: Vector2i = Vector2i.ZERO
 var cooldown_timer: float = 0.0
 var is_on_cooldown: bool = false
+var has_exploded_for_current_fireball: bool = false
+var was_fireball_adjacent_last_frame: bool = false
 
 
 func _ready() -> void:
@@ -18,6 +20,21 @@ func _process(delta: float) -> void:
 		if cooldown_timer <= 0.0:
 			is_on_cooldown = false
 			cooldown_timer = 0.0
+	
+	# Check if fireball is currently adjacent
+	var fireball_adjacent_now: bool = false
+	var fireballs := get_tree().get_nodes_in_group("fireball")
+	for fireball in fireballs:
+		if fireball is Fireball:
+			if check_fireball_adjacent(fireball.current_grid_pos):
+				fireball_adjacent_now = true
+				break
+	
+	# Reset explosion flag when fireball is no longer adjacent
+	if was_fireball_adjacent_last_frame and not fireball_adjacent_now:
+		has_exploded_for_current_fireball = false
+	
+	was_fireball_adjacent_last_frame = fireball_adjacent_now
 
 
 func set_grid_position(pos: Vector2i) -> void:
@@ -40,19 +57,38 @@ func explode() -> void:
 	if is_on_cooldown:
 		return
 	
+	# Prevent multiple explosions per fireball pass
+	if has_exploded_for_current_fireball:
+		return
+	
+	has_exploded_for_current_fireball = true
+	
 	# Deal damage to enemies in 8 surrounding tiles (3x3 area)
 	var enemies := get_tree().get_nodes_in_group("enemies")
 	var enemies_hit: int = 0
 	
 	for enemy in enemies:
+		# Skip if enemy is not valid
+		if not is_instance_valid(enemy):
+			continue
+		
+		# Skip if enemy is already dead (don't show damage numbers on dead enemies)
+		# Check if enemy has health property and if it's <= 0
+		if "health" in enemy and enemy.health <= 0:
+			continue
+		
 		if enemy.has_method("get_grid_position"):
-			var enemy_pos := enemy.get_grid_position()
-			var distance := enemy_pos - grid_position
+			var enemy_pos: Vector2i = enemy.get_grid_position()
+			var distance: Vector2i = enemy_pos - grid_position
 			# Check if enemy is in 3x3 area (including center)
 			if abs(distance.x) <= 1 and abs(distance.y) <= 1:
 				if enemy.has_method("take_damage"):
+					# Store health before damage to check if this kills the enemy
+					var health_before: int = enemy.health if "health" in enemy else 0
 					enemy.take_damage(GameConfig.explosive_wall_damage)
-					enemies_hit += 1
+					# Only count as hit if enemy was alive before taking damage
+					if health_before > 0:
+						enemies_hit += 1
 	
 	# Play explosion effect
 	_play_explosion_effect()

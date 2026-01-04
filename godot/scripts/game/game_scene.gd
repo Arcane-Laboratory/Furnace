@@ -329,6 +329,10 @@ func _initialize_tile_system() -> void:
 	EnemyManager.debug_wave_restarted.connect(_on_debug_wave_restarted)
 	EnemyManager.enemy_died.connect(_on_enemy_died)
 	
+	# Connect FireballManager signals
+	FireballManager.fireball_destroyed.connect(_on_fireball_destroyed)
+	FireballManager.fireball_enemy_hit.connect(_on_fireball_enemy_hit)
+	
 	# Update build menu with level data
 	_update_build_menu()
 	
@@ -708,8 +712,13 @@ func _on_debug_wave_restarted() -> void:
 
 
 # Called when an enemy dies
-func _on_enemy_died(_enemy: EnemyBase) -> void:
+func _on_enemy_died(enemy: EnemyBase) -> void:
+	# Validate enemy is actually dead (safety check)
+	if not is_instance_valid(enemy):
+		return
+	
 	# Update soot vanquished stat in level progress menu
+	# Note: EnemyManager already validates death before emitting signal, so we can trust this
 	if level_in_progress_menu and GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
 		var in_progress: Control = null
 		if level_in_progress_menu.has_method("get_in_progress_submenu"):
@@ -823,7 +832,7 @@ func _start_build_phase() -> void:
 func _start_active_phase() -> void:
 	GameManager.start_active_phase()
 	right_panel.show()  # Keep right panel visible but swap content
-	active_ui.show()
+	# active_ui.hide()  # Removed - no longer needed with level progress menu
 	
 	# Track sparks at phase start for earned calculation
 	sparks_at_phase_start = GameManager.resources
@@ -857,17 +866,6 @@ func _launch_fireball() -> void:
 	if GameManager.current_state != GameManager.GameState.ACTIVE_PHASE:
 		return
 	
-	# Load fireball scene
-	var fireball_scene := load("res://scenes/entities/fireball.tscn") as PackedScene
-	if not fireball_scene:
-		push_error("GameScene: Failed to load fireball scene")
-		return
-	
-	var fireball := fireball_scene.instantiate() as Fireball
-	if not fireball:
-		push_error("GameScene: Failed to instantiate fireball")
-		return
-	
 	# Calculate spawn position (above furnace tile)
 	var furnace_pos := current_level_data.furnace_position
 	var spawn_world_pos := Vector2(
@@ -875,15 +873,11 @@ func _launch_fireball() -> void:
 		-GameConfig.TILE_SIZE / 2.0  # Above the grid
 	)
 	
-	# Add to game board and launch
-	game_board.add_child(fireball)
-	fireball.launch(spawn_world_pos)
-	
-	# Connect fireball signals
-	fireball.fireball_destroyed.connect(_on_fireball_destroyed)
-	fireball.enemy_hit.connect(_on_fireball_enemy_hit)
-	
-	print("Fireball launched from position: %s" % spawn_world_pos)
+	# Use FireballManager to spawn (handles cleanup and prevents duplicates)
+	var fireball := await FireballManager.spawn_fireball(spawn_world_pos, game_board)
+	if not fireball:
+		print("GameScene: Failed to spawn fireball (may already be active)")
+		return
 
 
 func _on_start_pressed() -> void:
@@ -923,7 +917,7 @@ func _on_state_changed(new_state: GameManager.GameState) -> void:
 				level_in_progress_menu.visible = false
 		GameManager.GameState.ACTIVE_PHASE:
 			right_panel.show()  # Keep visible for level in progress menu
-			active_ui.show()
+			# active_ui.hide()  # Removed - no longer needed with level progress menu
 			# Hide path preview in active phase (if it exists)
 			if path_preview:
 				path_preview.set_preview_visible(false)
@@ -1331,7 +1325,15 @@ func _on_fireball_destroyed() -> void:
 
 
 ## Handle fireball enemy hit signal
-func _on_fireball_enemy_hit(_enemy: Node2D, damage: int) -> void:
+func _on_fireball_enemy_hit(enemy: Node2D, damage: int) -> void:
+	# Don't track damage for dead enemies
+	if not is_instance_valid(enemy):
+		return
+	if "health" in enemy and enemy.health <= 0:
+		return
+	if "is_active" in enemy and not enemy.is_active:
+		return
+	
 	# Track damage dealt during active phase
 	if level_in_progress_menu and GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
 		var in_progress: Control = null

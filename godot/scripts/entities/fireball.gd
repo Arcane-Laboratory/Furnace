@@ -79,6 +79,10 @@ func _physics_process(delta: float) -> void:
 	if not is_active:
 		return
 	
+	# Store previous position for sweep testing
+	var prev_pos := position
+	var prev_grid_pos := current_grid_pos
+	
 	# Calculate next position
 	var next_pos := position + direction * current_speed * delta
 	var next_grid_pos := _world_to_grid(next_pos)
@@ -91,17 +95,21 @@ func _physics_process(delta: float) -> void:
 		_destroy()
 		return
 	
-	# Check for wall collision (destroy at walls)
-	if _has_wall_at(next_grid_pos) and next_grid_pos != current_grid_pos:
-		_destroy()
-		return
+	# Check all tiles between current and next position for walls (sweep test)
+	# This prevents skipping over walls at high speeds
+	var tiles_passed := _get_tiles_between(prev_grid_pos, next_grid_pos)
+	for tile_pos in tiles_passed:
+		if _has_wall_at(tile_pos) and tile_pos != prev_grid_pos:
+			_destroy()
+			return
 	
 	# Move to next position
 	position = next_pos
 	current_grid_pos = _world_to_grid(position)
 	
-	# Check for tile center crossing (for rune activation)
-	_check_tile_activation()
+	# Check all tiles passed through for activation (sweep test)
+	# This prevents skipping runes at high speeds
+	_check_tiles_activation(tiles_passed, prev_pos, position)
 	
 	# Check for adjacent explosive walls
 	_check_explosive_walls()
@@ -119,6 +127,9 @@ func launch(start_position: Vector2) -> void:
 	activated_tiles.clear()
 	overlapping_enemies.clear()  # Reset collision tracking
 	current_grid_pos = _world_to_grid(position)
+	
+	# Reset sprite scale to base (power stacks affect scale)
+	_update_power_scale()
 	
 	# Ensure animation is playing (use get_node as fallback if @onready isn't ready)
 	var sprite := animated_sprite if animated_sprite else get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
@@ -149,13 +160,23 @@ func set_direction(new_direction: Vector2) -> void:
 
 
 ## Add a speed stack (called by Acceleration Rune)
-func add_speed_stack(amount: float) -> void:
+## display_position: Optional position to display the status modifier (defaults to fireball position)
+func add_speed_stack(amount: float, display_position: Vector2 = Vector2.ZERO) -> void:
+	# Use provided position or default to fireball position
+	var text_position := display_position if display_position != Vector2.ZERO else position
+	
+	# Check if already at cap
+	if speed_stacks >= GameConfig.acceleration_max_stacks:
+		# Show "Speed max!" message in yellow
+		FloatingNumberManager.show_status_modifier("Speed max!", text_position, Color(1.0, 0.9, 0.2, 1.0))  # Yellow
+		return
+	
 	speed_stacks += 1
 	_update_current_speed()
 	print("Fireball: Speed stack added! Total stacks: %d (speed: %d)" % [speed_stacks, current_speed])
 	
-	# Show status modifier VFX
-	FloatingNumberManager.show_status_modifier("+Speed x%d" % speed_stacks, position, Color(0.2, 0.7, 1.0, 1.0))  # Cyan/blue
+	# Show "Speed up!" message in blue
+	FloatingNumberManager.show_status_modifier("Speed up!", text_position, Color(0.2, 0.7, 1.0, 1.0))  # Cyan/blue
 
 
 ## Remove a speed stack (called when hitting an enemy - loses 1 stack per hit)
@@ -163,30 +184,85 @@ func remove_speed_stack() -> void:
 	if speed_stacks > 0:
 		speed_stacks -= 1
 		_update_current_speed()
-		# Show status modifier VFX when stack is lost
-		if speed_stacks > 0:
-			FloatingNumberManager.show_status_modifier("Speed x%d" % speed_stacks, position, Color(0.1, 0.5, 0.8, 1.0))  # Darker cyan
+		# Speed down messages are hidden for now (as requested)
 
 
 ## Update current speed based on base speed and stacks
 func _update_current_speed() -> void:
-	var speed_from_stacks: float = speed_stacks * GameConfig.acceleration_speed_increase
+	# Cap speed stacks at maximum allowed (safety check)
+	var capped_stacks: int = min(speed_stacks, GameConfig.acceleration_max_stacks)
+	var speed_from_stacks: float = capped_stacks * GameConfig.acceleration_speed_increase
 	current_speed = min(base_speed + speed_from_stacks, GameConfig.fireball_max_speed)
 
 
-## Check if we've crossed a tile center and should activate runes
-func _check_tile_activation() -> void:
-	# Convert world position to grid position
-	var grid_pos := _world_to_grid(position)
+## Check all tiles passed through for activation (sweep test for high speeds)
+## Checks if the movement line segment crosses through tile centers
+func _check_tiles_activation(tiles_passed: Array[Vector2i], start_pos: Vector2, end_pos: Vector2) -> void:
+	for grid_pos in tiles_passed:
+		if grid_pos in activated_tiles:
+			continue
+		
+		# Check if the line segment from start_pos to end_pos crosses through the tile center
+		var tile_center := _grid_to_world(grid_pos)
+		
+		# Check if line segment intersects tile center region (small circle around center)
+		# Use a threshold that scales with speed but has a minimum
+		var threshold: float = max(8.0, current_speed * 0.01)  # Minimum 8px, scales with speed
+		
+		# Check if line segment passes near tile center
+		# Calculate closest point on line segment to tile center
+		var line_vec := end_pos - start_pos
+		var to_center := tile_center - start_pos
+		
+		# If line is very short, just check distance
+		if line_vec.length_squared() < 0.1:
+			if start_pos.distance_to(tile_center) < threshold:
+				activated_tiles.append(grid_pos)
+				_activate_tile(grid_pos)
+			continue
+		
+		# Project to_center onto line_vec to find closest point
+		var t := to_center.dot(line_vec) / line_vec.length_squared()
+		t = clamp(t, 0.0, 1.0)  # Clamp to line segment
+		
+		var closest_point := start_pos + line_vec * t
+		var distance_to_center := closest_point.distance_to(tile_center)
+		
+		# If line segment passes through tile center region, activate
+		if distance_to_center < threshold:
+			activated_tiles.append(grid_pos)
+			_activate_tile(grid_pos)
+
+
+## Get all grid positions between start and end (inclusive)
+## Handles cardinal movement (no diagonals)
+func _get_tiles_between(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
 	
-	if grid_pos in activated_tiles:
-		return
+	# If start and end are the same, return just that tile
+	if start == end:
+		tiles.append(start)
+		return tiles
 	
-	# Check if we're near the center of a tile
-	var tile_center := _grid_to_world(grid_pos)
-	if position.distance_to(tile_center) < 4.0:  # Small threshold
-		activated_tiles.append(grid_pos)
-		_activate_tile(grid_pos)
+	# Determine direction of movement
+	var dx := end.x - start.x
+	var dy := end.y - start.y
+	
+	# Handle horizontal movement
+	if dx != 0 and dy == 0:
+		var step := 1 if dx > 0 else -1
+		for x in range(start.x, end.x + step, step):
+			tiles.append(Vector2i(x, start.y))
+	# Handle vertical movement
+	elif dy != 0 and dx == 0:
+		var step := 1 if dy > 0 else -1
+		for y in range(start.y, end.y + step, step):
+			tiles.append(Vector2i(start.x, y))
+	# Handle case where we haven't moved yet (shouldn't happen, but safety check)
+	else:
+		tiles.append(start)
+	
+	return tiles
 
 
 ## Activate any runes on the given tile
@@ -213,11 +289,22 @@ func _check_explosive_walls() -> void:
 
 ## Hit an enemy with the fireball
 func _hit_enemy(enemy: Node2D) -> void:
+	# Don't hit dead enemies
+	if "health" in enemy and enemy.health <= 0:
+		return
+	if "is_active" in enemy and not enemy.is_active:
+		return
+	
 	if enemy.has_method("take_damage"):
-		# Calculate damage with power stacks
-		var damage: int = GameConfig.fireball_damage + (power_stacks * GameConfig.power_damage_increase)
+		# Calculate damage with power stacks (2 damage per stack)
+		var capped_power_stacks: int = min(power_stacks, GameConfig.power_max_stacks)
+		var damage: int = GameConfig.fireball_damage + (capped_power_stacks * GameConfig.power_damage_increase)
+		# Store health before damage to check if enemy was alive
+		var health_before: int = enemy.health if "health" in enemy else 0
 		enemy.take_damage(damage)
-		enemy_hit.emit(enemy, damage)
+		# Only emit hit signal if enemy was alive before taking damage
+		if health_before > 0:
+			enemy_hit.emit(enemy, damage)
 
 
 ## Called when an enemy enters the fireball's collision area
@@ -372,21 +459,50 @@ func _update_rotation() -> void:
 
 
 ## Add a power stack (called by Power Rune)
-func add_power_stack() -> void:
+## display_position: Optional position to display the status modifier (defaults to fireball position)
+func add_power_stack(display_position: Vector2 = Vector2.ZERO) -> void:
+	# Use provided position or default to fireball position
+	var text_position := display_position if display_position != Vector2.ZERO else position
+	
+	# Check if already at cap
+	if power_stacks >= GameConfig.power_max_stacks:
+		# Show "Power max!" message in yellow
+		FloatingNumberManager.show_status_modifier("Power max!", text_position, Color(1.0, 0.9, 0.2, 1.0))  # Yellow
+		return
+	
 	power_stacks += 1
-	print("Fireball: Power stack added! Total stacks: %d (damage: %d)" % [power_stacks, GameConfig.fireball_damage + (power_stacks * GameConfig.power_damage_increase)])
+	var capped_stacks: int = min(power_stacks, GameConfig.power_max_stacks)
+	print("Fireball: Power stack added! Total stacks: %d (damage: %d)" % [capped_stacks, GameConfig.fireball_damage + (capped_stacks * GameConfig.power_damage_increase)])
+	
+	# Update sprite scale based on power stacks (5% per stack, visual only)
+	_update_power_scale()
 	
 	# Show status modifier VFX
-	FloatingNumberManager.show_status_modifier("+Power x%d" % power_stacks, position, Color(1.0, 0.6, 0.2, 1.0))  # Orange/red
+	FloatingNumberManager.show_status_modifier("+Power x%d" % capped_stacks, text_position, Color(1.0, 0.6, 0.2, 1.0))  # Orange/red
 
 
 ## Remove a power stack (called when hitting an enemy - loses 1 stack per hit)
 func remove_power_stack() -> void:
 	if power_stacks > 0:
 		power_stacks -= 1
+		# Update sprite scale based on power stacks (5% per stack, visual only)
+		_update_power_scale()
 		# Show status modifier VFX when stack is lost
 		if power_stacks > 0:
 			FloatingNumberManager.show_status_modifier("Power x%d" % power_stacks, position, Color(1.0, 0.4, 0.1, 1.0))  # Darker orange
+
+
+## Update sprite scale based on power stacks (5% per stack, visual only)
+func _update_power_scale() -> void:
+	var sprite := animated_sprite if animated_sprite else get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if not sprite:
+		return
+	
+	# Calculate scale: base scale (1.0) + (power_stacks * 0.05)
+	# Cap stacks at max for safety
+	var capped_stacks: int = min(power_stacks, GameConfig.power_max_stacks)
+	var scale_multiplier: float = 1.0 + (capped_stacks * 0.05)
+	sprite.scale = Vector2(scale_multiplier, scale_multiplier)
 
 
 ## Update smoke particle direction to trail behind fireball
