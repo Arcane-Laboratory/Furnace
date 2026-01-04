@@ -3,48 +3,42 @@
 [ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
 [ext_resource type="Script" uid="uid://oi70e4rojnys" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
 
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_1"]
-resource_local_to_scene = false
-resource_name = ""
+[sub_resource type="Resource" id="EnemyWaveEntry_1"]
 script = ExtResource("2")
+metadata/_custom_type_script = "uid://oi70e4rojnys"
 
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_2"]
-resource_local_to_scene = false
-resource_name = ""
+[sub_resource type="Resource" id="EnemyWaveEntry_2"]
 script = ExtResource("2")
 enemy_type = 1
 spawn_point = 1
 delay = 1.0
+metadata/_custom_type_script = "uid://oi70e4rojnys"
 
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_3"]
-resource_local_to_scene = false
-resource_name = ""
+[sub_resource type="Resource" id="EnemyWaveEntry_3"]
 script = ExtResource("2")
 enemy_type = 2
 spawn_point = 2
 delay = 2.0
+metadata/_custom_type_script = "uid://oi70e4rojnys"
 
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_4"]
-resource_local_to_scene = false
-resource_name = ""
+[sub_resource type="Resource" id="EnemyWaveEntry_4"]
 script = ExtResource("2")
 delay = 3.0
+metadata/_custom_type_script = "uid://oi70e4rojnys"
 
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_5"]
-resource_local_to_scene = false
-resource_name = ""
+[sub_resource type="Resource" id="EnemyWaveEntry_5"]
 script = ExtResource("2")
 enemy_type = 1
 spawn_point = 1
 delay = 4.0
+metadata/_custom_type_script = "uid://oi70e4rojnys"
 
-[sub_resource type="EnemyWaveEntry" id="EnemyWaveEntry_6"]
-resource_local_to_scene = false
-resource_name = ""
+[sub_resource type="Resource" id="EnemyWaveEntry_6"]
 script = ExtResource("2")
 enemy_type = 2
 spawn_point = 2
 delay = 5.0
+metadata/_custom_type_script = "uid://oi70e4rojnys"
 
 [resource]
 script = ExtResource("1")

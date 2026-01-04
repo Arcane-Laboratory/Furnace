@@ -261,6 +261,9 @@ func _load_level_data() -> void:
 	var level_path := "res://resources/levels/level_%d.tres" % GameManager.current_level
 	if ResourceLoader.exists(level_path):
 		current_level_data = load(level_path) as LevelData
+		if not current_level_data:
+			push_error("GameScene: Failed to load level data from %s, using default" % level_path)
+			current_level_data = _create_default_level_data()
 	else:
 		# Create default level data for testing
 		current_level_data = _create_default_level_data()
@@ -374,14 +377,15 @@ func _create_preset_structures() -> void:
 				tile.structure = wall_visual
 	
 	# Create wall visuals for terrain_blocked (immovable walls/terrain)
-	for terrain_pos in current_level_data.terrain_blocked:
-		var wall_visual := _create_wall_visual(terrain_pos)
-		if wall_visual:
-			runes_container.add_child(wall_visual)
-			# Update tile to reference this structure
-			var tile := TileManager.get_tile(terrain_pos)
-			if tile:
-				tile.structure = wall_visual
+	if current_level_data and current_level_data.has("terrain_blocked"):
+		for terrain_pos in current_level_data.terrain_blocked:
+			var wall_visual := _create_wall_visual(terrain_pos)
+			if wall_visual:
+				runes_container.add_child(wall_visual)
+				# Update tile to reference this structure
+				var tile := TileManager.get_tile(terrain_pos)
+				if tile:
+					tile.structure = wall_visual
 	
 	# Create preset rune visuals
 	for rune_data in current_level_data.preset_runes:

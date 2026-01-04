@@ -30,6 +30,10 @@ func initialize_from_level_data(level_data: LevelData) -> void:
 
 ## Create appropriate tile type for a position based on level data
 func _create_tile_for_position(grid_pos: Vector2i, level_data: LevelData) -> TileBase:
+	if not level_data:
+		push_error("TileManager: level_data is null in _create_tile_for_position")
+		return null
+	
 	# Check if this is blocked terrain (rock)
 	if grid_pos in level_data.terrain_blocked:
 		var rock_scene := load("res://scenes/tiles/terrain_rock.tscn")
