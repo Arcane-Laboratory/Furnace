@@ -94,9 +94,11 @@ func _update_tile_occupancy_from_level_data(grid_pos: Vector2i, tile: TileBase) 
 		return
 	
 	# Check for furnace position
-	if grid_pos == current_level_data.furnace_position:
-		tile.set_occupancy(TileBase.OccupancyType.FURNACE)
-		return
+	# Note: Furnace is off-grid, so we don't mark the tile as FURNACE occupancy
+	# This allows building on the tile in front of the furnace
+	# if grid_pos == current_level_data.furnace_position:
+	#	tile.set_occupancy(TileBase.OccupancyType.FURNACE)
+	#	return
 
 
 ## Get tile at grid position
