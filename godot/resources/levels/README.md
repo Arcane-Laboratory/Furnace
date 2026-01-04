@@ -73,10 +73,10 @@ spawn_time = 60.0
 
 ```gdscript
 {
-    "position": Vector2i(x, y),
-    "type": "wall" | "redirect" | "power" | "portal" | "mud_tile" | ...,
-    "direction": "north" | "south" | "east" | "west",
-    "uses": int  # Remaining uses (0 = unlimited)
+	"position": Vector2i(x, y),
+	"type": "wall" | "redirect" | "power" | "portal" | "mud_tile" | ...,
+	"direction": "north" | "south" | "east" | "west",
+	"uses": int  # Remaining uses (0 = unlimited)
 }
 ```
 

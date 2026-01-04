@@ -299,4 +299,4 @@ spawn_points = Array[Vector2i]([Vector2i(2, 5), Vector2i(6, 5), Vector2i(10, 5)]
 spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1"), SubResource("Resource_rule2"), SubResource("Resource_rule3"), SubResource("Resource_rule4")])
 hint_text = "We unearthed more Acceleration Runes, but they're all over the place. I'm sure you can find a way to use them."
 allowed_runes = Array[int]([5])
-difficulty = 2
+difficulty = 1
