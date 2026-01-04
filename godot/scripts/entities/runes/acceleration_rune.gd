@@ -30,13 +30,14 @@ func _on_activate(fireball: Node2D) -> void:
 
 ## Play visual feedback when activated
 func _play_activation_effect() -> void:
-	var visual := get_node_or_null("RuneVisual") as ColorRect
-	if not visual:
+	var sprite := get_node_or_null("Sprite2D") as Sprite2D
+	if not sprite:
 		return
 	
-	# Flash white then return to original color
-	var original_color := visual.color
-	visual.color = Color.WHITE
+	# Switch to activated sprite region (top 32x32 of sprite sheet)
+	sprite.region_rect = Rect2(0, 0, 32, 32)
 	
+	# Return to idle sprite region (bottom 32x32) after a short delay
 	var tween := create_tween()
-	tween.tween_property(visual, "color", original_color, 0.2)
+	tween.tween_interval(0.15)
+	tween.tween_callback(func(): sprite.region_rect = Rect2(0, 32, 32, 32))
