@@ -47,11 +47,17 @@ var tile_tooltip: TileTooltip = null
 ## Debug mode controller (only instantiated when debug_mode is true)
 var debug_controller: DebugModeController = null
 
+## Help snackbar for showing level hints
+var help_snackbar: HelpSnackbar = null
+
 ## Victory screen overlay (shown when level is cleared)
 var victory_screen: CanvasLayer = null
 
 ## Defeat screen overlay (shown when furnace is destroyed)
 var defeat_screen: CanvasLayer = null
+
+## Track if we've shown the level hint (only show once per level load)
+var has_shown_level_hint: bool = false
 
 var is_paused: bool = false
 
@@ -101,6 +107,9 @@ func _ready() -> void:
 	
 	# Create sell tooltip
 	_create_tile_tooltip()
+	
+	# Create help snackbar
+	_create_help_snackbar()
 	
 	# Create drop target for drag-and-drop
 	_create_drop_target()
@@ -952,6 +961,9 @@ func _start_build_phase() -> void:
 		level_in_progress_menu.visible = false
 	if game_submenu:
 		game_submenu.visible = true
+	
+	# Show level hint snackbar (only on initial level start, not when returning from active phase)
+	_show_level_hint()
 
 
 func _start_active_phase() -> void:
@@ -1311,6 +1323,39 @@ func _create_info_snackbar() -> void:
 		ui_layer.add_child(info_snackbar)
 
 
+## Create the help snackbar (for level hints at start)
+func _create_help_snackbar() -> void:
+	var help_scene := load("res://scenes/ui/help_snackbar.tscn") as PackedScene
+	if not help_scene:
+		push_warning("GameScene: Failed to load help_snackbar.tscn")
+		return
+	
+	help_snackbar = help_scene.instantiate() as HelpSnackbar
+	if not help_snackbar:
+		push_warning("GameScene: Failed to instantiate help snackbar")
+		return
+	
+	# Add to UI layer
+	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
+	if ui_layer:
+		ui_layer.add_child(help_snackbar)
+
+
+## Show help snackbar with level hint (if available, only once per level load)
+func _show_level_hint() -> void:
+	if has_shown_level_hint:
+		return
+	
+	if not help_snackbar or not current_level_data:
+		return
+	
+	if current_level_data.hint_text.is_empty():
+		return
+	
+	has_shown_level_hint = true
+	help_snackbar.show_hint(current_level_data.hint_text)
+
+
 ## Show info snackbar with message (stays visible until hidden)
 func _show_info_snackbar(message: String) -> void:
 	if not info_snackbar:
@@ -1642,6 +1687,9 @@ func _on_reload_level_requested(level_number: int) -> void:
 func reload_level(level_number: int) -> void:
 	# Clear current game state
 	_clear_game_state()
+	
+	# Reset hint flag so it shows again after reload
+	has_shown_level_hint = false
 	
 	# Force-reload the level resource (bypass cache)
 	var level_path := "res://resources/levels/level_%d.tres" % level_number

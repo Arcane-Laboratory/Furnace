@@ -28,13 +28,10 @@ var reflect_rune_cooldown: float = 0.5
 var explosive_damage: int = 15
 var explosive_radius: int = 1  # In tiles
 
-# Acceleration Rune Parameters
-var acceleration_speed_increase: float = 20.0  # Reduced from 50.0 (less than half)
-var acceleration_max_stacks: int = 40  # Maximum speed stacks allowed
-
-# Power Rune Parameters
-var power_damage_increase: int = 2  # Damage increase per power stack
-var power_max_stacks: int = 20  # Maximum power stacks allowed
+# Power Rune Parameters (formerly Acceleration Rune)
+# Power stacks provide: speed boost (half rate), +1 damage per stack, sprite size increase
+var acceleration_speed_increase: float = 20.0  # Base speed increase (power stacks use half: 10.0 per stack)
+var acceleration_max_stacks: int = 40  # Maximum power stacks allowed
 
 # Explosive Wall Parameters
 var explosive_wall_damage: int = 2
@@ -89,7 +86,6 @@ func _load_buildable_item_definitions() -> void:
 		"res://resources/buildable_items/reflect_rune_definition.tres",
 		"res://resources/buildable_items/explosive_rune_definition.tres",
 		"res://resources/buildable_items/acceleration_rune_definition.tres",
-		"res://resources/buildable_items/power_rune_definition.tres",
 	]
 	
 	for path in definition_paths:
@@ -118,9 +114,8 @@ func get_all_item_definitions() -> Array:
 		"explosive_wall",
 		"mud_tile",
 		"redirect",
-		"acceleration",
-		"portal",  # Portal above power (for QA testing)
-		"power",  # Power below portal
+		"power",  # Power rune (formerly acceleration)
+		"portal",
 		"reflect",
 		"explosive",
 	]

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://explosive_wall_scene"]
 
 [ext_resource type="Script" path="res://scripts/entities/walls/explosive_wall.gd" id="1_explosive_wall"]
-[ext_resource type="Texture2D" path="res://assets/sprites/wall.png" id="2_explosive_wall"]
+[ext_resource type="Texture2D" path="res://assets/sprites/explosive-wall.png" id="2_explosive_wall"]
 
 [node name="ExplosiveWall" type="Node2D"]
 script = ExtResource("1_explosive_wall")

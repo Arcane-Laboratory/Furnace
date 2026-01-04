@@ -6,14 +6,14 @@ class_name Fireball
 ## Current movement direction (cardinal only)
 var direction: Vector2 = Vector2.DOWN
 
-## Current speed (can be modified by Acceleration Runes)
+## Current speed (can be modified by Power Runes)
 var current_speed: float = 0.0
 
 ## Base speed (without stacks)
 var base_speed: float = 0.0
 
-## Speed stacks (permanent speed increase) - stacks when passing over Acceleration Runes
-var speed_stacks: int = 0
+## Power stacks (permanent speed and damage increase) - stacks when passing over Power Runes
+## Note: Speed stacks removed - power stacks now provide both speed (half rate) and damage
 
 ## Whether the fireball is currently active/moving
 var is_active: bool = false
@@ -42,7 +42,8 @@ var last_destination_portal: Vector2i = Vector2i(-1, -1)
 ## Track currently overlapping enemies to prevent double damage
 var overlapping_enemies: Dictionary = {}
 
-## Power stacks (damage bonus) - stacks when passing over Power Runes
+## Power stacks (speed and damage bonus) - stacks when passing over Power Runes
+## Provides: speed boost (half rate), +1 damage per stack, sprite size increase
 var power_stacks: int = 0
 
 signal fireball_destroyed
@@ -133,7 +134,6 @@ func launch(start_position: Vector2) -> void:
 	direction = Vector2.DOWN  # Always starts going down from furnace
 	base_speed = GameConfig.fireball_speed
 	current_speed = base_speed
-	speed_stacks = 0  # Reset speed stacks
 	power_stacks = 0  # Reset power stacks
 	is_active = true
 	activated_tiles.clear()
@@ -147,6 +147,9 @@ func launch(start_position: Vector2) -> void:
 	
 	# Reset sprite scale to base (power stacks affect scale)
 	_update_power_scale()
+	
+	# Reset particle amount to base (power stacks affect particle count)
+	_update_particle_amount()
 	
 	# Ensure animation is playing (use get_node as fallback if @onready isn't ready)
 	var sprite := animated_sprite if animated_sprite else get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
@@ -176,39 +179,13 @@ func set_direction(new_direction: Vector2) -> void:
 			_update_rotation()
 
 
-## Add a speed stack (called by Acceleration Rune)
-## display_position: Optional position to display the status modifier (defaults to fireball position)
-func add_speed_stack(amount: float, display_position: Vector2 = Vector2.ZERO) -> void:
-	# Use provided position or default to fireball position
-	var text_position := display_position if display_position != Vector2.ZERO else position
-	
-	# Check if already at cap
-	if speed_stacks >= GameConfig.acceleration_max_stacks:
-		# Show "Speed max!" message in yellow
-		FloatingNumberManager.show_status_modifier("Speed max!", text_position, Color(1.0, 0.9, 0.2, 1.0))  # Yellow
-		return
-	
-	speed_stacks += 1
-	_update_current_speed()
-	print("Fireball: Speed stack added! Total stacks: %d (speed: %d)" % [speed_stacks, current_speed])
-	
-	# Show "Speed up!" message in blue
-	FloatingNumberManager.show_status_modifier("Speed up!", text_position, Color(0.2, 0.7, 1.0, 1.0))  # Cyan/blue
-
-
-## Remove a speed stack (called when hitting an enemy - loses 1 stack per hit)
-func remove_speed_stack() -> void:
-	if speed_stacks > 0:
-		speed_stacks -= 1
-		_update_current_speed()
-		# Speed down messages are hidden for now (as requested)
-
-
-## Update current speed based on base speed and stacks
+## Update current speed based on base speed and power stacks
+## Power stacks now provide speed boost at half the previous rate
 func _update_current_speed() -> void:
-	# Cap speed stacks at maximum allowed (safety check)
-	var capped_stacks: int = min(speed_stacks, GameConfig.acceleration_max_stacks)
-	var speed_from_stacks: float = capped_stacks * GameConfig.acceleration_speed_increase
+	# Cap power stacks at maximum allowed (safety check)
+	var capped_stacks: int = min(power_stacks, GameConfig.acceleration_max_stacks)
+	# Speed boost is now half the previous rate (10.0 per stack instead of 20.0)
+	var speed_from_stacks: float = capped_stacks * (GameConfig.acceleration_speed_increase / 2.0)
 	current_speed = min(base_speed + speed_from_stacks, GameConfig.fireball_max_speed)
 
 
@@ -313,9 +290,9 @@ func _hit_enemy(enemy: Node2D) -> void:
 		return
 	
 	if enemy.has_method("take_damage"):
-		# Calculate damage with power stacks (2 damage per stack)
-		var capped_power_stacks: int = min(power_stacks, GameConfig.power_max_stacks)
-		var damage: int = GameConfig.fireball_damage + (capped_power_stacks * GameConfig.power_damage_increase)
+		# Calculate damage with power stacks (+1 damage per stack)
+		var capped_power_stacks: int = min(power_stacks, GameConfig.acceleration_max_stacks)
+		var damage: int = GameConfig.fireball_damage + capped_power_stacks  # +1 per stack
 		# Store health before damage to check if enemy was alive
 		var health_before: int = enemy.health if "health" in enemy else 0
 		enemy.take_damage(damage)
@@ -347,9 +324,8 @@ func _on_enemy_entered(body: Node2D) -> void:
 	# Deal damage to enemy
 	_hit_enemy(body)
 	
-	# Remove one stack per hit (as per plan: 1 stack per hit)
+	# Remove one power stack per hit (as per plan: 1 stack per hit)
 	remove_power_stack()
-	remove_speed_stack()
 
 
 ## Called when an enemy exits the fireball's collision area
@@ -487,37 +463,47 @@ func _update_rotation() -> void:
 
 
 ## Add a power stack (called by Power Rune)
+## Power stacks now provide: speed boost (half rate), +1 damage per stack, sprite size increase
 ## display_position: Optional position to display the status modifier (defaults to fireball position)
 func add_power_stack(display_position: Vector2 = Vector2.ZERO) -> void:
 	# Use provided position or default to fireball position
 	var text_position := display_position if display_position != Vector2.ZERO else position
 	
-	# Check if already at cap
-	if power_stacks >= GameConfig.power_max_stacks:
+	# Check if already at cap (using acceleration_max_stacks since power uses same max)
+	if power_stacks >= GameConfig.acceleration_max_stacks:
 		# Show "Power max!" message in yellow
 		FloatingNumberManager.show_status_modifier("Power max!", text_position, Color(1.0, 0.9, 0.2, 1.0))  # Yellow
 		return
 	
 	power_stacks += 1
-	var capped_stacks: int = min(power_stacks, GameConfig.power_max_stacks)
-	print("Fireball: Power stack added! Total stacks: %d (damage: %d)" % [capped_stacks, GameConfig.fireball_damage + (capped_stacks * GameConfig.power_damage_increase)])
+	var capped_stacks: int = min(power_stacks, GameConfig.acceleration_max_stacks)
+	
+	# Update speed (power stacks now affect speed at half rate)
+	_update_current_speed()
 	
 	# Update sprite scale based on power stacks (5% per stack, visual only)
 	_update_power_scale()
 	
-	# Show status modifier VFX
-	FloatingNumberManager.show_status_modifier("+Power x%d" % capped_stacks, text_position, Color(1.0, 0.6, 0.2, 1.0))  # Orange/red
+	# Update particle emission amount based on power stacks
+	_update_particle_amount()
+	
+	print("Fireball: Power stack added! Total stacks: %d (speed: %d, damage: %d)" % [capped_stacks, current_speed, GameConfig.fireball_damage + capped_stacks])
+	
+	# Show "Power up!" message (changed from "Speed up!")
+	FloatingNumberManager.show_status_modifier("Power up!", text_position, Color(1.0, 0.6, 0.2, 1.0))  # Orange/red
 
 
 ## Remove a power stack (called when hitting an enemy - loses 1 stack per hit)
 func remove_power_stack() -> void:
 	if power_stacks > 0:
 		power_stacks -= 1
+		# Update speed (power stacks affect speed)
+		_update_current_speed()
 		# Update sprite scale based on power stacks (5% per stack, visual only)
 		_update_power_scale()
-		# Show status modifier VFX when stack is lost
-		if power_stacks > 0:
-			FloatingNumberManager.show_status_modifier("Power x%d" % power_stacks, position, Color(1.0, 0.4, 0.1, 1.0))  # Darker orange
+		# Update particle emission amount based on power stacks
+		_update_particle_amount()
+		# Power down messages are hidden for now (as requested)
 
 
 ## Update sprite scale based on power stacks (5% per stack, visual only)
@@ -527,10 +513,25 @@ func _update_power_scale() -> void:
 		return
 	
 	# Calculate scale: base scale (1.0) + (power_stacks * 0.05)
-	# Cap stacks at max for safety
-	var capped_stacks: int = min(power_stacks, GameConfig.power_max_stacks)
+	# Cap stacks at max for safety (using acceleration_max_stacks)
+	var capped_stacks: int = min(power_stacks, GameConfig.acceleration_max_stacks)
 	var scale_multiplier: float = 1.0 + (capped_stacks * 0.05)
 	sprite.scale = Vector2(scale_multiplier, scale_multiplier)
+
+
+## Update particle emission amount based on power stacks
+## Base amount is 50, increases with power stacks
+func _update_particle_amount() -> void:
+	var particles := smoke_particles if smoke_particles else get_node_or_null("SmokeParticles") as GPUParticles2D
+	if not particles:
+		return
+	
+	# Base particle amount is 50 (from scene file)
+	# Increase by 5 particles per power stack
+	var capped_stacks: int = min(power_stacks, GameConfig.acceleration_max_stacks)
+	var base_amount: int = 50
+	var amount: int = base_amount + (capped_stacks * 5)
+	particles.amount = amount
 
 
 ## Update smoke particle direction to trail behind fireball
