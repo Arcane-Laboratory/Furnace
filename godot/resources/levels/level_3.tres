@@ -338,4 +338,4 @@ spawn_points = Array[Vector2i]([Vector2i(2, 4), Vector2i(2, 5)])
 spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1"), SubResource("Resource_rule2"), SubResource("Resource_rule3"), SubResource("Resource_rule4"), SubResource("Resource_rule5")])
 hint_text = "The soot swarm is back, but we dusted off some Acceleration Runes to power up our flame. Keep them at bay!"
 allowed_runes = Array[int]([5])
-difficulty = 2
+difficulty = 1

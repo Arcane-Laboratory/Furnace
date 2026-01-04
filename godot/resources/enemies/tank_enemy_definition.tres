@@ -6,7 +6,7 @@
 script = ExtResource("1")
 enemy_type = "tank"
 display_name = "Tank Enemy"
-health = 120
+health = 160
 speed = 20.0
 scene_path = "res://scenes/entities/enemies/tank_enemy.tscn"
 color = Color(0.59607846, 0.09803922, 0.3137255, 1)

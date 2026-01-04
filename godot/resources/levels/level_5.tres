@@ -288,5 +288,5 @@ terrain_blocked = Array[Vector2i]([Vector2i(0, 0), Vector2i(0, 2), Vector2i(0, 1
 spawn_points = Array[Vector2i]([Vector2i(1, 5), Vector2i(6, 5), Vector2i(11, 5)])
 spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1"), SubResource("Resource_rule2"), SubResource("Resource_rule3"), SubResource("Resource_rule4")])
 hint_text = "The furnace's ancient power is slowly returning! Use these Portal Runes to move the flame around more quickly."
-allowed_runes = Array[int]([5, 6, 1])
+allowed_runes = Array[int]([5, 7, 1])
 difficulty = 2
