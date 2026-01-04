@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://btk68wmm8weex"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_fe2o3"]
-[ext_resource type="Script" uid="uid://da74dc6nxpp8r" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 [ext_resource type="StyleBox" uid="uid://daxtmlmajhs7f" path="res://style_box_9p_fullscreen.tres" id="3_1g8jr"]
 
 [node name="MainMenu" type="Control"]
