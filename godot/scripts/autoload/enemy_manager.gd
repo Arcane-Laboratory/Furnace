@@ -35,6 +35,9 @@ var enemies_container: Node2D = null
 ## Spawn point markers (for visual feedback)
 var spawn_markers: Dictionary = {}  # spawn_index -> SpawnPointMarker
 
+## Wave generation counter - incremented on stop/restart to invalidate pending timers
+var _wave_generation: int = 0
+
 ## Time before spawn to show "soon" state (seconds)
 const SPAWN_SOON_TIME: float = 2.5
 
@@ -51,6 +54,8 @@ func initialize_wave(level_data: LevelData, container: Node2D) -> void:
 	enemies_spawned = 0
 	is_wave_active = false
 	spawn_markers.clear()
+	# Increment wave generation to invalidate any pending spawn timers from previous wave
+	_wave_generation += 1
 	
 	# Count total enemies from spawn rules
 	total_enemies_to_spawn = level_data.get_total_enemy_count()
@@ -114,7 +119,11 @@ func _schedule_rule_spawns(rule: SpawnEnemyRule) -> void:
 
 ## Schedule a "spawn soon" notification
 func _schedule_spawn_soon_notification(spawn_index: int, delay: float) -> void:
+	var generation := _wave_generation
 	get_tree().create_timer(delay).timeout.connect(func():
+		# Ignore if wave was stopped/restarted since this was scheduled
+		if generation != _wave_generation:
+			return
 		_notify_spawn_soon(spawn_index)
 	)
 
@@ -139,7 +148,11 @@ func _notify_spawn_active(spawn_index: int) -> void:
 
 ## Schedule a single enemy spawn
 func _schedule_enemy_spawn(rule: SpawnEnemyRule, delay: float, is_first: bool) -> void:
+	var generation := _wave_generation
 	get_tree().create_timer(delay).timeout.connect(func():
+		# Ignore if wave was stopped/restarted since this was scheduled
+		if generation != _wave_generation:
+			return
 		if is_first:
 			_notify_spawn_active(rule.spawn_point_index)
 		_spawn_enemy_from_rule(rule)
@@ -344,3 +357,13 @@ func clear_enemies() -> void:
 			enemy.queue_free()
 	active_enemies.clear()
 	is_wave_active = false
+	# Increment wave generation to invalidate any pending spawn timers
+	_wave_generation += 1
+
+
+## Stop the current wave and cancel all pending spawns
+func stop_wave() -> void:
+	is_wave_active = false
+	# Increment wave generation to invalidate any pending spawn timers
+	_wave_generation += 1
+	enemies_spawned = 0
