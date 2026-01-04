@@ -485,11 +485,15 @@ func _create_preset_structures() -> void:
 				if tile:
 					tile.structure = wall_visual
 	
+	# Track all portals for smart linking (handles legacy levels without is_entrance)
+	var all_portals: Array[PortalRune] = []
+	
 	# Create preset item visuals (walls, runes, etc.)
 	for item_data in current_level_data.preset_items:
 		var item_pos: Vector2i = item_data.get("position", Vector2i.ZERO)
 		var item_type: String = item_data.get("type", "")
 		var item_direction: String = item_data.get("direction", "south")
+		var has_is_entrance: bool = item_data.has("is_entrance")
 		var is_entrance: bool = item_data.get("is_entrance", true)  # Default to entrance for backwards compatibility
 		
 		# Get item definition to check if it has a scene
@@ -505,21 +509,38 @@ func _create_preset_structures() -> void:
 		
 		if item_visual:
 			runes_container.add_child(item_visual)
-			# Update tile to reference this structure
-			var tile := TileManager.get_tile(item_pos)
-			if tile:
-				tile.structure = item_visual
+			
+			# Determine occupancy type for TileManager
+			var occupancy_type: TileBase.OccupancyType
+			if item_type == "wall" or item_type == "explosive_wall":
+				occupancy_type = TileBase.OccupancyType.WALL
+			else:
+				occupancy_type = TileBase.OccupancyType.RUNE
+			
+			# Register with TileManager so editing/selling works
+			# Mark as NOT player-placed (preset items), but still track the item type
+			TileManager.set_occupancy(item_pos, occupancy_type, item_visual, true, item_type)
 			
 			# Track portal runes for linking
 			if item_visual is PortalRune:
 				var portal := item_visual as PortalRune
-				if portal.is_entrance:
-					portal_entrances.append(portal)
-				else:
-					portal_exits.append(portal)
+				all_portals.append(portal)
+				
+				# Only use entrance/exit tracking if level data explicitly specifies is_entrance
+				if has_is_entrance:
+					if portal.is_entrance:
+						portal_entrances.append(portal)
+					else:
+						portal_exits.append(portal)
 	
-	# Link portal pairs (entrance to exit in order)
-	_link_portal_pairs(portal_entrances, portal_exits)
+	# Link portal pairs
+	# If we have explicit entrance/exit pairs, use those
+	# Otherwise, link portals in order (1st with 2nd, 3rd with 4th, etc.)
+	if portal_entrances.size() > 0 and portal_exits.size() > 0:
+		_link_portal_pairs(portal_entrances, portal_exits)
+	elif all_portals.size() >= 2:
+		# Legacy mode: pair portals in order they appear
+		_link_portal_pairs_legacy(all_portals)
 
 
 ## Create a visual for a preset wall
@@ -637,6 +658,22 @@ func _link_portal_pairs(entrances: Array[PortalRune], exits: Array[PortalRune]) 
 		var exit := exits[i]
 		entrance.link_to(exit)
 		print("GameScene: Linked portal pair %d - entrance at %s, exit at %s" % [i, entrance.grid_position, exit.grid_position])
+
+
+## Link portal pairs for legacy levels without is_entrance field
+## Pairs portals in order: 1st with 2nd, 3rd with 4th, etc.
+## Both portals in a pair can teleport to each other (bidirectional)
+func _link_portal_pairs_legacy(portals: Array[PortalRune]) -> void:
+	var pair_count := portals.size() / 2
+	
+	if portals.size() % 2 != 0:
+		push_warning("GameScene: Odd number of portals (%d) - last one will be unlinked" % portals.size())
+	
+	for i in range(pair_count):
+		var portal_a := portals[i * 2]
+		var portal_b := portals[i * 2 + 1]
+		portal_a.link_to(portal_b)  # This also sets portal_b.linked_portal = portal_a
+		print("GameScene: Linked legacy portal pair %d - %s <-> %s" % [i, portal_a.grid_position, portal_b.grid_position])
 
 
 ## Convert direction string to Vector2
