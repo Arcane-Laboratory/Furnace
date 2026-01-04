@@ -39,6 +39,12 @@ func reset_stats() -> void:
 		in_progress_submenu.reset_stats()
 
 
+## Set total enemies for progress bar calculation
+func set_total_enemies(count: int) -> void:
+	if in_progress_submenu and in_progress_submenu.has_method("set_total_enemies"):
+		in_progress_submenu.set_total_enemies(count)
+
+
 ## Get the in progress submenu for direct stat updates
 func get_in_progress_submenu() -> Control:
 	return in_progress_submenu

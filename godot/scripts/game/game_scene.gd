@@ -1140,6 +1140,9 @@ func _start_active_phase() -> void:
 			level_in_progress_menu.set_level(GameManager.current_level)
 		if level_in_progress_menu.has_method("reset_stats"):
 			level_in_progress_menu.reset_stats()
+		# Set total enemies for progress bar
+		if level_in_progress_menu.has_method("set_total_enemies") and current_level_data:
+			level_in_progress_menu.set_total_enemies(current_level_data.get_total_enemy_count())
 		# Set initial heat display
 		if level_in_progress_menu.has_method("set_heat"):
 			level_in_progress_menu.set_heat(current_heat)
