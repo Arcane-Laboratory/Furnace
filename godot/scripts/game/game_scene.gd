@@ -1316,18 +1316,16 @@ func _show_tile_tooltip_active_phase(grid_pos: Vector2i, structure: Node) -> voi
 	if not tile_tooltip:
 		return
 	
-	# Calculate screen position (tile position + game board offset)
+	# Calculate tile's screen position (top-left corner)
 	var tile_screen_pos := Vector2(
 		grid_pos.x * GameConfig.TILE_SIZE + game_board.position.x,
 		grid_pos.y * GameConfig.TILE_SIZE + game_board.position.y
 	)
 	
-	# Position above the tile, with height for direction controls only
-	var tooltip_height := 50  # Shorter since no sell/upgrade buttons
-	var tooltip_pos := Vector2(
-		tile_screen_pos.x + GameConfig.TILE_SIZE / 2.0 - 30,
-		tile_screen_pos.y - tooltip_height
-	)
+	# Calculate best position using helper (avoids covering tile and stays on screen)
+	var tile_size := Vector2(GameConfig.TILE_SIZE, GameConfig.TILE_SIZE)
+	var viewport_size := Vector2(GameConfig.VIEWPORT_WIDTH, GameConfig.VIEWPORT_HEIGHT)
+	var tooltip_pos := tile_tooltip.calculate_best_position(tile_screen_pos, tile_size, viewport_size)
 	
 	# Show tooltip with direction controls but NO sell button and NO upgrade button
 	tile_tooltip.show_for_tile(grid_pos, 0, tooltip_pos, true, structure, false, false)
@@ -1533,22 +1531,16 @@ func _show_tile_tooltip(grid_pos: Vector2i) -> void:
 	if definition.has_method("get") or "has_direction" in definition:
 		has_direction = definition.has_direction
 	
-	# Calculate screen position (tile position + game board offset)
+	# Calculate tile's screen position (top-left corner)
 	var tile_screen_pos := Vector2(
 		grid_pos.x * GameConfig.TILE_SIZE + game_board.position.x,
 		grid_pos.y * GameConfig.TILE_SIZE + game_board.position.y
 	)
 	
-	# Position above the tile, centered horizontally
-	# Adjust position based on whether direction controls are shown
-	var tooltip_height := 26  # Base height
-	if has_direction:
-		tooltip_height = 70  # Taller with direction buttons
-	
-	var tooltip_pos := Vector2(
-		tile_screen_pos.x + GameConfig.TILE_SIZE / 2.0 - 30,  # Center the ~60px button
-		tile_screen_pos.y - tooltip_height  # Above the tile
-	)
+	# Calculate best position using helper (avoids covering tile and stays on screen)
+	var tile_size := Vector2(GameConfig.TILE_SIZE, GameConfig.TILE_SIZE)
+	var viewport_size := Vector2(GameConfig.VIEWPORT_WIDTH, GameConfig.VIEWPORT_HEIGHT)
+	var tooltip_pos := tile_tooltip.calculate_best_position(tile_screen_pos, tile_size, viewport_size)
 	
 	tile_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos, has_direction, structure)
 
