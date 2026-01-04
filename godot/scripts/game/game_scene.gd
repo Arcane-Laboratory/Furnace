@@ -648,6 +648,9 @@ func _create_item_visual(grid_pos: Vector2i, item_type: String, direction: Strin
 			# Fallback for other item types that might use Vector2 direction
 			var dir_vector := _direction_string_to_vector(direction)
 			rune.set_direction(dir_vector)
+	elif item_node.has_method("set_grid_position"):
+		# Handle other entities that have set_grid_position (like ExplosiveWall)
+		item_node.set_grid_position(grid_pos)
 	elif item_node is Node2D:
 		(item_node as Node2D).position = Vector2(
 			grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
