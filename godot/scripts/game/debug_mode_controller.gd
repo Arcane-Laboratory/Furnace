@@ -154,7 +154,7 @@ func _open_spawn_edit_modal(spawn_index: int, spawn_pos: Vector2i) -> void:
 	
 	# Check if we have modified rules for this spawn point
 	if modified_spawn_rules.has(spawn_index):
-		rules = modified_spawn_rules[spawn_index]
+		rules.assign(modified_spawn_rules[spawn_index])
 	else:
 		# Get rules from level data
 		rules = _get_rules_for_spawn_index(spawn_index)
@@ -190,7 +190,7 @@ func get_all_spawn_rules() -> Array[SpawnEnemyRule]:
 		var spawn_rules: Array[SpawnEnemyRule] = []
 		
 		if modified_spawn_rules.has(spawn_index):
-			spawn_rules = modified_spawn_rules[spawn_index]
+			spawn_rules.assign(modified_spawn_rules[spawn_index])
 		else:
 			spawn_rules = _get_rules_for_spawn_index(spawn_index)
 		
