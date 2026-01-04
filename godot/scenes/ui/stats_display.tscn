@@ -1,11 +1,11 @@
 [gd_scene load_steps=7 format=3 uid="uid://q6vu7kf32cel"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_86el3"]
+[ext_resource type="Script" path="res://scripts/ui/stats_display.gd" id="2_script"]
 [ext_resource type="StyleBox" uid="uid://biprx6rkh4548" path="res://style_box_9p_small.tres" id="2_cfchu"]
 [ext_resource type="Texture2D" uid="uid://blugxvg6vsan5" path="res://resources/ui_assets/lvl.png" id="3_t1s5w"]
 [ext_resource type="Texture2D" uid="uid://b6g6hi3j00ebv" path="res://resources/ui_assets/spark.png" id="4_ubhyq"]
 [ext_resource type="Texture2D" uid="uid://cpcubwevvr3qb" path="res://resources/ui_assets/heat.png" id="5_q0kbt"]
-[ext_resource type="Script" path="res://scripts/ui/stats_display.gd" id="6_script"]
 
 [node name="StatsDisplay" type="Control"]
 custom_minimum_size = Vector2(100, 43)
@@ -15,7 +15,7 @@ anchor_right = 0.078
 offset_left = -49.920002
 offset_right = -49.920002
 theme = ExtResource("1_86el3")
-script = ExtResource("6_script")
+script = ExtResource("2_script")
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -57,7 +57,7 @@ layout_mode = 0
 offset_left = 8.0
 offset_right = 29.0
 offset_bottom = 9.0
-text = "1"
+text = "0"
 horizontal_alignment = 2
 vertical_alignment = 1
 
@@ -83,7 +83,7 @@ layout_mode = 0
 offset_left = 8.0
 offset_right = 29.0
 offset_bottom = 9.0
-text = "100"
+text = "0"
 horizontal_alignment = 2
 vertical_alignment = 1
 

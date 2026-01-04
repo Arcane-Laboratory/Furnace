@@ -7,13 +7,14 @@ signal restart_requested
 
 ## Current stats
 var soot_vanquished: int = 0
-var sparks_earned: int = 0
 var damage_dealt: int = 0
 
-## Reference to UI elements (using unique names)
-@onready var soot_value: Label = %LevelValue
-@onready var sparks_value: Label = %MoneyValue
-@onready var heat_value: Label = %HeatValue
+## Reference to StatsDisplay child (handles sparks spent tracking)
+@onready var stats_display: StatsDisplay = $CenterContainer/VBoxContainer/StatsDisplay
+
+## Reference to UI elements (soot and damage - sparks handled by StatsDisplay)
+@onready var soot_value: Label = null
+@onready var heat_value: Label = null
 @onready var restart_button: Button = $MarginContainer2/Button
 @onready var progress_bar: TextureProgressBar = $CenterContainer/VBoxContainer/MarginContainer/TextureProgressBar
 
@@ -22,7 +23,7 @@ func _ready() -> void:
 	if restart_button:
 		restart_button.pressed.connect(_on_restart_pressed)
 	
-	# Ensure labels are found
+	# Get label references from StatsDisplay child
 	_ensure_labels_ready()
 	
 	# Initialize display
@@ -31,20 +32,28 @@ func _ready() -> void:
 
 ## Ensure label references are initialized (handles timing issues)
 func _ensure_labels_ready() -> void:
-	if not soot_value:
-		soot_value = get_node_or_null("%LevelValue") as Label
-	if not sparks_value:
-		sparks_value = get_node_or_null("%MoneyValue") as Label
-	if not heat_value:
-		heat_value = get_node_or_null("%HeatValue") as Label
+	# Get labels from the StatsDisplay child instance
+	if stats_display:
+		if not soot_value:
+			soot_value = stats_display.get_node_or_null("%LevelValue") as Label
+		if not heat_value:
+			heat_value = stats_display.get_node_or_null("%HeatValue") as Label
+	else:
+		# Fallback: try to find in our own tree
+		if not soot_value:
+			soot_value = get_node_or_null("%LevelValue") as Label
+		if not heat_value:
+			heat_value = get_node_or_null("%HeatValue") as Label
 
 
 ## Reset all stats to zero
 func reset_stats() -> void:
 	soot_vanquished = 0
-	sparks_earned = 0
 	damage_dealt = 0
 	_update_display()
+	# Reset StatsDisplay sparks tracking
+	if stats_display:
+		stats_display.reset_stats()
 
 
 ## Add to soot vanquished count
@@ -54,16 +63,18 @@ func add_soot_vanquished(count: int = 1) -> void:
 	_update_soot_display()
 
 
-## Set sparks earned (total earned during active phase)
+## Set sparks spent (delegates to StatsDisplay)
 func set_sparks_earned(amount: int) -> void:
-	sparks_earned = amount
-	_update_sparks_display()
+	# Note: This is kept for backwards compatibility but "sparks used" now means sparks spent
+	# The StatsDisplay tracks this automatically via GameManager.resources_changed
+	pass
 
 
-## Add to sparks earned
+## Add to sparks spent (delegates to StatsDisplay)
 func add_sparks_earned(amount: int) -> void:
-	sparks_earned += amount
-	_update_sparks_display()
+	# Note: This is kept for backwards compatibility
+	# The StatsDisplay tracks sparks spent automatically
+	pass
 
 
 ## Add to damage dealt
@@ -76,8 +87,8 @@ func add_damage_dealt(amount: int) -> void:
 ## Update all display labels
 func _update_display() -> void:
 	_update_soot_display()
-	_update_sparks_display()
 	_update_damage_display()
+	# Sparks display is handled by StatsDisplay script
 
 
 ## Update soot vanquished display
@@ -87,15 +98,6 @@ func _update_soot_display() -> void:
 		soot_value.text = str(soot_vanquished)
 	else:
 		push_warning("LevelInProgressSubmenu: soot_value label not found! Value: %d" % soot_vanquished)
-
-
-## Update sparks earned display
-func _update_sparks_display() -> void:
-	_ensure_labels_ready()
-	if sparks_value:
-		sparks_value.text = str(sparks_earned)
-	else:
-		push_warning("LevelInProgressSubmenu: sparks_value label not found! Value: %d" % sparks_earned)
 
 
 ## Update damage dealt display
