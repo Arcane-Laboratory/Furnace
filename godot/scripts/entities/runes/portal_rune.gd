@@ -29,12 +29,6 @@ func _on_rune_ready() -> void:
 
 
 func _on_activate(fireball: Node2D) -> void:
-	# Check if fireball is traveling FROM the configured direction
-	# Entrance: fireball comes FROM entrance direction (opposite to configured direction)
-	# Exit: fireball comes FROM exit direction (opposite to configured direction, i.e., traveling INTO exit)
-	if not _is_fireball_from_configured_direction(fireball):
-		return
-	
 	# Check if we have a linked portal
 	if not linked_portal or not is_instance_valid(linked_portal):
 		print("PortalRune: No linked portal!")
@@ -46,12 +40,12 @@ func _on_activate(fireball: Node2D) -> void:
 		linked_portal.grid_position.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 	)
 	
-	# Get exit direction from destination portal
-	var exit_direction := linked_portal.get_direction_vector()
+	# Get fireball's current direction to maintain it through the portal
+	var fireball_direction: Vector2 = fireball.direction if "direction" in fireball else Vector2.DOWN
 	
-	# Teleport fireball
+	# Teleport fireball, maintaining its current direction
 	if fireball.has_method("teleport_to"):
-		fireball.teleport_to(destination_position, exit_direction)
+		fireball.teleport_to(destination_position, fireball_direction)
 	
 	# Play activation sound (use accelerate sound for portal teleportation)
 	AudioManager.play_sound_effect("rune-accelerate")
@@ -61,23 +55,8 @@ func _on_activate(fireball: Node2D) -> void:
 	linked_portal._play_teleport_effect()
 
 
-## Check if the fireball is traveling FROM the configured portal direction
-## Works for both entrance and exit portals:
-## - Entrance configured as NORTH: fireball should be traveling SOUTH (coming from north)
-## - Exit configured as SOUTH: fireball should be traveling NORTH (coming from south, going back through exit)
-func _is_fireball_from_configured_direction(fireball: Node2D) -> bool:
-	# Get current fireball direction
-	var fireball_direction: Vector2 = fireball.direction
-	
-	# Get the configured portal direction
-	var portal_direction := get_direction_vector()
-	
-	# Fireball direction should be OPPOSITE to portal direction
-	# This means fireball is coming FROM the portal direction
-	return fireball_direction == -portal_direction
-
-
-## Get direction as Vector2
+## Get direction as Vector2 (kept for backwards compatibility with existing levels)
+## Note: Direction is no longer used for entry/exit restrictions - fireball maintains its direction
 func get_direction_vector() -> Vector2:
 	match direction:
 		Direction.NORTH:
