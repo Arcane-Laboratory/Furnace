@@ -15,17 +15,15 @@ out/
 .godot/
 *.import
 *.uid
+godot/export_presets.cfg
 
 # Godot exports (keep structure, ignore generated files)
-web/public/game/*.js
-web/public/game/*.wasm
-web/public/game/*.pck
-web/public/game/*.html
-web/public/game/*.png
-web/public/game/*.json
-web/public/game/*.worker.js
-web/public/game/*.worklet.js
+web/public/game/*
 !web/public/game/.gitkeep
+
+# Export zip files
+*-web-export.zip
+furnace-web-export.zip
 
 # IDE
 .idea/
