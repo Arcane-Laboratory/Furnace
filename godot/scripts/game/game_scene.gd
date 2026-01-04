@@ -517,9 +517,9 @@ func _create_preset_structures() -> void:
 			else:
 				occupancy_type = TileBase.OccupancyType.RUNE
 			
-			# Register with TileManager so editing/selling works
-			# Mark as NOT player-placed (preset items), but still track the item type
-			TileManager.set_occupancy(item_pos, occupancy_type, item_visual, true, item_type)
+			# Register with TileManager so editing works
+			# Mark as NOT player-placed (preset items can be edited but not sold)
+			TileManager.set_occupancy(item_pos, occupancy_type, item_visual, false, item_type)
 			
 			# Track portal runes for linking
 			if item_visual is PortalRune:
@@ -810,8 +810,8 @@ func _update_tile_highlight(tile: TileBase, grid_pos: Vector2i) -> void:
 		# No item selected - basic hover
 		if TileManager.is_buildable(grid_pos):
 			tile.set_highlight(true, "hover")
-		elif TileManager.can_sell_tile(grid_pos):
-			tile.set_highlight(true, "hover")  # Sellable item
+		elif tile.structure:
+			tile.set_highlight(true, "hover")  # Has structure (editable)
 		else:
 			tile.set_highlight(true, "invalid")
 
@@ -1347,8 +1347,9 @@ func _handle_build_phase_click() -> void:
 	if placement_manager.has_selection():
 		placement_manager.try_place_item(grid_pos)
 	else:
-		# No item selected - check if clicking on a sellable tile
-		if TileManager.can_sell_tile(grid_pos):
+		# No item selected - check if clicking on a tile with a structure (for editing/selling)
+		var tile := TileManager.get_tile(grid_pos)
+		if tile and tile.structure:
 			_show_tile_tooltip(grid_pos)
 
 
@@ -1628,9 +1629,11 @@ func _show_tile_tooltip(grid_pos: Vector2i) -> void:
 	var tile := TileManager.get_tile(grid_pos)
 	var structure: Node = null
 	var has_direction: bool = false
+	var is_player_placed: bool = false
 	
 	if tile:
 		structure = tile.structure
+		is_player_placed = tile.is_player_placed
 	
 	if definition.has_method("get") or "has_direction" in definition:
 		has_direction = definition.has_direction
@@ -1646,7 +1649,8 @@ func _show_tile_tooltip(grid_pos: Vector2i) -> void:
 	var viewport_size := Vector2(GameConfig.VIEWPORT_WIDTH, GameConfig.VIEWPORT_HEIGHT)
 	var tooltip_pos := tile_tooltip.calculate_best_position(tile_screen_pos, tile_size, viewport_size)
 	
-	tile_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos, has_direction, structure)
+	# Only show sell button for player-placed items (not preset items)
+	tile_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos, has_direction, structure, is_player_placed)
 
 
 ## Hide the sell tooltip
