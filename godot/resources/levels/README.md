@@ -45,8 +45,7 @@ The game loads levels using the pattern: `res://resources/levels/level_%d.tres` 
 - **furnace_position** (Vector2i): Grid position where the fireball launches from (typically top center: `Vector2i(6, 0)`)
 - **spawn_points** (Array[Vector2i]): Enemy spawn locations (typically bottom row: `Vector2i(x, 6)`)
 - **terrain_blocked** (Array[Vector2i]): Impassable terrain tiles (rocks/mountains) - cannot be built on
-- **preset_walls** (Array[Vector2i]): Pre-placed walls that cannot be edited by the player
-- **preset_runes** (Array[Dictionary]): Pre-placed runes that cannot be edited by the player
+- **preset_items** (Array[Dictionary]): Pre-placed buildable items (walls, runes, etc.) that cannot be edited by the player. Format: `{"position": Vector2i, "type": String, "direction": String, "uses": int}`
 
 ### Enemy Configuration
 
@@ -132,22 +131,21 @@ The game loads levels using the pattern: `res://resources/levels/level_%d.tres` 
 - Spawn Points: [Vector2i(2, 6), Vector2i(6, 6), Vector2i(10, 6)]
 - Furnace Position: Vector2i(6, 0)
 - Terrain Blocked: [Vector2i(3, 3), Vector2i(9, 3)]
-- Preset Walls: [Vector2i(6, 2)]
-- Preset Runes: [Dictionary with position, type (RuneType enum), direction, uses]
+- Preset Items: [Dictionary with position, type string, direction, uses]
 - Enemy Waves:
   - Entry 1: Enemy Type = TANK, Spawn Point = 0, Delay = 0.0
   - Entry 2: Enemy Type = FAST, Spawn Point = 1, Delay = 1.0
   - Entry 3: Enemy Type = TANK, Spawn Point = 2, Delay = 2.0
 - Allowed Runes: [REDIRECT, WALL, REFLECT, EXPLOSIVE]
 
-## Preset Runes Format
+## Preset Items Format
 
-Preset runes use a dictionary format:
+Preset items use a dictionary format:
 
 ```gdscript
 {
     "position": Vector2i(x, y),    # Grid position
-    "type": "redirect",            # Rune type string
+    "type": "wall",                # Item type: "wall", "redirect", "power", "portal", "explosive_wall", etc.
     "direction": "south",          # Direction: "north", "south", "east", "west"
     "uses": 0                      # Number of uses (0 = infinite)
 }

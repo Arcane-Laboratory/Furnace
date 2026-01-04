@@ -14,12 +14,10 @@ static func export_current_level(
 	additional_terrain_tiles: Array[Vector2i] = [],
 	removed_spawn_points: Array[Vector2i] = [],
 	removed_terrain_tiles: Array[Vector2i] = [],
-	removed_walls: Array[Vector2i] = [],
-	removed_runes: Array[Vector2i] = []
+	removed_items: Array[Vector2i] = []
 ) -> String:
 	# Collect data from current game state
-	var walls: Array[Vector2i] = []
-	var runes: Array[Dictionary] = []
+	var items: Array[Dictionary] = []
 	var spawn_points: Array[Vector2i] = []
 	var furnace_position: Vector2i = Vector2i(6, 0)
 	var terrain_blocked: Array[Vector2i] = []
@@ -57,17 +55,21 @@ static func export_current_level(
 		if not tile:
 			continue
 		
+		# Skip items that were removed
+		if grid_pos in removed_items:
+			continue
+		
 		match tile.occupancy:
 			TileBase.OccupancyType.WALL:
-				# Skip walls that were removed
-				if grid_pos not in removed_walls:
-					walls.append(grid_pos)
+				# Use actual placed_item_type (could be "wall" or "explosive_wall")
+				# Only fallback to "wall" if placed_item_type is empty
+				var fallback_type := "wall" if tile.placed_item_type.is_empty() else ""
+				var item_data := _extract_item_data(tile, grid_pos, fallback_type)
+				items.append(item_data)
 			TileBase.OccupancyType.RUNE:
-				# Skip runes that were removed
-				if grid_pos not in removed_runes:
-					var rune_data := _extract_rune_data(tile, grid_pos)
-					if not rune_data.is_empty():
-						runes.append(rune_data)
+				var item_data := _extract_item_data(tile, grid_pos)
+				if not item_data.is_empty():
+					items.append(item_data)
 	
 	# Generate the .tres file content
 	return _generate_tres_content(
@@ -77,37 +79,36 @@ static func export_current_level(
 		spawn_points,
 		furnace_position,
 		terrain_blocked,
-		walls,
-		runes,
+		items,
 		hint_text
 	)
 
 
-## Extract rune data from a tile
-static func _extract_rune_data(tile: TileBase, grid_pos: Vector2i) -> Dictionary:
-	var rune_type := tile.placed_item_type
-	if rune_type.is_empty():
+## Extract item data from a tile
+static func _extract_item_data(tile: TileBase, grid_pos: Vector2i, override_type: String = "") -> Dictionary:
+	var item_type := override_type if not override_type.is_empty() else tile.placed_item_type
+	if item_type.is_empty():
 		return {}
 	
-	var rune_data: Dictionary = {
+	var item_data: Dictionary = {
 		"position": grid_pos,
-		"type": rune_type,
+		"type": item_type,
 	}
 	
 	# Try to get direction from structure if it has one
 	if tile.structure and tile.structure.has_method("get_direction_vector"):
 		var dir_vector: Vector2 = tile.structure.get_direction_vector()
-		rune_data["direction"] = _vector_to_direction_string(dir_vector)
+		item_data["direction"] = _vector_to_direction_string(dir_vector)
 	else:
-		rune_data["direction"] = "south"
+		item_data["direction"] = "south"
 	
 	# Get uses if applicable
 	if tile.structure and "uses_remaining" in tile.structure:
-		rune_data["uses"] = tile.structure.uses_remaining
+		item_data["uses"] = tile.structure.uses_remaining
 	else:
-		rune_data["uses"] = 0
+		item_data["uses"] = 0
 	
-	return rune_data
+	return item_data
 
 
 ## Convert direction vector to string
@@ -131,8 +132,7 @@ static func _generate_tres_content(
 	spawn_points: Array[Vector2i],
 	furnace_position: Vector2i,
 	terrain_blocked: Array[Vector2i],
-	walls: Array[Vector2i],
-	runes: Array[Dictionary],
+	items: Array[Dictionary],
 	hint_text: String
 ) -> String:
 	# Calculate load_steps based on enemy wave entries
@@ -174,11 +174,8 @@ static func _generate_tres_content(
 	# Terrain blocked
 	content += "terrain_blocked = Array[Vector2i]([%s])\n" % _format_vector2i_array(terrain_blocked)
 	
-	# Preset walls
-	content += "preset_walls = Array[Vector2i]([%s])\n" % _format_vector2i_array(walls)
-	
-	# Preset runes
-	content += "preset_runes = Array[Dictionary]([%s])\n" % _format_rune_array(runes)
+	# Preset items (walls, runes, etc.)
+	content += "preset_items = Array[Dictionary]([%s])\n" % _format_item_array(items)
 	
 	# Enemy waves (typed array format like Godot generates)
 	content += "enemy_waves = Array[ExtResource(\"2\")]([SubResource(\"Resource_wave1\")])\n"
@@ -207,22 +204,22 @@ static func _format_vector2i_array(arr: Array[Vector2i]) -> String:
 	return ", ".join(parts)
 
 
-## Format an array of rune dictionaries for .tres output
-static func _format_rune_array(runes: Array[Dictionary]) -> String:
-	if runes.is_empty():
+## Format an array of item dictionaries for .tres output
+static func _format_item_array(items: Array[Dictionary]) -> String:
+	if items.is_empty():
 		return ""
 	
 	var parts: Array[String] = []
-	for rune in runes:
-		var pos: Vector2i = rune.get("position", Vector2i.ZERO)
-		var rune_type: String = rune.get("type", "redirect")
-		var direction: String = rune.get("direction", "south")
-		var uses: int = rune.get("uses", 0)
+	for item in items:
+		var pos: Vector2i = item.get("position", Vector2i.ZERO)
+		var item_type: String = item.get("type", "wall")
+		var direction: String = item.get("direction", "south")
+		var uses: int = item.get("uses", 0)
 		
 		# Format as dictionary literal
 		var dict_str := "{"
 		dict_str += "\"position\": Vector2i(%d, %d), " % [pos.x, pos.y]
-		dict_str += "\"type\": \"%s\", " % rune_type
+		dict_str += "\"type\": \"%s\", " % item_type
 		dict_str += "\"direction\": \"%s\", " % direction
 		dict_str += "\"uses\": %d" % uses
 		dict_str += "}"

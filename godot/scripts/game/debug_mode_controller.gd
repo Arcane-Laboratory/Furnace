@@ -38,11 +38,8 @@ var removed_spawn_points: Array[Vector2i] = []
 ## Removed original terrain tiles (from level data)
 var removed_terrain_tiles: Array[Vector2i] = []
 
-## Removed original walls (from level data or player-placed)
-var removed_walls: Array[Vector2i] = []
-
-## Removed original runes (from level data or player-placed)
-var removed_runes: Array[Vector2i] = []
+## Removed original items - walls, runes, etc. (from level data or player-placed)
+var removed_items: Array[Vector2i] = []
 
 ## Level export dialog
 var level_export_dialog: LevelExportDialog = null
@@ -190,8 +187,7 @@ func _on_export_level_requested() -> void:
 			current_level_data,
 			removed_spawn_points,
 			removed_terrain_tiles,
-			removed_walls,
-			removed_runes
+			removed_items
 		)
 
 
@@ -495,10 +491,10 @@ func _try_remove_structure(grid_pos: Vector2i) -> void:
 	
 	# Check if there's a structure to remove
 	match tile.occupancy:
-		TileBase.OccupancyType.WALL:
-			# Add to removed walls list
-			if grid_pos not in removed_walls:
-				removed_walls.append(grid_pos)
+		TileBase.OccupancyType.WALL, TileBase.OccupancyType.RUNE:
+			# Add to removed items list
+			if grid_pos not in removed_items:
+				removed_items.append(grid_pos)
 			
 			# Remove the structure visually
 			structure_removal_requested.emit(grid_pos)
@@ -507,23 +503,8 @@ func _try_remove_structure(grid_pos: Vector2i) -> void:
 			tile.clear_occupancy()
 			TileManager.occupancy_changed.emit(grid_pos)
 			
-			print("DebugModeController: Removed wall at %s" % grid_pos)
-			show_info_requested.emit("Wall removed!")
-			
-		TileBase.OccupancyType.RUNE:
-			# Add to removed runes list
-			if grid_pos not in removed_runes:
-				removed_runes.append(grid_pos)
-			
-			# Remove the structure visually
-			structure_removal_requested.emit(grid_pos)
-			
-			# Clear the tile occupancy
-			tile.clear_occupancy()
-			TileManager.occupancy_changed.emit(grid_pos)
-			
-			print("DebugModeController: Removed rune at %s" % grid_pos)
-			show_info_requested.emit("Rune removed!")
+			print("DebugModeController: Removed item at %s" % grid_pos)
+			show_info_requested.emit("Item removed!")
 			
 		_:
 			show_error_requested.emit("Nothing to remove here!")

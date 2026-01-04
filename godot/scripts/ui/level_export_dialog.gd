@@ -32,8 +32,7 @@ var export_terrain_tiles: Array[Vector2i] = []
 ## Store removed items (to exclude from export)
 var removed_spawn_points: Array[Vector2i] = []
 var removed_terrain_tiles: Array[Vector2i] = []
-var removed_walls: Array[Vector2i] = []
-var removed_runes: Array[Vector2i] = []
+var removed_items: Array[Vector2i] = []
 
 func show_dialog(
 	spawn_points: Array[Vector2i],
@@ -41,15 +40,13 @@ func show_dialog(
 	level_data: LevelData = null,
 	p_removed_spawn_points: Array[Vector2i] = [],
 	p_removed_terrain_tiles: Array[Vector2i] = [],
-	p_removed_walls: Array[Vector2i] = [],
-	p_removed_runes: Array[Vector2i] = []
+	p_removed_items: Array[Vector2i] = []
 ) -> void:
 	export_spawn_points = spawn_points
 	export_terrain_tiles = terrain_tiles
 	removed_spawn_points = p_removed_spawn_points
 	removed_terrain_tiles = p_removed_terrain_tiles
-	removed_walls = p_removed_walls
-	removed_runes = p_removed_runes
+	removed_items = p_removed_items
 	
 	# Pre-fill fields from current level data if available
 	if level_data:
@@ -93,8 +90,7 @@ func _on_export_pressed() -> void:
 		export_terrain_tiles,
 		removed_spawn_points,
 		removed_terrain_tiles,
-		removed_walls,
-		removed_runes
+		removed_items
 	)
 	
 	# Copy to clipboard
@@ -125,8 +121,7 @@ func _on_save_pressed() -> void:
 		export_terrain_tiles,
 		removed_spawn_points,
 		removed_terrain_tiles,
-		removed_walls,
-		removed_runes
+		removed_items
 	)
 	
 	# Save to file
