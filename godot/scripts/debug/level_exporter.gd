@@ -61,7 +61,16 @@ static func export_current_level(
 			TileBase.OccupancyType.WALL:
 				# Skip walls that were removed
 				if grid_pos not in removed_walls:
-					walls.append(grid_pos)
+					# Check if it's a regular wall or a special wall type (like explosive_wall)
+					var item_type := tile.placed_item_type
+					if item_type == "wall" or item_type.is_empty():
+						# Regular wall - just store position
+						walls.append(grid_pos)
+					else:
+						# Special wall type (e.g., explosive_wall) - store as rune with full data
+						var item_data := _extract_rune_data(tile, grid_pos)
+						if not item_data.is_empty():
+							runes.append(item_data)
 			TileBase.OccupancyType.RUNE:
 				# Skip runes that were removed
 				if grid_pos not in removed_runes:
