@@ -86,6 +86,27 @@ func _gui_input(event: InputEvent) -> void:
 		item_selected.emit(item_type)
 
 
+## Get sprite path for a rune type
+func _get_rune_sprite_path(rune_type: String) -> String:
+	match rune_type:
+		"redirect":
+			return "res://assets/sprites/rune-redirect.png"
+		"advanced_redirect":
+			return "res://assets/sprites/rune-advanced-redirect.png"
+		"reflect":
+			return "res://assets/sprites/rune-magic.png"
+		"explosive":
+			return "res://assets/sprites/rune-explosion.png"
+		"acceleration":
+			return "res://assets/sprites/rune-accelerate.png"
+		"portal":
+			return "res://assets/sprites/rune-grate.png"  # Portal uses grate sprite or fallback to color
+		"wall":
+			return "res://assets/sprites/wall.png"
+		_:
+			return ""  # No sprite, use color fallback
+
+
 ## Configure this menu item with item data
 func configure(type: String, display_name: String, cost: int, icon_color: Color) -> void:
 	item_type = type
@@ -103,10 +124,53 @@ func configure(type: String, display_name: String, cost: int, icon_color: Color)
 		if cost_label:
 			cost_label.text = "$%d" % cost
 		
-		# Update icon color
+		# Try to load and display rune sprite instead of just color
+		var sprite_path := _get_rune_sprite_path(type)
 		var icon_rect := menu_rune.get_node_or_null("ColorRect") as ColorRect
-		if icon_rect:
-			icon_rect.color = icon_color
+		
+		if sprite_path != "" and ResourceLoader.exists(sprite_path):
+			# Load sprite texture
+			var sprite_texture := load(sprite_path) as Texture2D
+			if sprite_texture:
+				# Check if there's already a TextureRect, if not create one
+				var texture_rect := menu_rune.get_node_or_null("TextureRect") as TextureRect
+				if not texture_rect:
+					# Create TextureRect to display sprite
+					texture_rect = TextureRect.new()
+					texture_rect.name = "TextureRect"
+					texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH
+					texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+					texture_rect.mouse_filter = Control.MOUSE_FILTER_PASS
+					# Fill the entire MenuRune control
+					texture_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+					texture_rect.texture = sprite_texture
+					menu_rune.add_child(texture_rect)
+					# Move TextureRect to render on top (after all other children)
+					menu_rune.move_child(texture_rect, -1)
+				
+				# Ensure texture is set and visible
+				texture_rect.texture = sprite_texture
+				texture_rect.visible = true
+				texture_rect.show()
+				
+				# Hide ColorRect completely when showing sprite
+				if icon_rect:
+					icon_rect.visible = false
+					# Ensure ColorRect is behind TextureRect in draw order
+					var color_rect_index := icon_rect.get_index()
+					var texture_rect_index := texture_rect.get_index()
+					if color_rect_index > texture_rect_index:
+						menu_rune.move_child(icon_rect, 0)  # Move ColorRect to back
+		else:
+			# No sprite available, use color fallback
+			if icon_rect:
+				icon_rect.color = icon_color
+				icon_rect.visible = true  # Show ColorRect again
+			
+			# Hide TextureRect if it exists
+			var texture_rect := menu_rune.get_node_or_null("TextureRect") as TextureRect
+			if texture_rect:
+				texture_rect.visible = false
 
 
 ## Set selection state with visual feedback
@@ -149,6 +213,21 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 ## Create a visual preview for dragging
 func _create_drag_preview() -> Control:
+	# Try to use sprite if available
+	var sprite_path := _get_rune_sprite_path(item_type)
+	if sprite_path != "" and ResourceLoader.exists(sprite_path):
+		var sprite_texture := load(sprite_path) as Texture2D
+		if sprite_texture:
+			var preview := TextureRect.new()
+			preview.size = Vector2(32, 32)
+			preview.texture = sprite_texture
+			preview.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			preview.modulate.a = 0.8
+			preview.position = -preview.size / 2
+			return preview
+	
+	# Fallback to colored rectangle
 	var preview := ColorRect.new()
 	preview.size = Vector2(32, 32)
 	preview.color = item_icon_color
