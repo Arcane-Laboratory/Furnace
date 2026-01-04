@@ -56,8 +56,6 @@ var victory_screen: CanvasLayer = null
 ## Defeat screen overlay (shown when furnace is destroyed)
 var defeat_screen: CanvasLayer = null
 
-## Visual effects manager (vignette, bloom, heat haze, ash particles)
-var visual_effects_manager: VisualEffectsManager = null
 
 ## Track if we've shown the level hint (only show once per level load)
 var has_shown_level_hint: bool = false
@@ -130,8 +128,6 @@ func _ready() -> void:
 	_setup_victory_screen()
 	_setup_defeat_screen()
 	
-	# Setup visual effects (vignette, bloom, heat haze, ash particles)
-	_setup_visual_effects()
 	
 	# Create debug controller (only in debug mode)
 	if GameConfig.debug_mode:
@@ -344,18 +340,6 @@ func _on_defeat_restart() -> void:
 	SceneManager.reload_current_scene()
 
 
-## Setup visual effects (vignette, bloom, heat haze, ash particles)
-func _setup_visual_effects() -> void:
-	visual_effects_manager = VisualEffectsManager.new()
-	add_child(visual_effects_manager)
-	
-	# Get UI layer reference for proper layering
-	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
-	
-	# Initialize with required references
-	visual_effects_manager.initialize(ui_layer, game_board)
-	
-	print("GameScene: Visual effects initialized")
 
 
 func _process(_delta: float) -> void:
@@ -604,7 +588,7 @@ func _create_item_visual(grid_pos: Vector2i, item_type: String, direction: Strin
 		return null
 	
 	# For portals, use the correct scene based on is_entrance
-	var scene_path := definition.scene_path
+	var scene_path: String = definition.scene_path
 	if item_type == "portal" and not is_entrance:
 		# Use paired_scene_path for portal exits
 		if not definition.paired_scene_path.is_empty():
@@ -1072,9 +1056,6 @@ func _start_build_phase() -> void:
 	# Show level hint snackbar (only on initial level start, not when returning from active phase)
 	_show_level_hint()
 	
-	# Set visual effects to build phase intensity
-	if visual_effects_manager:
-		visual_effects_manager.set_build_phase_intensity()
 
 
 func _start_active_phase() -> void:
@@ -1114,10 +1095,6 @@ func _start_active_phase() -> void:
 	
 	# Start enemy wave
 	EnemyManager.start_wave()
-	
-	# Intensify visual effects for active phase
-	if visual_effects_manager:
-		visual_effects_manager.set_active_phase_intensity()
 	
 	_launch_fireball()
 
