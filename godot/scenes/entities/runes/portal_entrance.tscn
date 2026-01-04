@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b2mke0mcbpypl"]
 
-[ext_resource type="Script" uid="uid://d1ujc4fwxe0sc" path="res://scripts/entities/runes/portal_rune.gd" id="1_portal"]
+[ext_resource type="Script" path="res://scripts/entities/runes/portal_rune.gd" id="1_portal"]
 
 [node name="PortalEntrance" type="Node2D"]
 script = ExtResource("1_portal")

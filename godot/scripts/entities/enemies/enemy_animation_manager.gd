@@ -57,6 +57,11 @@ func play_spawn() -> void:
 	if not animated_sprite or not animated_sprite.sprite_frames:
 		return
 	
+	# Check if spawn animation exists, otherwise skip to walk
+	if not animated_sprite.sprite_frames.has_animation("spawn"):
+		play_walk()
+		return
+	
 	# Connect to animation finished to transition to walk
 	if not animated_sprite.animation_finished.is_connected(_on_spawn_animation_finished):
 		animated_sprite.animation_finished.connect(_on_spawn_animation_finished, CONNECT_ONE_SHOT)

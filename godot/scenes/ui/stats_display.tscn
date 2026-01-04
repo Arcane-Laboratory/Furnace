@@ -2,7 +2,7 @@
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_86el3"]
 [ext_resource type="StyleBox" uid="uid://biprx6rkh4548" path="res://style_box_9p_small.tres" id="2_cfchu"]
-[ext_resource type="Script" uid="uid://tcsiunpydrlk" path="res://scripts/ui/stats_display.gd" id="2_script"]
+[ext_resource type="Script" path="res://scripts/ui/stats_display.gd" id="2_script"]
 [ext_resource type="Texture2D" uid="uid://c52j6w8cg6uke" path="res://resources/ui_assets/enemies.png" id="4_cfchu"]
 [ext_resource type="Texture2D" uid="uid://bpxqgm8g3h6gk" path="res://resources/ui_assets/sparks spent.png" id="5_t1s5w"]
 [ext_resource type="Texture2D" uid="uid://djlj6d524wgn6" path="res://resources/ui_assets/damage dealt.png" id="6_ubhyq"]

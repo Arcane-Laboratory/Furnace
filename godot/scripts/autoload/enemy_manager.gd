@@ -128,18 +128,22 @@ func _schedule_spawn_soon_notification(spawn_index: int, delay: float) -> void:
 func _notify_spawn_soon(spawn_index: int) -> void:
 	spawn_soon.emit(spawn_index)
 	if spawn_markers.has(spawn_index):
-		var marker := spawn_markers[spawn_index] as SpawnPointMarker
-		if marker and is_instance_valid(marker):
-			marker.notify_spawn_soon()
+		var marker_ref = spawn_markers[spawn_index]
+		if is_instance_valid(marker_ref):
+			var marker := marker_ref as SpawnPointMarker
+			if marker:
+				marker.notify_spawn_soon()
 
 
 ## Notify that a spawn point is actively spawning
 func _notify_spawn_active(spawn_index: int) -> void:
 	spawn_active.emit(spawn_index)
 	if spawn_markers.has(spawn_index):
-		var marker := spawn_markers[spawn_index] as SpawnPointMarker
-		if marker and is_instance_valid(marker):
-			marker.notify_spawning()
+		var marker_ref = spawn_markers[spawn_index]
+		if is_instance_valid(marker_ref):
+			var marker := marker_ref as SpawnPointMarker
+			if marker:
+				marker.notify_spawning()
 
 
 ## Schedule a single enemy spawn

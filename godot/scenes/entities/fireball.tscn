@@ -1,6 +1,6 @@
 [gd_scene load_steps=14 format=3 uid="uid://fireball"]
 
-[ext_resource type="Script" uid="uid://dk1qvnk8g8bku" path="res://scripts/entities/fireball.gd" id="1_fireball"]
+[ext_resource type="Script" path="res://scripts/entities/fireball.gd" id="1_fireball"]
 [ext_resource type="Texture2D" uid="uid://dtekhosid5ju4" path="res://assets/sprites/fireball.png" id="2_fireball"]
 [ext_resource type="Texture2D" path="res://assets/sprites/particle-cluster.png" id="3_smoke"]
 
