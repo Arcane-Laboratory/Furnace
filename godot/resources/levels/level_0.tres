@@ -21,6 +21,7 @@ starting_resources = 1000
 spawn_points = Array[Vector2i]([Vector2i(6, 6)])
 enemy_waves = Array[ExtResource("2")]([SubResource("Resource_debug1"), SubResource("Resource_debug2")])
 par_time_seconds = 999.0
+preset_items = Array[Dictionary]([])
 hint_text = "[DEBUG] Test level with all items unlocked and invincibility enabled."
 heat_increase_interval = 4.0
 unlock_all_items = true
