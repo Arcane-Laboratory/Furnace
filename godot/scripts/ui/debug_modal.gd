@@ -22,7 +22,7 @@ signal items_unlocked_changed
 @onready var place_terrain_button: Button = $Panel/MarginContainer/VBoxContainer/MainMenu/PlaceTerrainButton
 @onready var immune_toggle: CheckBox = $Panel/MarginContainer/VBoxContainer/MainMenu/ImmuneToggle
 @onready var unlock_all_toggle: CheckBox = $Panel/MarginContainer/VBoxContainer/MainMenu/UnlockAllToggle
-@onready var infinite_money_toggle: CheckButton = $Panel/MarginContainer/VBoxContainer/MainMenu/InfiniteMoneyToggle
+@onready var infinite_money_toggle: CheckBox = $Panel/MarginContainer/VBoxContainer/MainMenu/InfiniteMoneyToggle
 @onready var back_button: Button = $Panel/MarginContainer/VBoxContainer/LevelSubmenu/BackButton
 
 
@@ -140,6 +140,7 @@ func _on_unlock_all_toggled(toggled_on: bool) -> void:
 func _on_infinite_money_toggled(toggled_on: bool) -> void:
 	AudioManager.play_ui_click()
 	GameManager.infinite_money = toggled_on
+	print("DebugModal: Infinite money = %s" % toggled_on)
 
 
 func _on_back_pressed() -> void:

@@ -95,6 +95,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "All Items Unlocked"
 
+[node name="InfiniteMoneyToggle" type="CheckBox" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Infinite Money"
+
 [node name="HSeparator3" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
 layout_mode = 2
 
@@ -109,15 +114,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(150, 28)
 layout_mode = 2
 text = "Place Terrain"
-
-[node name="HSeparator4" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
-layout_mode = 2
-
-[node name="InfiniteMoneyToggle" type="CheckButton" parent="Panel/MarginContainer/VBoxContainer/MainMenu"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 28)
-layout_mode = 2
-text = "Infinite Money"
 
 [node name="LevelSubmenu" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
