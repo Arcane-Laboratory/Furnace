@@ -9,6 +9,9 @@ signal restart_requested
 var soot_vanquished: int = 0
 var damage_dealt: int = 0
 
+## Total enemies configured for this level (for progress calculation)
+var total_enemies: int = 0
+
 ## Reference to StatsDisplay child (handles sparks spent tracking)
 @onready var stats_display: StatsDisplay = $CenterContainer/VBoxContainer/StatsDisplay
 
@@ -16,7 +19,7 @@ var damage_dealt: int = 0
 @onready var soot_value: Label = null
 @onready var heat_value: Label = null
 @onready var restart_button: Button = $MarginContainer2/Button
-@onready var progress_bar: TextureProgressBar = $CenterContainer/VBoxContainer/MarginContainer/TextureProgressBar
+@onready var progress_bar: ProgressBar = $CenterContainer/VBoxContainer/MarginContainer/ProgressBarContainer/ProgressBar
 
 
 func _ready() -> void:
@@ -46,11 +49,18 @@ func _ensure_labels_ready() -> void:
 			heat_value = get_node_or_null("%HeatValue") as Label
 
 
+## Set total enemies for progress calculation
+func set_total_enemies(count: int) -> void:
+	total_enemies = count
+	_update_progress_bar()
+
+
 ## Reset all stats to zero
 func reset_stats() -> void:
 	soot_vanquished = 0
 	damage_dealt = 0
 	_update_display()
+	_update_progress_bar()
 	# Reset StatsDisplay sparks tracking
 	if stats_display:
 		stats_display.reset_stats()
@@ -61,6 +71,7 @@ func add_soot_vanquished(count: int = 1) -> void:
 	soot_vanquished += count
 	_ensure_labels_ready()
 	_update_soot_display()
+	_update_progress_bar()
 
 
 ## Set sparks spent (delegates to StatsDisplay)
@@ -109,10 +120,17 @@ func _update_damage_display() -> void:
 		push_warning("LevelInProgressSubmenu: heat_value label not found! Value: %d" % damage_dealt)
 
 
-## Set wave progress (0.0 to 1.0)
-func set_wave_progress(progress: float) -> void:
-	if progress_bar:
-		progress_bar.value = progress * 100.0
+## Update progress bar based on enemies killed vs total
+func _update_progress_bar() -> void:
+	if not progress_bar:
+		return
+	
+	if total_enemies <= 0:
+		progress_bar.value = 0.0
+		return
+	
+	var progress := float(soot_vanquished) / float(total_enemies)
+	progress_bar.value = clampf(progress * 100.0, 0.0, 100.0)
 
 
 ## Handle restart button pressed

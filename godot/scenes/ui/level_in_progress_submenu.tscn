@@ -1,11 +1,24 @@
-[gd_scene load_steps=7 format=3 uid="uid://dx42pv0iig1xi"]
+[gd_scene load_steps=10 format=3 uid="uid://dx42pv0iig1xi"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_xtru7"]
 [ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="2_utswl"]
 [ext_resource type="PackedScene" uid="uid://d3lefgipylt8o" path="res://scenes/ui/menu_label.tscn" id="3_pmnrq"]
-[ext_resource type="Texture2D" uid="uid://bfk22goopp3di" path="res://style_box_progressbar.tres" id="4_5ji2w"]
 [ext_resource type="Script" uid="uid://bm3vyx42r32vr" path="res://scripts/ui/level_in_progress_submenu.gd" id="9_script"]
 [ext_resource type="PackedScene" uid="uid://q6vu7kf32cel" path="res://scenes/ui/stats_display.tscn" id="10_sj312"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.05, 0.05, 0.05, 1)
+corner_radius_left_top = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
+bg_color = Color(0.93, 0.4, 0.0, 1)
+corner_radius_left_top = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [node name="InProgressSubmenu" type="Control"]
 custom_minimum_size = Vector2(128, 240)
@@ -84,21 +97,40 @@ theme_override_constants/margin_top = 0
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 0
 
-[node name="TextureProgressBar" type="TextureProgressBar" parent="CenterContainer/VBoxContainer/MarginContainer"]
-custom_minimum_size = Vector2(0, 12)
+[node name="ProgressBarContainer" type="Control" parent="CenterContainer/VBoxContainer/MarginContainer"]
+custom_minimum_size = Vector2(104, 12)
 layout_mode = 2
-size_flags_vertical = 0
-nine_patch_stretch = true
-stretch_margin_left = 4
-stretch_margin_top = 2
-stretch_margin_right = 4
-stretch_margin_bottom = 2
-texture_under = ExtResource("4_5ji2w")
-texture_over = ExtResource("4_5ji2w")
-texture_progress = ExtResource("4_5ji2w")
-tint_under = Color(0, 0, 0, 1)
-tint_over = Color(1, 0.6725376, 0.3336057, 1)
-tint_progress = Color(0.93271756, 0.40183282, 5.77569e-06, 1)
+size_flags_horizontal = 4
+
+[node name="ProgressBar" type="ProgressBar" parent="CenterContainer/VBoxContainer/MarginContainer/ProgressBarContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
+max_value = 100.0
+show_percentage = false
+
+[node name="BorderOverlay" type="NinePatchRect" parent="CenterContainer/VBoxContainer/MarginContainer/ProgressBarContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_utswl")
+patch_margin_left = 6
+patch_margin_top = 6
+patch_margin_right = 6
+patch_margin_bottom = 6
 
 [node name="StatsDisplay" parent="CenterContainer/VBoxContainer" instance=ExtResource("10_sj312")]
 layout_mode = 2
