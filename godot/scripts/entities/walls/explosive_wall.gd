@@ -9,11 +9,21 @@ var is_on_cooldown: bool = false
 var has_exploded_for_current_fireball: bool = false
 var was_fireball_adjacent_last_frame: bool = false
 
+## Reference to explosion animation sprite
+@onready var explosion_animation: AnimatedSprite2D = $ExplosionAnimation
+## Reference to wall sprite
+@onready var wall_sprite: Sprite2D = $Sprite2D
+
 
 func _ready() -> void:
 	add_to_group("explosive_walls")
 	# Update sprite position after a frame to ensure sprite node is ready
 	call_deferred("_update_sprite_position")
+	
+	# Connect to animation finished signal to clean up
+	if explosion_animation:
+		if not explosion_animation.animation_finished.is_connected(_on_explosion_animation_finished):
+			explosion_animation.animation_finished.connect(_on_explosion_animation_finished)
 
 
 func _process(delta: float) -> void:
@@ -119,16 +129,34 @@ func _update_sprite_position() -> void:
 
 
 func _play_explosion_effect() -> void:
-	## Visual effect similar to explosive rune
-	var explosion := ColorRect.new()
-	explosion.size = Vector2(8, 8)
-	explosion.position = Vector2(-4, -4)
-	explosion.color = Color(1.0, 0.6, 0.2, 0.8)
-	add_child(explosion)
+	## Play explosion animation from boom.png sprite sheet
+	if not explosion_animation:
+		explosion_animation = get_node_or_null("ExplosionAnimation") as AnimatedSprite2D
 	
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(explosion, "size", Vector2(96, 96), 0.3)  # 3x3 tiles
-	tween.tween_property(explosion, "position", Vector2(-48, -48), 0.3)
-	tween.tween_property(explosion, "modulate:a", 0.0, 0.3)
-	tween.chain().tween_callback(explosion.queue_free)
+	if not explosion_animation or not explosion_animation.sprite_frames:
+		push_warning("ExplosiveWall: Explosion animation not found!")
+		return
+	
+	# Hide wall sprite during explosion
+	if wall_sprite:
+		wall_sprite.visible = false
+	
+	# Show and play explosion animation
+	explosion_animation.visible = true
+	explosion_animation.frame = 0
+	explosion_animation.play("explosion")
+	
+	# Play explosion sound effect
+	AudioManager.play_sound_effect("rune-explosive")
+
+
+## Handle explosion animation finished
+func _on_explosion_animation_finished() -> void:
+	# Hide explosion animation
+	if explosion_animation:
+		explosion_animation.visible = false
+		explosion_animation.stop()
+	
+	# Show wall sprite again (wall remains after explosion)
+	if wall_sprite:
+		wall_sprite.visible = true
