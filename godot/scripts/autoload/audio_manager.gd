@@ -16,10 +16,12 @@ var sfx_player: AudioStreamPlayer
 var sound_effects: Dictionary = {
 	"rune-accelerate": "res://assets/audio/rune-accelerate.wav",
 	"rune-generic": "res://assets/audio/rune-generic.wav",
+	"rune-explosive": "res://assets/audio/rune-generic.wav",  # Uses generic rune sound
 	"burn": "res://assets/audio/burn.wav",
 	"fireball-spawn": "res://assets/audio/fireball-spawn.wav",
 	"enemy-death": "res://assets/audio/enemy-death.wav",
 	"furnace-death": "res://assets/audio/furnace-death.wav",
+	"level-complete": "res://assets/audio/level-complete.wav",  # TODO: Add audio file
 	"level-failed": "res://assets/audio/level-failed.wav",
 	"click": "res://assets/audio/click.wav",
 	"structure-sell": "res://assets/audio/structure-sell.wav",
@@ -45,6 +47,9 @@ var fireball_travel_player: AudioStreamPlayer = null
 # Pitch modulation settings (to prevent repetitive sounds)
 var pitch_modulation_range: float = 0.15  # ±15% pitch variation
 var use_pitch_modulation: bool = true  # Can be disabled if needed
+
+# Gameplay audio muting (for victory/defeat modals)
+var gameplay_sounds_muted: bool = false
 
 # Fade transition settings
 var fade_duration: float = 1.0  # seconds for transitions
@@ -176,6 +181,10 @@ func play_sound_effect(effect_name: String) -> void:
 		push_warning("AudioManager: Unknown sound effect: %s" % effect_name)
 		return
 	
+	# Skip gameplay sounds when muted (but allow UI/feedback sounds)
+	if gameplay_sounds_muted and _is_gameplay_sound(effect_name):
+		return
+	
 	var sfx_path: String = sound_effects[effect_name]
 	if sfx_path.is_empty():
 		push_warning("AudioManager: Empty SFX path for effect: %s" % effect_name)
@@ -249,6 +258,10 @@ func start_fireball_travel() -> void:
 	if not fireball_travel_player:
 		return
 	
+	# Don't start fireball travel sound when gameplay sounds are muted
+	if gameplay_sounds_muted:
+		return
+	
 	var sfx_path: String = sound_effects.get("fireball-travel", "")
 	if sfx_path.is_empty():
 		return
@@ -275,6 +288,36 @@ func start_fireball_travel() -> void:
 func stop_fireball_travel() -> void:
 	if fireball_travel_player and fireball_travel_player.playing:
 		fireball_travel_player.stop()
+
+
+## Mute all gameplay sounds (for victory/defeat modals)
+## This stops active gameplay sounds and prevents new ones from playing
+## UI sounds (clicks) and victory/defeat sounds still play
+func mute_gameplay_sounds() -> void:
+	gameplay_sounds_muted = true
+	# Stop the looping fireball travel sound immediately
+	stop_fireball_travel()
+	# Stop any currently playing sounds in the pool
+	for player in sfx_pool:
+		if player.playing:
+			player.stop()
+
+
+## Unmute gameplay sounds (called when starting a new level)
+func unmute_gameplay_sounds() -> void:
+	gameplay_sounds_muted = false
+
+
+## Check if a sound effect is a gameplay sound (should be muted during modals)
+## Returns false for UI sounds that should always play
+func _is_gameplay_sound(effect_name: String) -> bool:
+	# These sounds should play even when gameplay is muted (UI/feedback sounds)
+	var always_allowed := [
+		"click",
+		"level-complete",
+		"level-failed",
+	]
+	return effect_name not in always_allowed
 
 
 ## Play victory theme
@@ -310,8 +353,16 @@ func _on_game_state_changed(new_state: GameManager.GameState) -> void:
 			# Play title theme (last-ember.wav) for title screen and main menu
 			if not main_menu_theme_path.is_empty():
 				play_music(main_menu_theme_path, true)
+			# Unmute gameplay sounds when returning to menu (reset state)
+			unmute_gameplay_sounds()
 		
-		GameManager.GameState.BUILD_PHASE, GameManager.GameState.ACTIVE_PHASE:
+		GameManager.GameState.BUILD_PHASE:
+			if not gameplay_theme_path.is_empty():
+				play_music(gameplay_theme_path, true)
+			# Unmute gameplay sounds when starting a new level/build phase
+			unmute_gameplay_sounds()
+		
+		GameManager.GameState.ACTIVE_PHASE:
 			if not gameplay_theme_path.is_empty():
 				play_music(gameplay_theme_path, true)
 		
