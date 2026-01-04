@@ -18,6 +18,7 @@ enum RuneType {
 	REFLECT,           # Reflect rune (bounces fireball back)
 	EXPLOSIVE,         # Explosive rune (area damage)
 	POWER,             # Power rune (speeds up fireball)
+	MUD,               # Mud tile (slows enemies)
 	PORTAL,            # Portal rune (teleports fireball)
 }
 
@@ -185,6 +186,8 @@ static func rune_type_to_string(rune_type: RuneType) -> String:
 			return "explosive"
 		RuneType.POWER:
 			return "power"
+		RuneType.MUD:
+			return "mud_tile"
 		RuneType.PORTAL:
 			return "portal"
 		_:
@@ -232,6 +235,8 @@ static func string_to_rune_type(rune_type_string: String) -> RuneType:
 			return RuneType.EXPLOSIVE
 		"power", "acceleration":  # "acceleration" is legacy support
 			return RuneType.POWER
+		"mud_tile", "mud":
+			return RuneType.MUD
 		"portal":
 			return RuneType.PORTAL
 		_:
