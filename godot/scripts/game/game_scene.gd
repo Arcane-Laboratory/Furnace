@@ -50,6 +50,12 @@ var debug_controller: DebugModeController = null
 ## Help snackbar for showing level hints
 var help_snackbar: HelpSnackbar = null
 
+## Victory screen overlay (shown when level is cleared)
+var victory_screen: CanvasLayer = null
+
+## Defeat screen overlay (shown when furnace is destroyed)
+var defeat_screen: CanvasLayer = null
+
 ## Track if we've shown the level hint (only show once per level load)
 var has_shown_level_hint: bool = false
 
@@ -107,6 +113,10 @@ func _ready() -> void:
 	
 	# Create drop target for drag-and-drop
 	_create_drop_target()
+	
+	# Create victory and defeat screen overlays
+	_setup_victory_screen()
+	_setup_defeat_screen()
 	
 	# Create debug controller (only in debug mode)
 	if GameConfig.debug_mode:
@@ -250,6 +260,72 @@ func _on_level_progress_pause_pressed() -> void:
 ## Handle restart requested from level in progress menu
 func _on_level_progress_restart_requested() -> void:
 	# Restart the current level
+	SceneManager.reload_current_scene()
+
+
+## Setup the victory screen overlay
+func _setup_victory_screen() -> void:
+	var victory_scene := load("res://scenes/ui/victory_screen.tscn") as PackedScene
+	if not victory_scene:
+		push_warning("GameScene: Failed to load victory_screen.tscn")
+		return
+	
+	victory_screen = victory_scene.instantiate() as CanvasLayer
+	if not victory_screen:
+		push_warning("GameScene: Failed to instantiate victory screen")
+		return
+	
+	# Add to scene tree
+	add_child(victory_screen)
+	victory_screen.hide()
+	
+	# Connect signals
+	if victory_screen.has_signal("continue_pressed"):
+		victory_screen.continue_pressed.connect(_on_victory_continue)
+	if victory_screen.has_signal("restart_pressed"):
+		victory_screen.restart_pressed.connect(_on_victory_restart)
+
+
+## Setup the defeat screen overlay
+func _setup_defeat_screen() -> void:
+	var defeat_scene := load("res://scenes/ui/defeat_screen.tscn") as PackedScene
+	if not defeat_scene:
+		push_warning("GameScene: Failed to load defeat_screen.tscn")
+		return
+	
+	defeat_screen = defeat_scene.instantiate() as CanvasLayer
+	if not defeat_screen:
+		push_warning("GameScene: Failed to instantiate defeat screen")
+		return
+	
+	# Add to scene tree
+	add_child(defeat_screen)
+	defeat_screen.hide()
+	
+	# Connect signals
+	if defeat_screen.has_signal("menu_pressed"):
+		defeat_screen.menu_pressed.connect(_on_defeat_menu)
+	if defeat_screen.has_signal("restart_pressed"):
+		defeat_screen.restart_pressed.connect(_on_defeat_restart)
+
+
+## Handle victory screen continue button
+func _on_victory_continue() -> void:
+	SceneManager.goto_next_level()
+
+
+## Handle victory screen restart button
+func _on_victory_restart() -> void:
+	SceneManager.reload_current_scene()
+
+
+## Handle defeat screen main menu button
+func _on_defeat_menu() -> void:
+	SceneManager.goto_menu()
+
+
+## Handle defeat screen restart button
+func _on_defeat_restart() -> void:
 	SceneManager.reload_current_scene()
 
 
@@ -1034,13 +1110,51 @@ func _update_path_preview_deferred() -> void:
 
 ## Called when level is won
 func win_level() -> void:
-	GameManager.end_game(true)
+	# Stop heat timer
+	_stop_heat_timer()
+	
+	# Get stats from active phase
+	var stats := _get_active_phase_stats()
+	
+	# Show victory screen overlay (don't navigate away)
+	if victory_screen:
+		victory_screen.show_screen(GameManager.current_level, stats)
 
 
 ## Called when furnace is destroyed
 func lose_level() -> void:
-	AudioManager.play_sound_effect("level-failed")
-	GameManager.end_game(false)
+	# Stop heat timer
+	_stop_heat_timer()
+	
+	# Get stats from active phase
+	var stats := _get_active_phase_stats()
+	
+	# Show defeat screen overlay (don't navigate away)
+	if defeat_screen:
+		defeat_screen.show_screen(GameManager.current_level, stats)
+
+
+## Get stats from the active phase for end-of-level screens
+func _get_active_phase_stats() -> Dictionary:
+	var stats := {
+		"soot": 0,
+		"sparks": 0,
+		"damage": 0
+	}
+	
+	if level_in_progress_menu:
+		var in_progress: Control = null
+		if level_in_progress_menu.has_method("get_in_progress_submenu"):
+			in_progress = level_in_progress_menu.get_in_progress_submenu()
+		if in_progress:
+			if "soot_vanquished" in in_progress:
+				stats["soot"] = in_progress.soot_vanquished
+			if "sparks_earned" in in_progress:
+				stats["sparks"] = in_progress.sparks_earned
+			if "damage_dealt" in in_progress:
+				stats["damage"] = in_progress.damage_dealt
+	
+	return stats
 
 
 ## Get grid position from current mouse position
