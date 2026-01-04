@@ -1,13 +1,10 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=3 format=3 uid="uid://f5f2kj8iaiht"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=4 format=3 uid="uid://f5f2kj8iaiht"]
 
-[ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
-[ext_resource type="Script" uid="uid://oi70e4rojnys" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
+[ext_resource type="Script" uid="uid://ijuvyt3lnwhc" path="res://scripts/resources/level_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://c2lkbhx7rwv8g" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
 
 [sub_resource type="Resource" id="Resource_wave1"]
 script = ExtResource("2")
-enemy_type = 0
-spawn_point = 0
-delay = 0.0
 metadata/_custom_type_script = "uid://oi70e4rojnys"
 
 [resource]
@@ -16,10 +13,5 @@ level_number = 10
 level_name = "Level 10 (Final)"
 starting_resources = 300
 spawn_points = Array[Vector2i]([Vector2i(0, 6), Vector2i(12, 6), Vector2i(2, 2), Vector2i(10, 2)])
-furnace_position = Vector2i(6, 0)
-terrain_blocked = Array[Vector2i]([])
-preset_items = Array[Dictionary]([])
 enemy_waves = Array[ExtResource("2")]([SubResource("Resource_wave1")])
-allowed_runes = Array[int]([])
-hint_text = "Test description for Level 10."
-par_time_seconds = 60.0
+hint_text = "The furnace is at full power! Show the soot swarm your full power and creativity!"
