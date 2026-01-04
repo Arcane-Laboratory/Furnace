@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://btk68wmm8weex"]
+[gd_scene load_steps=5 format=3 uid="uid://btk68wmm8weex"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_fe2o3"]
-[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
-[ext_resource type="StyleBox" uid="uid://daxtmlmajhs7f" path="res://style_box_9p_fullscreen.tres" id="3_1g8jr"]
+[ext_resource type="Script" uid="uid://dples3oy7jk7k" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="StyleBox" path="res://style_box_9p_fullscreen.tres" id="3_1g8jr"]
+[ext_resource type="Texture2D" uid="uid://cr3jk73e4bv1y" path="res://assets/sprites/wordmark.png" id="4_wordmark"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -46,11 +47,10 @@ layout_mode = 2
 theme = ExtResource("1_fe2o3")
 theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="Wordmark" type="TextureRect" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "FURNACE"
-horizontal_alignment = 1
+texture = ExtResource("4_wordmark")
+stretch_mode = 5
 
 [node name="CenterContainer" type="CenterContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
