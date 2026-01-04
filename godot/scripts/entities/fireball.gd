@@ -9,14 +9,11 @@ var direction: Vector2 = Vector2.DOWN
 ## Current speed (can be modified by Acceleration Runes)
 var current_speed: float = 0.0
 
-## Base speed (without boosts)
+## Base speed (without stacks)
 var base_speed: float = 0.0
 
-## Active speed boost amount
-var speed_boost: float = 0.0
-
-## Timer for speed boost duration
-var boost_timer: float = 0.0
+## Speed stacks (permanent speed increase) - stacks when passing over Acceleration Runes
+var speed_stacks: int = 0
 
 ## Whether the fireball is currently active/moving
 var is_active: bool = false
@@ -38,6 +35,9 @@ var current_grid_pos: Vector2i = Vector2i(-1, -1)
 
 ## Track currently overlapping enemies to prevent double damage
 var overlapping_enemies: Dictionary = {}
+
+## Power stacks (damage bonus) - stacks when passing over Power Runes
+var power_stacks: int = 0
 
 signal fireball_destroyed
 signal enemy_hit(enemy: Node2D, damage: int)
@@ -79,12 +79,6 @@ func _physics_process(delta: float) -> void:
 	if not is_active:
 		return
 	
-	# Update boost timer
-	if boost_timer > 0.0:
-		boost_timer -= delta
-		if boost_timer <= 0.0:
-			_remove_speed_boost()
-	
 	# Calculate next position
 	var next_pos := position + direction * current_speed * delta
 	var next_grid_pos := _world_to_grid(next_pos)
@@ -108,6 +102,9 @@ func _physics_process(delta: float) -> void:
 	
 	# Check for tile center crossing (for rune activation)
 	_check_tile_activation()
+	
+	# Check for adjacent explosive walls
+	_check_explosive_walls()
 
 
 ## Launch the fireball from the furnace
@@ -116,8 +113,8 @@ func launch(start_position: Vector2) -> void:
 	direction = Vector2.DOWN  # Always starts going down from furnace
 	base_speed = GameConfig.fireball_speed
 	current_speed = base_speed
-	speed_boost = 0.0
-	boost_timer = 0.0
+	speed_stacks = 0  # Reset speed stacks
+	power_stacks = 0  # Reset power stacks
 	is_active = true
 	activated_tiles.clear()
 	overlapping_enemies.clear()  # Reset collision tracking
@@ -151,31 +148,30 @@ func set_direction(new_direction: Vector2) -> void:
 			_update_rotation()
 
 
-## Increase speed permanently (called by acceleration runes if needed)
-func accelerate(amount: float) -> void:
-	base_speed = min(base_speed + amount, GameConfig.fireball_max_speed)
+## Add a speed stack (called by Acceleration Rune)
+func add_speed_stack(amount: float) -> void:
+	speed_stacks += 1
 	_update_current_speed()
+	print("Fireball: Speed stack added! Total stacks: %d (speed: %d)" % [speed_stacks, current_speed])
+	
+	# Show status modifier VFX
+	FloatingNumberManager.show_status_modifier("+Speed x%d" % speed_stacks, position, Color(0.2, 0.7, 1.0, 1.0))  # Cyan/blue
 
 
-## Apply a temporary speed boost for a duration
-func apply_speed_boost(amount: float, duration: float) -> void:
-	speed_boost = amount
-	boost_timer = duration
-	_update_current_speed()
-	print("Fireball: Speed boost applied! +%d for %.1fs (speed: %d)" % [amount, duration, current_speed])
+## Remove a speed stack (called when hitting an enemy - loses 1 stack per hit)
+func remove_speed_stack() -> void:
+	if speed_stacks > 0:
+		speed_stacks -= 1
+		_update_current_speed()
+		# Show status modifier VFX when stack is lost
+		if speed_stacks > 0:
+			FloatingNumberManager.show_status_modifier("Speed x%d" % speed_stacks, position, Color(0.1, 0.5, 0.8, 1.0))  # Darker cyan
 
 
-## Remove the speed boost
-func _remove_speed_boost() -> void:
-	speed_boost = 0.0
-	boost_timer = 0.0
-	_update_current_speed()
-	print("Fireball: Speed boost expired (speed: %d)" % current_speed)
-
-
-## Update current speed based on base speed and boost
+## Update current speed based on base speed and stacks
 func _update_current_speed() -> void:
-	current_speed = min(base_speed + speed_boost, GameConfig.fireball_max_speed)
+	var speed_from_stacks: float = speed_stacks * GameConfig.acceleration_speed_increase
+	current_speed = min(base_speed + speed_from_stacks, GameConfig.fireball_max_speed)
 
 
 ## Check if we've crossed a tile center and should activate runes
@@ -206,11 +202,22 @@ func _activate_tile(grid_pos: Vector2i) -> void:
 	# Removed grid-based enemy check to prevent double damage and missed collisions
 
 
+## Check for explosive walls adjacent to current position
+func _check_explosive_walls() -> void:
+	var explosive_walls := get_tree().get_nodes_in_group("explosive_walls")
+	for wall in explosive_walls:
+		if wall is ExplosiveWall:
+			if wall.check_fireball_adjacent(current_grid_pos):
+				wall.explode()
+
+
 ## Hit an enemy with the fireball
 func _hit_enemy(enemy: Node2D) -> void:
 	if enemy.has_method("take_damage"):
-		enemy.take_damage(GameConfig.fireball_damage)
-		enemy_hit.emit(enemy, GameConfig.fireball_damage)
+		# Calculate damage with power stacks
+		var damage: int = GameConfig.fireball_damage + (power_stacks * GameConfig.power_damage_increase)
+		enemy.take_damage(damage)
+		enemy_hit.emit(enemy, damage)
 
 
 ## Called when an enemy enters the fireball's collision area
@@ -235,6 +242,10 @@ func _on_enemy_entered(body: Node2D) -> void:
 	
 	# Deal damage to enemy
 	_hit_enemy(body)
+	
+	# Remove one stack per hit (as per plan: 1 stack per hit)
+	remove_power_stack()
+	remove_speed_stack()
 
 
 ## Called when an enemy exits the fireball's collision area
@@ -358,6 +369,24 @@ func _update_rotation() -> void:
 	
 	# Update smoke particle direction to trail behind fireball (opposite direction)
 	_update_smoke_direction()
+
+
+## Add a power stack (called by Power Rune)
+func add_power_stack() -> void:
+	power_stacks += 1
+	print("Fireball: Power stack added! Total stacks: %d (damage: %d)" % [power_stacks, GameConfig.fireball_damage + (power_stacks * GameConfig.power_damage_increase)])
+	
+	# Show status modifier VFX
+	FloatingNumberManager.show_status_modifier("+Power x%d" % power_stacks, position, Color(1.0, 0.6, 0.2, 1.0))  # Orange/red
+
+
+## Remove a power stack (called when hitting an enemy - loses 1 stack per hit)
+func remove_power_stack() -> void:
+	if power_stacks > 0:
+		power_stacks -= 1
+		# Show status modifier VFX when stack is lost
+		if power_stacks > 0:
+			FloatingNumberManager.show_status_modifier("Power x%d" % power_stacks, position, Color(1.0, 0.4, 0.1, 1.0))  # Darker orange
 
 
 ## Update smoke particle direction to trail behind fireball

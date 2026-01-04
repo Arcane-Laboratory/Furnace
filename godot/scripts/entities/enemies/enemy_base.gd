@@ -151,7 +151,11 @@ func _physics_process(_delta: float) -> void:
 	# Move toward current target
 	if distance_to_target > 2.0:  # Small threshold for "reached"
 		var direction := (target_pos - position).normalized()
-		velocity = direction * speed
+		# Check if enemy is on a mud tile and apply speed reduction
+		var effective_speed := speed
+		if _is_on_mud_tile():
+			effective_speed *= 0.5  # 50% speed reduction
+		velocity = direction * effective_speed
 		move_and_slide()
 		
 		# Update z_index continuously based on current Y position for depth sorting
@@ -184,6 +188,16 @@ func _physics_process(_delta: float) -> void:
 ## Get current grid position (for fireball collision detection)
 func get_grid_position() -> Vector2i:
 	return grid_position
+
+
+## Check if enemy is currently on a mud tile
+func _is_on_mud_tile() -> bool:
+	var mud_tiles := get_tree().get_nodes_in_group("mud_tiles")
+	for mud_tile in mud_tiles:
+		if mud_tile is MudTile:
+			if mud_tile.grid_position == grid_position:
+				return true
+	return false
 
 
 ## Convert grid position to world position (tile center)

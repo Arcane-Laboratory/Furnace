@@ -19,7 +19,7 @@ const VIEWPORT_HEIGHT: int = 360
 # Fireball Parameters
 var fireball_damage: int = 10
 var fireball_speed: float = 200.0
-var fireball_max_speed: float = 500.0
+var fireball_max_speed: float = 5000.0  # Increased 10x for stacking system
 
 # Rune Cooldowns
 var reflect_rune_cooldown: float = 0.5
@@ -30,6 +30,13 @@ var explosive_radius: int = 1  # In tiles
 
 # Acceleration Rune Parameters
 var acceleration_speed_increase: float = 50.0
+
+# Power Rune Parameters
+var power_damage_increase: int = 5  # Damage increase per power stack
+
+# Explosive Wall Parameters
+var explosive_wall_damage: int = 15
+var explosive_wall_cooldown: float = 0.0  # MVP: no cooldown, post-MVP: add cooldown
 
 # Enemy Parameters
 var basic_enemy_health: int = 50
@@ -73,11 +80,14 @@ func get_level_resources(level: int) -> int:
 func _load_buildable_item_definitions() -> void:
 	var definition_paths: Array[String] = [
 		"res://resources/buildable_items/wall_definition.tres",
+		"res://resources/buildable_items/explosive_wall_definition.tres",
+		"res://resources/buildable_items/mud_tile_definition.tres",
 		"res://resources/buildable_items/redirect_rune_definition.tres",
 		"res://resources/buildable_items/portal_rune_definition.tres",
 		"res://resources/buildable_items/reflect_rune_definition.tres",
 		"res://resources/buildable_items/explosive_rune_definition.tres",
 		"res://resources/buildable_items/acceleration_rune_definition.tres",
+		"res://resources/buildable_items/power_rune_definition.tres",
 	]
 	
 	for path in definition_paths:

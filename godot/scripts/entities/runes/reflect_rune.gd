@@ -51,7 +51,6 @@ func _play_activation_effect() -> void:
 
 
 func _on_depleted() -> void:
+	# Reflect runes are now multi-use, so this should never be called
+	# (uses_remaining defaults to 0, meaning infinite uses)
 	super._on_depleted()
-	# Fade out the rune when depleted
-	var tween := create_tween()
-	tween.tween_property(self, "modulate:a", 0.3, 0.3)

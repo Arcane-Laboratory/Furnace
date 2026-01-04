@@ -29,6 +29,10 @@ func _get_rune_sprite_path(rune_type: String) -> String:
 			return "res://assets/sprites/rune-grate.png"  # Portal uses grate sprite or fallback to color
 		"wall":
 			return "res://assets/sprites/wall.png"
+		"explosive_wall":
+			return "res://assets/sprites/wall.png"  # Use same sprite as regular wall
+		"mud_tile":
+			return "res://assets/sprites/wall.png"  # Use wall sprite with brown tint
 		_:
 			return ""  # No sprite, use color fallback
 
