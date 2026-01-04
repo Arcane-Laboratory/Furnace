@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BuildableItemDefinition" load_steps=2 format=3 uid="uid://jgn280bset8d"]
 
-[ext_resource type="Script" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://bq8idblqfeb5l" path="res://scripts/resources/buildable_item_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 item_type = "power"
 display_name = "Power"
-cost = 15
-unlocked_by_default = true
+cost = 40
 icon_color = Color(0.2, 0.9, 0.4, 1)
 scene_path = "res://scenes/entities/runes/acceleration_rune.tscn"
+description = "A rune that grows the hearthflame’s speed and power. Some power is lost on contact with fiends."
