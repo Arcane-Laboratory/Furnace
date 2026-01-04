@@ -1,26 +1,12 @@
 [gd_scene load_steps=3 format=3 uid="uid://fiqkf5nhj4kg"]
 
 [ext_resource type="Script" path="res://scripts/entities/runes/acceleration_rune.gd" id="1_accel"]
-[ext_resource type="Texture2D" path="res://assets/sprites/rune-accelerate.png" id="2_accel"]
+[ext_resource type="Texture2D" uid="uid://d2k5x0jbr5yx6" path="res://assets/sprites/tile-accelerate.png" id="2_accel"]
 
 [node name="PowerRune" type="Node2D"]
 script = ExtResource("1_accel")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_accel")
-
-[node name="RuneVisual" type="ColorRect" parent="."]
-visible = false
-offset_left = -12.0
-offset_top = -12.0
-offset_right = 12.0
-offset_bottom = 12.0
-color = Color(0.2, 0.9, 0.4, 1)
-
-[node name="AccelIcon" type="ColorRect" parent="."]
-visible = false
-offset_left = -4.0
-offset_top = -8.0
-offset_right = 4.0
-offset_bottom = 8.0
-color = Color(0.1, 0.5, 0.2, 1)
+region_enabled = true
+region_rect = Rect2(0, 32, 32, 32)
