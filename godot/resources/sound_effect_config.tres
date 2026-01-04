@@ -1,19 +1,10 @@
-[gd_resource type="Resource" script_class="SoundEffectConfig" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SoundEffectConfig" load_steps=2 format=3 uid="uid://cs2kgpc71nkt"]
 
-[ext_resource type="Script" path="res://scripts/resources/sound_effect_config.gd" id="1"]
+[ext_resource type="Script" uid="uid://bnwath1568tag" path="res://scripts/resources/sound_effect_config.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-rune_accelerate_volume = 1.0
-rune_generic_volume = 1.0
-burn_volume = 1.0
-fireball_spawn_volume = 1.0
-enemy_death_volume = 1.0
-furnace_death_volume = 1.0
-level_failed_volume = 1.0
-click_volume = 1.0
-structure_sell_volume = 1.0
-structure_buy_volume = 1.0
-pickup_spark_volume = 1.0
-invalid_action_volume = 1.0
-fireball_travel_volume = 1.0
+rune_accelerate_volume = 0.6
+rune_generic_volume = 0.3
+structure_buy_volume = 0.8
+invalid_action_volume = 0.8
