@@ -6,6 +6,6 @@
 script = ExtResource("1")
 enemy_type = "basic"
 display_name = "Basic Enemy"
-health = 20
+health = 15
 scene_path = "res://scenes/entities/enemies/basic_enemy.tscn"
 color = Color(0.8, 0.2, 0.2, 1)
