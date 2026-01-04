@@ -34,3 +34,8 @@ func goto_game_over(won: bool = false) -> void:
 
 func reload_current_scene() -> void:
 	get_tree().reload_current_scene()
+
+
+func goto_next_level() -> void:
+	GameManager.current_level += 1
+	get_tree().change_scene_to_file(GAME_SCENE)
