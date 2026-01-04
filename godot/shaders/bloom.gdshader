@@ -9,6 +9,7 @@ uniform float bloom_intensity : hint_range(0.0, 5.0) = 3.0;
 uniform float blur_radius : hint_range(0.0, 10.0) = 6.0;
 uniform float bloom_saturation : hint_range(0.0, 2.0) = 1.4;
 uniform float warm_color_boost : hint_range(0.0, 2.0) = 1.8;
+uniform float opacity : hint_range(0.0, 1.0) = 1.0;
 
 // Debug: 0=normal, 1=bloom only, 2=bright extraction only
 uniform int debug_mode : hint_range(0, 2) = 0;
@@ -80,11 +81,12 @@ void fragment() {
 		// Show only bloom
 		final_color = bloom_saturated;
 	} else {
-		// Normal: original + bloom with tone mapping
-		final_color = original.rgb + bloom_saturated;
-		final_color = final_color / (final_color + vec3(1.0));
-		final_color = pow(final_color, vec3(1.0 / 1.05));
+		// Normal: additive blend with opacity control
+		// When opacity is 0, show original unchanged
+		// When opacity is 1, show original + bloom (pure additive)
+		vec3 bloomed = original.rgb + bloom_saturated;
+		final_color = mix(original.rgb, bloomed, opacity);
 	}
 	
-	COLOR = vec4(final_color, 1.0);
+	COLOR = vec4(final_color, original.a);
 }
