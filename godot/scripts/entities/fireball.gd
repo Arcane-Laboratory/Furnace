@@ -276,6 +276,9 @@ func _activate_tile(grid_pos: Vector2i) -> void:
 func _check_explosive_walls() -> void:
 	var explosive_walls := get_tree().get_nodes_in_group("explosive_walls")
 	for wall in explosive_walls:
+		# Skip walls that are queued for deletion (prevents stale references after restart)
+		if not is_instance_valid(wall) or wall.is_queued_for_deletion():
+			continue
 		if wall is ExplosiveWall:
 			if wall.check_fireball_adjacent(current_grid_pos):
 				wall.explode()

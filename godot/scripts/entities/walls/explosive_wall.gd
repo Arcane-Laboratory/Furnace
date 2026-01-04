@@ -26,6 +26,11 @@ func _ready() -> void:
 			explosion_animation.animation_finished.connect(_on_explosion_animation_finished)
 
 
+func _exit_tree() -> void:
+	# Remove from group immediately when being freed to prevent stale references
+	remove_from_group("explosive_walls")
+
+
 func _process(delta: float) -> void:
 	if is_on_cooldown:
 		cooldown_timer -= delta
