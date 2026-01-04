@@ -122,11 +122,11 @@ func upgrade() -> bool:
 
 ## Apply sprite override for a specific level if one is defined
 func _apply_sprite_override(level: int) -> void:
-	var definition := GameConfig.get_item_definition(rune_type)
+	var definition := GameConfig.get_item_definition(rune_type) as BuildableItemDefinition
 	if not definition:
 		return
 	
-	var sprite_path := definition.get_sprite_for_level(level)
+	var sprite_path: String = definition.get_sprite_for_level(level)
 	if sprite_path.is_empty():
 		return
 	

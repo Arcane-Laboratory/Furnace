@@ -382,7 +382,7 @@ func _on_fade_out_complete() -> void:
 	if not pending_track_path.is_empty():
 		var stream: AudioStream = load(pending_track_path)
 		var should_fade: bool = pending_fade_in
-		var track_path: String = pending_track_path
+		var _track_path: String = pending_track_path  # Stored for potential future logging
 		pending_track_path = ""  # Clear before starting
 		
 		if stream:

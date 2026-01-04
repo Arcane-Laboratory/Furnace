@@ -13,8 +13,8 @@ func _ready() -> void:
 func set_grid_position(pos: Vector2i) -> void:
 	grid_position = pos
 	position = Vector2(
-		pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2,
-		pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2
+		pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+		pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 	)
 	# Set z_index below runes and walls but above base tiles
 	z_index = -1
