@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://b06ob7kxsjkag"]
+[gd_scene load_steps=41 format=3 uid="uid://b06ob7kxsjkag"]
 
 [ext_resource type="Script" uid="uid://bvxxnk05lkk4q" path="res://scripts/game/game_scene.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="2_pause"]
@@ -7,6 +7,7 @@
 [ext_resource type="StyleBox" path="res://style_box_9p_large.tres" id="3_p0de3"]
 [ext_resource type="Script" uid="uid://bkx4rum0dc8ux" path="res://scripts/game/path_preview.gd" id="3_path_preview"]
 [ext_resource type="Script" uid="uid://ca8c2y1y2nhgc" path="res://scripts/game/furnace_animation.gd" id="4_furnace_anim"]
+[ext_resource type="Material" path="res://resources/shaders/bloom_material.tres" id="5_bloom_material"]
 [ext_resource type="PackedScene" path="res://scenes/effects/dust_particles.tscn" id="6_dust_particles"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_f0"]
@@ -277,6 +278,15 @@ color = Color(0.9, 0.4, 0.1, 1)
 [node name="Runes" type="Node2D" parent="GameBoard"]
 
 [node name="Fireball" type="Node2D" parent="GameBoard"]
+
+[node name="BackBufferCopy" type="BackBufferCopy" parent="."]
+
+[node name="BloomEffect" type="ColorRect" parent="."]
+visible = false
+z_index = 100
+material = ExtResource("5_bloom_material")
+offset_right = 640.0
+offset_bottom = 360.0
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 
