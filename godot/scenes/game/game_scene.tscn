@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://b06ob7kxsjkag"]
+[gd_scene load_steps=41 format=3 uid="uid://b06ob7kxsjkag"]
 
 [ext_resource type="Script" uid="uid://bvxxnk05lkk4q" path="res://scripts/game/game_scene.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="2_pause"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://bkx4rum0dc8ux" path="res://scripts/game/path_preview.gd" id="3_path_preview"]
 [ext_resource type="Script" uid="uid://ca8c2y1y2nhgc" path="res://scripts/game/furnace_animation.gd" id="4_furnace_anim"]
 [ext_resource type="PackedScene" path="res://scenes/effects/dust_particles.tscn" id="6_dust_particles"]
+[ext_resource type="PackedScene" uid="uid://bloom_overlay" path="res://scenes/effects/bloom_overlay.tscn" id="7_bloom_overlay"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_f0"]
 atlas = ExtResource("3_furnace_sprite")
@@ -342,3 +343,5 @@ randomness = 0.2
 
 [node name="PauseMenu" parent="." instance=ExtResource("2_pause")]
 visible = false
+
+[node name="BloomOverlay" parent="." instance=ExtResource("7_bloom_overlay")]

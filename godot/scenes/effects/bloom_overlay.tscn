@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://bloom_overlay"]
+
+[ext_resource type="Shader" uid="uid://bloom_shader" path="res://shaders/bloom.gdshader" id="1_bloom_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bloom"]
+shader = ExtResource("1_bloom_shader")
+shader_parameter/bloom_threshold = 0.5
+shader_parameter/bloom_intensity = 1.8
+shader_parameter/blur_radius = 4.0
+shader_parameter/bloom_saturation = 1.3
+shader_parameter/warm_color_boost = 2.0
+shader_parameter/debug_mode = 0
+
+[node name="BloomOverlay" type="CanvasLayer"]
+layer = 10
+follow_viewport_enabled = true
+
+[node name="BloomRect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_bloom")
+offset_right = 640.0
+offset_bottom = 360.0
+mouse_filter = 2
