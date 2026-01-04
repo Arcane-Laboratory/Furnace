@@ -244,7 +244,7 @@ func _process(_delta: float) -> void:
 
 
 func _load_background() -> void:
-	var bg_path := "res://assets/sprites/board_background.png"
+	var bg_path := "res://assets/sprites/blast-deck-bg-full.png"
 	if ResourceLoader.exists(bg_path):
 		background.texture = load(bg_path)
 
