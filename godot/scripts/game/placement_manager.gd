@@ -72,9 +72,8 @@ func set_selected_item(item_type: String) -> void:
 	selected_item_type = item_type
 	selection_changed.emit(item_type)
 	
-	# Clear ghost preview when deselecting
-	if item_type.is_empty():
-		_clear_ghost_preview()
+	# Always clear ghost preview when selection changes (will be recreated on next hover)
+	_clear_ghost_preview()
 
 
 ## Clear the current selection
@@ -647,8 +646,8 @@ func hide_ghost_preview() -> void:
 func _on_item_selection_changed(item_type: String) -> void:
 	selected_item_type = item_type
 	
-	if item_type.is_empty():
-		_clear_ghost_preview()
+	# Always clear ghost preview when selection changes (will be recreated on next hover)
+	_clear_ghost_preview()
 	
 	selection_changed.emit(item_type)
 

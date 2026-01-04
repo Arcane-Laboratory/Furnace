@@ -14,13 +14,15 @@ static func export_current_level(
 	additional_terrain_tiles: Array[Vector2i] = [],
 	removed_spawn_points: Array[Vector2i] = [],
 	removed_terrain_tiles: Array[Vector2i] = [],
-	removed_items: Array[Vector2i] = []
+	removed_items: Array[Vector2i] = [],
+	spawn_rules: Array[SpawnEnemyRule] = []
 ) -> String:
 	# Collect data from current game state
 	var items: Array[Dictionary] = []
 	var spawn_points: Array[Vector2i] = []
 	var furnace_position: Vector2i = Vector2i(6, 0)
 	var terrain_blocked: Array[Vector2i] = []
+	var rules_to_export: Array[SpawnEnemyRule] = []
 	
 	# Get spawn points and furnace from current level data
 	if TileManager.current_level_data:
@@ -48,6 +50,23 @@ static func export_current_level(
 	# Override furnace position if specified
 	if override_furnace_position != Vector2i(-1, -1):
 		furnace_position = override_furnace_position
+	
+	# Use provided spawn rules or get from current level data
+	if spawn_rules.size() > 0:
+		rules_to_export = spawn_rules
+	elif TileManager.current_level_data:
+		rules_to_export = TileManager.current_level_data.spawn_rules.duplicate()
+	
+	# If no rules exist, create default rules for each spawn point
+	if rules_to_export.is_empty():
+		for i in range(spawn_points.size()):
+			var default_rule := SpawnEnemyRule.new()
+			default_rule.spawn_point_index = i
+			default_rule.enemy_type = SpawnEnemyRule.EnemyType.BASIC
+			default_rule.spawn_delay = 0.0
+			default_rule.spawn_count = 6
+			default_rule.spawn_time = 60.0
+			rules_to_export.append(default_rule)
 	
 	# Iterate through all tiles to collect placed items
 	for grid_pos in TileManager.tiles.keys():
@@ -80,7 +99,8 @@ static func export_current_level(
 		furnace_position,
 		terrain_blocked,
 		items,
-		hint_text
+		hint_text,
+		rules_to_export
 	)
 
 
@@ -133,12 +153,14 @@ static func _generate_tres_content(
 	furnace_position: Vector2i,
 	terrain_blocked: Array[Vector2i],
 	items: Array[Dictionary],
-	hint_text: String
+	hint_text: String,
+	spawn_rules: Array[SpawnEnemyRule]
 ) -> String:
-	# Calculate load_steps based on enemy wave entries
-	# Base: 2 (level_data script + enemy_wave_entry script) + number of wave entries
-	var num_wave_entries := 1  # Default to 1 basic enemy
-	var load_steps := 2 + num_wave_entries
+	# Calculate load_steps based on spawn rule entries
+	var num_rule_entries := spawn_rules.size()
+	if num_rule_entries < 1:
+		num_rule_entries = 1  # At least one default rule
+	var load_steps := 2 + num_rule_entries
 	
 	var content := ""
 	
@@ -148,15 +170,30 @@ static func _generate_tres_content(
 	
 	# External resources with UIDs (these are the actual UIDs from the project)
 	content += "[ext_resource type=\"Script\" uid=\"uid://bbkvpakf3hhjq\" path=\"res://scripts/resources/level_data.gd\" id=\"1\"]\n"
-	content += "[ext_resource type=\"Script\" uid=\"uid://oi70e4rojnys\" path=\"res://scripts/resources/enemy_wave_entry.gd\" id=\"2\"]\n\n"
+	content += "[ext_resource type=\"Script\" uid=\"uid://spawn_enemy_rule\" path=\"res://scripts/resources/spawn_enemy_rule.gd\" id=\"2\"]\n\n"
 	
-	# Sub-resources (enemy waves) - create a default basic enemy wave
-	content += "[sub_resource type=\"Resource\" id=\"Resource_wave1\"]\n"
-	content += "script = ExtResource(\"2\")\n"
-	content += "enemy_type = 0\n"
-	content += "spawn_point = 0\n"
-	content += "delay = 0.0\n"
-	content += "metadata/_custom_type_script = \"uid://oi70e4rojnys\"\n\n"
+	# Sub-resources (spawn rules)
+	for i in range(spawn_rules.size()):
+		var rule := spawn_rules[i]
+		content += "[sub_resource type=\"Resource\" id=\"Resource_rule%d\"]\n" % i
+		content += "script = ExtResource(\"2\")\n"
+		content += "spawn_point_index = %d\n" % rule.spawn_point_index
+		content += "enemy_type = %d\n" % rule.enemy_type
+		content += "spawn_delay = %.1f\n" % rule.spawn_delay
+		content += "spawn_count = %d\n" % rule.spawn_count
+		content += "spawn_time = %.1f\n" % rule.spawn_time
+		content += "metadata/_custom_type_script = \"uid://spawn_enemy_rule\"\n\n"
+	
+	# If no rules, create a default one
+	if spawn_rules.is_empty():
+		content += "[sub_resource type=\"Resource\" id=\"Resource_rule0\"]\n"
+		content += "script = ExtResource(\"2\")\n"
+		content += "spawn_point_index = 0\n"
+		content += "enemy_type = 0\n"
+		content += "spawn_delay = 0.0\n"
+		content += "spawn_count = 6\n"
+		content += "spawn_time = 60.0\n"
+		content += "metadata/_custom_type_script = \"uid://spawn_enemy_rule\"\n\n"
 	
 	# Main resource
 	content += "[resource]\n"
@@ -177,8 +214,12 @@ static func _generate_tres_content(
 	# Preset items (walls, runes, etc.)
 	content += "preset_items = Array[Dictionary]([%s])\n" % _format_item_array(items)
 	
-	# Enemy waves (typed array format like Godot generates)
-	content += "enemy_waves = Array[ExtResource(\"2\")]([SubResource(\"Resource_wave1\")])\n"
+	# Spawn rules (typed array format)
+	var rule_refs: Array[String] = []
+	var rule_count := spawn_rules.size() if spawn_rules.size() > 0 else 1
+	for i in range(rule_count):
+		rule_refs.append("SubResource(\"Resource_rule%d\")" % i)
+	content += "spawn_rules = Array[ExtResource(\"2\")]([%s])\n" % ", ".join(rule_refs)
 	
 	# Allowed runes (empty = all available)
 	content += "allowed_runes = Array[int]([])\n"

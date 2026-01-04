@@ -8,6 +8,8 @@ signal enemy_reached_furnace(enemy: EnemyBase)
 signal all_enemies_defeated()
 signal furnace_destroyed()
 signal debug_wave_restarted()  # Emitted in debug mode when wave restarts
+signal spawn_soon(spawn_index: int)  # Emitted 2-3 seconds before spawning
+signal spawn_active(spawn_index: int)  # Emitted when spawning starts
 
 ## Current level data
 var current_level_data: LevelData = null
@@ -30,6 +32,12 @@ var is_wave_active: bool = false
 ## Reference to enemies container in game scene
 var enemies_container: Node2D = null
 
+## Spawn point markers (for visual feedback)
+var spawn_markers: Dictionary = {}  # spawn_index -> SpawnPointMarker
+
+## Time before spawn to show "soon" state (seconds)
+const SPAWN_SOON_TIME: float = 2.5
+
 
 func _ready() -> void:
 	pass
@@ -42,13 +50,24 @@ func initialize_wave(level_data: LevelData, container: Node2D) -> void:
 	active_enemies.clear()
 	enemies_spawned = 0
 	is_wave_active = false
+	spawn_markers.clear()
 	
-	# Count total enemies
-	total_enemies_to_spawn = level_data.enemy_waves.size()
+	# Count total enemies from spawn rules
+	total_enemies_to_spawn = level_data.get_total_enemy_count()
 	
 	# Validate paths exist
 	if not PathfindingManager.validate_all_spawn_paths(level_data):
 		push_warning("EnemyManager: Not all spawn points have valid paths to furnace!")
+
+
+## Register a spawn point marker for visual feedback
+func register_spawn_marker(spawn_index: int, marker: SpawnPointMarker) -> void:
+	spawn_markers[spawn_index] = marker
+
+
+## Clear registered spawn markers
+func clear_spawn_markers() -> void:
+	spawn_markers.clear()
 
 
 ## Start spawning enemies for the current wave
@@ -64,14 +83,67 @@ func start_wave() -> void:
 	is_wave_active = true
 	enemies_spawned = 0
 	
-	# Spawn all enemies with their delays
-	for i in range(current_level_data.enemy_waves.size()):
-		var wave_entry: EnemyWaveEntry = current_level_data.enemy_waves[i]
-		var delay: float = wave_entry.delay
-		
-		# Create spawn task with delay
-		await get_tree().create_timer(delay).timeout
-		_spawn_enemy_from_entry(wave_entry)
+	# Process all spawn rules
+	for rule in current_level_data.spawn_rules:
+		_schedule_rule_spawns(rule)
+
+
+## Schedule spawns for a single spawn rule
+func _schedule_rule_spawns(rule: SpawnEnemyRule) -> void:
+	if rule.spawn_count <= 0:
+		return
+	
+	var interval := rule.get_spawn_interval()
+	
+	# Schedule "spawn soon" notification before first spawn
+	var first_spawn_time := rule.spawn_delay
+	var soon_time: float = max(0.0, first_spawn_time - SPAWN_SOON_TIME)
+	
+	# Notify spawn soon (2-3 seconds before first spawn)
+	if soon_time > 0:
+		_schedule_spawn_soon_notification(rule.spawn_point_index, soon_time)
+	else:
+		# Spawn is immediate, show soon state right away
+		_notify_spawn_soon(rule.spawn_point_index)
+	
+	# Schedule each enemy spawn
+	for i in range(rule.spawn_count):
+		var spawn_time := rule.get_spawn_time_for_index(i)
+		_schedule_enemy_spawn(rule, spawn_time, i == 0)
+
+
+## Schedule a "spawn soon" notification
+func _schedule_spawn_soon_notification(spawn_index: int, delay: float) -> void:
+	get_tree().create_timer(delay).timeout.connect(func():
+		_notify_spawn_soon(spawn_index)
+	)
+
+
+## Notify that a spawn point will spawn soon
+func _notify_spawn_soon(spawn_index: int) -> void:
+	spawn_soon.emit(spawn_index)
+	if spawn_markers.has(spawn_index):
+		var marker := spawn_markers[spawn_index] as SpawnPointMarker
+		if marker and is_instance_valid(marker):
+			marker.notify_spawn_soon()
+
+
+## Notify that a spawn point is actively spawning
+func _notify_spawn_active(spawn_index: int) -> void:
+	spawn_active.emit(spawn_index)
+	if spawn_markers.has(spawn_index):
+		var marker := spawn_markers[spawn_index] as SpawnPointMarker
+		if marker and is_instance_valid(marker):
+			marker.notify_spawning()
+
+
+## Schedule a single enemy spawn
+func _schedule_enemy_spawn(rule: SpawnEnemyRule, delay: float, is_first: bool) -> void:
+	get_tree().create_timer(delay).timeout.connect(func():
+		if is_first:
+			_notify_spawn_active(rule.spawn_point_index)
+		_spawn_enemy_from_rule(rule)
+	)
 
 
 ## Apply enemy definition stats and path (called deferred after _ready())
@@ -96,24 +168,13 @@ func _apply_enemy_definition(enemy: EnemyBase, definition: EnemyDefinition, path
 	enemy.set_path(path)
 
 
-## Spawn a single enemy based on wave entry (new enum-based system)
-func _spawn_enemy_from_entry(wave_entry: EnemyWaveEntry) -> void:
+## Spawn a single enemy based on spawn rule
+func _spawn_enemy_from_rule(rule: SpawnEnemyRule) -> void:
 	if not current_level_data or not enemies_container:
 		return
 	
-	var enemy_type: String = wave_entry.get_enemy_type_string()
-	var spawn_point_index: int = wave_entry.spawn_point
-	
-	_spawn_enemy_by_type(enemy_type, spawn_point_index)
-
-
-## Spawn a single enemy based on wave data (legacy Dictionary format - kept for compatibility)
-func _spawn_enemy(wave_data: Dictionary) -> void:
-	if not current_level_data or not enemies_container:
-		return
-	
-	var enemy_type: String = wave_data.get("enemy_type", "basic")
-	var spawn_point_index: int = wave_data.get("spawn_point", 0)
+	var enemy_type: String = rule.get_enemy_type_string()
+	var spawn_point_index: int = rule.spawn_point_index
 	
 	_spawn_enemy_by_type(enemy_type, spawn_point_index)
 
@@ -266,13 +327,9 @@ func _restart_wave_debug() -> void:
 	# Emit signal so game_scene can respawn fireball
 	debug_wave_restarted.emit()
 	
-	# Respawn all enemies from the wave
-	for i in range(current_level_data.enemy_waves.size()):
-		var wave_entry: EnemyWaveEntry = current_level_data.enemy_waves[i]
-		var delay: float = wave_entry.delay
-		
-		await get_tree().create_timer(delay).timeout
-		_spawn_enemy_from_entry(wave_entry)
+	# Respawn all enemies using spawn rules
+	for rule in current_level_data.spawn_rules:
+		_schedule_rule_spawns(rule)
 
 
 ## Get count of active enemies

@@ -388,23 +388,29 @@ func _create_default_level_data() -> LevelData:
 	# Default furnace position (top center)
 	level_data.furnace_position = Vector2i(6, 0)
 	
-	# Default enemy wave (using EnemyWaveEntry resources)
-	var wave1 := EnemyWaveEntry.new()
-	wave1.enemy_type = EnemyWaveEntry.EnemyType.BASIC
-	wave1.spawn_point = 0
-	wave1.delay = 0.0
+	# Default spawn rules (one rule per spawn point)
+	var rule1 := SpawnEnemyRule.new()
+	rule1.spawn_point_index = 0
+	rule1.enemy_type = SpawnEnemyRule.EnemyType.BASIC
+	rule1.spawn_delay = 0.0
+	rule1.spawn_count = 6
+	rule1.spawn_time = 60.0
 	
-	var wave2 := EnemyWaveEntry.new()
-	wave2.enemy_type = EnemyWaveEntry.EnemyType.BASIC
-	wave2.spawn_point = 1
-	wave2.delay = 1.0
+	var rule2 := SpawnEnemyRule.new()
+	rule2.spawn_point_index = 1
+	rule2.enemy_type = SpawnEnemyRule.EnemyType.BASIC
+	rule2.spawn_delay = 0.0
+	rule2.spawn_count = 6
+	rule2.spawn_time = 60.0
 	
-	var wave3 := EnemyWaveEntry.new()
-	wave3.enemy_type = EnemyWaveEntry.EnemyType.BASIC
-	wave3.spawn_point = 2
-	wave3.delay = 2.0
+	var rule3 := SpawnEnemyRule.new()
+	rule3.spawn_point_index = 2
+	rule3.enemy_type = SpawnEnemyRule.EnemyType.BASIC
+	rule3.spawn_delay = 0.0
+	rule3.spawn_count = 6
+	rule3.spawn_time = 60.0
 	
-	level_data.enemy_waves = [wave1, wave2, wave3]
+	level_data.spawn_rules = [rule1, rule2, rule3]
 	
 	return level_data
 
@@ -800,23 +806,31 @@ func _create_spawn_point_markers() -> void:
 	for child in spawn_points_container.get_children():
 		child.queue_free()
 	
+	# Clear registered spawn markers in EnemyManager
+	EnemyManager.clear_spawn_markers()
+	
 	# Create markers for each spawn point
 	var marker_scene := load("res://scenes/tiles/spawn_point_marker.tscn")
 	if marker_scene:
-		for spawn_pos in current_level_data.spawn_points:
+		for i in range(current_level_data.spawn_points.size()):
+			var spawn_pos := current_level_data.spawn_points[i]
 			var marker_node: Node = marker_scene.instantiate()
 			if not marker_node:
 				push_error("Failed to instantiate spawn_point_marker.tscn")
 				continue
-			var marker: Node2D = marker_node as Node2D
+			var marker: SpawnPointMarker = marker_node as SpawnPointMarker
 			if not marker:
-				push_error("Spawn point marker is not a Node2D")
+				push_error("Spawn point marker is not a SpawnPointMarker")
 				continue
 			marker.position = Vector2(
 				spawn_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
 				spawn_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 			)
+			marker.spawn_index = i
 			spawn_points_container.add_child(marker)
+			
+			# Register marker with EnemyManager for spawn notifications
+			EnemyManager.register_spawn_marker(i, marker)
 
 
 # Called when all enemies are defeated
@@ -1221,6 +1235,10 @@ func _handle_build_phase_click() -> void:
 	if debug_controller and debug_controller.debug_modal and debug_controller.debug_modal.visible:
 		return
 	
+	# Prevent tile placement when spawn edit modal is open
+	if debug_controller and debug_controller.spawn_edit_modal and debug_controller.spawn_edit_modal.visible:
+		return
+	
 	# Check if click is on the game board (not UI)
 	var mouse_pos := get_global_mouse_position()
 	var grid_pos_local := mouse_pos - game_board.global_position
@@ -1238,6 +1256,11 @@ func _handle_build_phase_click() -> void:
 	
 	# Hide sell tooltip on any click
 	_hide_tile_tooltip()
+	
+	# In debug mode, check if clicking on a spawn point
+	if GameConfig.debug_mode and debug_controller:
+		if debug_controller.try_handle_spawn_point_click(grid_pos):
+			return  # Spawn edit modal was opened
 	
 	# If item is selected, try to place it
 	if placement_manager.has_selection():
