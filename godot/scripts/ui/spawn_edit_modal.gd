@@ -26,6 +26,9 @@ var current_spawn_pos: Vector2i = Vector2i.ZERO
 ## Current rules being edited (local copy)
 var current_rules: Array[SpawnEnemyRule] = []
 
+## Flag to ignore clicks immediately after opening (prevents the opening click from closing)
+var _ignore_next_background_click: bool = false
+
 
 func _ready() -> void:
 	hide()
@@ -50,6 +53,10 @@ func _input(event: InputEvent) -> void:
 
 func _on_background_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# Ignore the click that opened the modal
+		if _ignore_next_background_click:
+			_ignore_next_background_click = false
+			return
 		_on_close_pressed()
 
 
@@ -74,6 +81,9 @@ func show_for_spawn_point(spawn_index: int, spawn_pos: Vector2i, rules: Array[Sp
 	
 	# Rebuild UI
 	_rebuild_enemy_rows()
+	
+	# Ignore the next background click (it's the click that opened the modal)
+	_ignore_next_background_click = true
 	
 	show()
 	add_enemy_button.grab_focus()

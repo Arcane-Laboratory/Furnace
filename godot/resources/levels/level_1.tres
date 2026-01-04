@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=4 format=3 uid="uid://t5tyijbb1bvo"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=3 format=3 uid="uid://1nx4hdsnlbgh"]
 
 [ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/spawn_enemy_rule.gd" id="2"]

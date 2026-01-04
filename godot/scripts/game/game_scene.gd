@@ -1260,6 +1260,8 @@ func _handle_build_phase_click() -> void:
 	# In debug mode, check if clicking on a spawn point
 	if GameConfig.debug_mode and debug_controller:
 		if debug_controller.try_handle_spawn_point_click(grid_pos):
+			# Mark input as handled so it doesn't propagate to the modal's background
+			get_viewport().set_input_as_handled()
 			return  # Spawn edit modal was opened
 	
 	# If item is selected, try to place it
