@@ -104,6 +104,11 @@ func is_buildable() -> bool:
 	if occupancy != OccupancyType.EMPTY:
 		return false
 	
+	# Additional safety check: cannot build if there's already a structure
+	# (handles cases where occupancy might not be set correctly)
+	if structure and is_instance_valid(structure):
+		return false
+	
 	return true
 
 

@@ -521,6 +521,11 @@ func _create_preset_structures() -> void:
 			# Mark as NOT player-placed (preset items can be edited but not sold)
 			TileManager.set_occupancy(item_pos, occupancy_type, item_visual, false, item_type)
 			
+			# Verify occupancy was set correctly (defensive check)
+			var verify_tile := TileManager.get_tile(item_pos)
+			if verify_tile and verify_tile.occupancy == TileBase.OccupancyType.EMPTY:
+				push_warning("GameScene: Occupancy not set correctly for preset item at %s (type: %s)" % [item_pos, item_type])
+			
 			# Track portal runes for linking
 			if item_visual is PortalRune:
 				var portal := item_visual as PortalRune
