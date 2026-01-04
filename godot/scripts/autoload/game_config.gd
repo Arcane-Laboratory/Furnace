@@ -3,7 +3,7 @@ extends Node
 
 ## Developer debug mode - when true, shows debug FAB with all items unlocked
 ## Set to true in editor for testing, leave false for production
-var debug_mode: bool = true
+var debug_mode: bool = false
 
 ## Debug immunity - when true, immune to lose condition and enemies respawn
 ## Controlled by toggle in debug modal (default OFF for normal gameplay)
