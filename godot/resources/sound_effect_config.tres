@@ -6,5 +6,6 @@
 script = ExtResource("1")
 rune_accelerate_volume = 0.6
 rune_generic_volume = 0.3
-structure_buy_volume = 0.8
+fireball_spawn_volume = 0.5
+structure_buy_volume = 0.5
 invalid_action_volume = 0.8
