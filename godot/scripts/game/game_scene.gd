@@ -1913,3 +1913,19 @@ func _clear_game_state() -> void:
 	# Disconnect tile occupancy signal temporarily (will reconnect in _initialize_tile_system)
 	if TileManager.occupancy_changed.is_connected(_on_tile_occupancy_changed):
 		TileManager.occupancy_changed.disconnect(_on_tile_occupancy_changed)
+	
+	# Disconnect EnemyManager signals (will reconnect in _initialize_tile_system)
+	if EnemyManager.all_enemies_defeated.is_connected(_on_all_enemies_defeated):
+		EnemyManager.all_enemies_defeated.disconnect(_on_all_enemies_defeated)
+	if EnemyManager.furnace_destroyed.is_connected(_on_furnace_destroyed):
+		EnemyManager.furnace_destroyed.disconnect(_on_furnace_destroyed)
+	if EnemyManager.debug_wave_restarted.is_connected(_on_debug_wave_restarted):
+		EnemyManager.debug_wave_restarted.disconnect(_on_debug_wave_restarted)
+	if EnemyManager.enemy_died.is_connected(_on_enemy_died):
+		EnemyManager.enemy_died.disconnect(_on_enemy_died)
+	
+	# Disconnect FireballManager signals (will reconnect in _initialize_tile_system)
+	if FireballManager.fireball_destroyed.is_connected(_on_fireball_destroyed):
+		FireballManager.fireball_destroyed.disconnect(_on_fireball_destroyed)
+	if FireballManager.fireball_enemy_hit.is_connected(_on_fireball_enemy_hit):
+		FireballManager.fireball_enemy_hit.disconnect(_on_fireball_enemy_hit)
