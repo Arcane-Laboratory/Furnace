@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dx42pv0iig1xi"]
+[gd_scene load_steps=10 format=3 uid="uid://dx42pv0iig1xi"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_xtru7"]
 [ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="2_utswl"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://blugxvg6vsan5" path="res://resources/ui_assets/lvl.png" id="6_sj312"]
 [ext_resource type="Texture2D" uid="uid://b6g6hi3j00ebv" path="res://resources/ui_assets/spark.png" id="7_kncp7"]
 [ext_resource type="Texture2D" uid="uid://cpcubwevvr3qb" path="res://resources/ui_assets/heat.png" id="8_5flt0"]
+[ext_resource type="Script" path="res://scripts/ui/level_in_progress_submenu.gd" id="9_script"]
 
 [node name="InProgressSubmenu" type="Control"]
 custom_minimum_size = Vector2(128, 240)
@@ -20,6 +21,7 @@ offset_bottom = 240.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_xtru7")
+script = ExtResource("9_script")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 0

@@ -20,6 +20,18 @@ var game_submenu: GameSubmenu = null
 ## Reference to the build submenu
 var build_submenu: Control = null
 
+## Reference to the details submenu
+var details_submenu: Control = null
+
+## Reference to the submenu container (for adding/swapping submenus)
+var submenu_container: VBoxContainer = null
+
+## Reference to the level in progress menu (shown during active phase)
+var level_in_progress_menu: Control = null
+
+## Track sparks at active phase start to calculate earned amount
+var sparks_at_phase_start: int = 0
+
 ## Placement manager for handling item placement
 var placement_manager: PlacementManager = null
 
@@ -92,6 +104,8 @@ func _setup_ui_references() -> void:
 	# Path: UILayer/RightPanel/VBoxContainer/GameMenu/CenterContainer/VBoxContainer/...
 	var game_menu := get_node_or_null("UILayer/RightPanel/VBoxContainer/GameMenu") as Control
 	if game_menu:
+		submenu_container = game_menu.get_node_or_null("CenterContainer/VBoxContainer") as VBoxContainer
+		
 		game_submenu = game_menu.get_node_or_null("CenterContainer/VBoxContainer/GameSubmenu") as GameSubmenu
 		if game_submenu:
 			game_submenu.start_pressed.connect(_on_start_pressed)
@@ -102,6 +116,16 @@ func _setup_ui_references() -> void:
 		build_submenu = game_menu.get_node_or_null("CenterContainer/VBoxContainer/BuildSubmenu") as Control
 		if not build_submenu:
 			push_warning("GameScene: BuildSubmenu not found")
+		else:
+			# Connect details requested signal
+			if build_submenu.has_signal("show_details_requested"):
+				build_submenu.show_details_requested.connect(_on_show_details_requested)
+		
+		# Create and add details submenu
+		_setup_details_submenu()
+		
+		# Create and add level in progress menu
+		_setup_level_in_progress_menu()
 
 
 ## Setup the placement manager
@@ -120,6 +144,95 @@ func _setup_placement_manager() -> void:
 	placement_manager.portal_placement_started.connect(_on_portal_placement_started)
 	placement_manager.portal_placement_completed.connect(_on_portal_placement_completed)
 	placement_manager.portal_placement_cancelled.connect(_on_portal_placement_cancelled)
+
+
+## Setup the details submenu
+func _setup_details_submenu() -> void:
+	if not submenu_container:
+		push_warning("GameScene: Cannot setup details submenu - no submenu container")
+		return
+	
+	# Load and instantiate details submenu
+	var details_scene := load("res://scenes/ui/details_submenu.tscn") as PackedScene
+	if not details_scene:
+		push_warning("GameScene: Failed to load details_submenu.tscn")
+		return
+	
+	details_submenu = details_scene.instantiate() as Control
+	if not details_submenu:
+		push_warning("GameScene: Failed to instantiate details submenu")
+		return
+	
+	# Add to container but hide initially
+	submenu_container.add_child(details_submenu)
+	details_submenu.visible = false
+	
+	# Connect close signal
+	if details_submenu.has_signal("close_requested"):
+		details_submenu.close_requested.connect(_on_details_close_requested)
+
+
+## Handle show details requested from build submenu
+func _on_show_details_requested(definition: BuildableItemDefinition) -> void:
+	if not details_submenu or not build_submenu:
+		return
+	
+	# Configure details submenu with item data
+	if details_submenu.has_method("show_item_details"):
+		details_submenu.show_item_details(definition)
+	
+	# Swap visibility
+	build_submenu.visible = false
+	details_submenu.visible = true
+
+
+## Handle details submenu close requested
+func _on_details_close_requested() -> void:
+	if not details_submenu or not build_submenu:
+		return
+	
+	# Swap visibility back
+	details_submenu.visible = false
+	build_submenu.visible = true
+
+
+## Setup the level in progress menu (shown during active phase)
+func _setup_level_in_progress_menu() -> void:
+	if not submenu_container:
+		push_warning("GameScene: Cannot setup level in progress menu - no submenu container")
+		return
+	
+	# Load and instantiate level in progress menu
+	var progress_scene := load("res://scenes/ui/level_in_progress_menu.tscn") as PackedScene
+	if not progress_scene:
+		push_warning("GameScene: Failed to load level_in_progress_menu.tscn")
+		return
+	
+	level_in_progress_menu = progress_scene.instantiate() as Control
+	if not level_in_progress_menu:
+		push_warning("GameScene: Failed to instantiate level in progress menu")
+		return
+	
+	# Add to container but hide initially
+	submenu_container.add_child(level_in_progress_menu)
+	level_in_progress_menu.visible = false
+	
+	# Connect signals
+	if level_in_progress_menu.has_signal("pause_pressed"):
+		level_in_progress_menu.pause_pressed.connect(_on_level_progress_pause_pressed)
+	if level_in_progress_menu.has_signal("restart_requested"):
+		level_in_progress_menu.restart_requested.connect(_on_level_progress_restart_requested)
+
+
+## Handle pause pressed from level in progress menu
+func _on_level_progress_pause_pressed() -> void:
+	_toggle_pause()
+
+
+## Handle restart requested from level in progress menu
+func _on_level_progress_restart_requested() -> void:
+	# Restart the current level
+	SceneManager.reload_current_scene()
 
 
 func _process(_delta: float) -> void:
@@ -212,6 +325,7 @@ func _initialize_tile_system() -> void:
 	EnemyManager.all_enemies_defeated.connect(_on_all_enemies_defeated)
 	EnemyManager.furnace_destroyed.connect(_on_furnace_destroyed)
 	EnemyManager.debug_wave_restarted.connect(_on_debug_wave_restarted)
+	EnemyManager.enemy_died.connect(_on_enemy_died)
 	
 	# Update build menu with level data
 	_update_build_menu()
@@ -569,6 +683,17 @@ func _on_debug_wave_restarted() -> void:
 	_launch_fireball()
 
 
+# Called when an enemy dies
+func _on_enemy_died(_enemy: EnemyBase) -> void:
+	# Update soot vanquished stat in level progress menu
+	if level_in_progress_menu and GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
+		var in_progress: Control = null
+		if level_in_progress_menu.has_method("get_in_progress_submenu"):
+			in_progress = level_in_progress_menu.get_in_progress_submenu()
+		if in_progress and in_progress.has_method("add_soot_vanquished"):
+			in_progress.add_soot_vanquished(1)
+
+
 func _input(event: InputEvent) -> void:
 	# Toggle path preview with 'P' key (only in build phase)
 	if event is InputEventKey and event.pressed and event.keycode == KEY_P:
@@ -659,12 +784,40 @@ func _start_build_phase() -> void:
 	if path_preview:
 		path_preview.set_visible(true)
 		path_preview.update_paths(current_level_data)
+	
+	# Show build submenu, hide level in progress menu
+	if build_submenu:
+		build_submenu.visible = true
+	if details_submenu:
+		details_submenu.visible = false
+	if level_in_progress_menu:
+		level_in_progress_menu.visible = false
+	if game_submenu:
+		game_submenu.visible = true
 
 
 func _start_active_phase() -> void:
 	GameManager.start_active_phase()
-	right_panel.hide()
+	right_panel.show()  # Keep right panel visible but swap content
 	active_ui.show()
+	
+	# Track sparks at phase start for earned calculation
+	sparks_at_phase_start = GameManager.resources
+	
+	# Hide build submenus, show level in progress menu
+	if build_submenu:
+		build_submenu.visible = false
+	if details_submenu:
+		details_submenu.visible = false
+	if game_submenu:
+		game_submenu.visible = false
+	if level_in_progress_menu:
+		level_in_progress_menu.visible = true
+		# Set current level and reset stats
+		if level_in_progress_menu.has_method("set_level"):
+			level_in_progress_menu.set_level(GameManager.current_level)
+		if level_in_progress_menu.has_method("reset_stats"):
+			level_in_progress_menu.reset_stats()
 	
 	# Start enemy wave
 	EnemyManager.start_wave()
@@ -713,8 +866,18 @@ func _on_start_pressed() -> void:
 	_start_active_phase()
 
 
-func _on_resources_changed(_new_amount: int) -> void:
+func _on_resources_changed(new_amount: int) -> void:
 	_update_ui()
+	
+	# Track sparks earned during active phase
+	if GameManager.current_state == GameManager.GameState.ACTIVE_PHASE and level_in_progress_menu:
+		var delta := new_amount - sparks_at_phase_start
+		if delta > 0:
+			var in_progress: Control = null
+			if level_in_progress_menu.has_method("get_in_progress_submenu"):
+				in_progress = level_in_progress_menu.get_in_progress_submenu()
+			if in_progress and in_progress.has_method("set_sparks_earned"):
+				in_progress.set_sparks_earned(delta)
 
 
 func _on_state_changed(new_state: GameManager.GameState) -> void:
@@ -725,12 +888,30 @@ func _on_state_changed(new_state: GameManager.GameState) -> void:
 			# Show path preview in build phase (if it exists)
 			if path_preview:
 				path_preview.set_preview_visible(true)
+			# Show build submenus, hide level in progress menu
+			if build_submenu:
+				build_submenu.visible = true
+			if game_submenu:
+				game_submenu.visible = true
+			if details_submenu:
+				details_submenu.visible = false
+			if level_in_progress_menu:
+				level_in_progress_menu.visible = false
 		GameManager.GameState.ACTIVE_PHASE:
-			right_panel.hide()
+			right_panel.show()  # Keep visible for level in progress menu
 			active_ui.show()
 			# Hide path preview in active phase (if it exists)
 			if path_preview:
 				path_preview.set_preview_visible(false)
+			# Hide build submenus, show level in progress menu
+			if build_submenu:
+				build_submenu.visible = false
+			if game_submenu:
+				game_submenu.visible = false
+			if details_submenu:
+				details_submenu.visible = false
+			if level_in_progress_menu:
+				level_in_progress_menu.visible = true
 		GameManager.GameState.GAME_OVER:
 			SceneManager.goto_game_over(GameManager.game_won)
 
@@ -1126,8 +1307,14 @@ func _on_fireball_destroyed() -> void:
 
 
 ## Handle fireball enemy hit signal
-func _on_fireball_enemy_hit(enemy: Node2D, damage: int) -> void:
-	print("GameScene: Fireball hit enemy for %d damage" % damage)
+func _on_fireball_enemy_hit(_enemy: Node2D, damage: int) -> void:
+	# Track damage dealt during active phase
+	if level_in_progress_menu and GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
+		var in_progress: Control = null
+		if level_in_progress_menu.has_method("get_in_progress_submenu"):
+			in_progress = level_in_progress_menu.get_in_progress_submenu()
+		if in_progress and in_progress.has_method("add_damage_dealt"):
+			in_progress.add_damage_dealt(damage)
 
 
 ## Create drop target overlay for drag-and-drop
@@ -1199,3 +1386,138 @@ func _setup_debug_controller() -> void:
 	debug_controller.show_info_requested.connect(_show_info_snackbar)
 	debug_controller.hide_info_requested.connect(_hide_info_snackbar)
 	debug_controller.show_error_requested.connect(_show_error_snackbar)
+	
+	# Connect level reload signal
+	debug_controller.reload_level_requested.connect(_on_reload_level_requested)
+	
+	# Connect structure removal signal
+	debug_controller.structure_removal_requested.connect(_on_structure_removal_requested)
+
+
+## Handle structure removal request (remove rune/wall visual from game board)
+func _on_structure_removal_requested(grid_pos: Vector2i) -> void:
+	# Find and remove the structure node from runes_container
+	for child in runes_container.get_children():
+		if child is Node2D:
+			# Check position (structures are positioned at tile center)
+			var expected_pos := Vector2(
+				grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+				grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
+			)
+			if child.position.distance_to(expected_pos) < 1.0:
+				child.queue_free()
+				print("GameScene: Removed structure visual at %s" % grid_pos)
+				return
+	
+	# Also check if it's a RuneBase with grid position
+	for child in runes_container.get_children():
+		if child is RuneBase:
+			var rune := child as RuneBase
+			if rune.grid_position == grid_pos:
+				child.queue_free()
+				print("GameScene: Removed rune visual at %s" % grid_pos)
+				return
+
+
+## Handle reload level request (hot-reload after level save)
+func _on_reload_level_requested(level_number: int) -> void:
+	print("GameScene: Hot-reloading level %d..." % level_number)
+	reload_level(level_number)
+
+
+## Hot-reload a level without restarting the scene
+func reload_level(level_number: int) -> void:
+	# Clear current game state
+	_clear_game_state()
+	
+	# Force-reload the level resource (bypass cache)
+	var level_path := "res://resources/levels/level_%d.tres" % level_number
+	current_level_data = ResourceLoader.load(level_path, "", ResourceLoader.CACHE_MODE_REPLACE) as LevelData
+	
+	if not current_level_data:
+		push_error("GameScene: Failed to reload level data from %s" % level_path)
+		current_level_data = _create_default_level_data()
+	
+	# Update game manager
+	GameManager.current_level = level_number
+	GameManager.reset_for_level(level_number)
+	
+	# Reinitialize the tile system
+	_initialize_tile_system()
+	
+	# Recreate spawn point markers
+	_create_spawn_point_markers()
+	
+	# Update build menu
+	_update_build_menu()
+	
+	# Update placement manager with new level data
+	if placement_manager:
+		placement_manager.set_level_data(current_level_data)
+	
+	# Update debug controller with new level data
+	if debug_controller:
+		debug_controller.current_level_data = current_level_data
+		# Clear debug-placed spawn points and terrain (they're now in the level file)
+		debug_controller.debug_spawn_points.clear()
+		debug_controller.debug_terrain_tiles.clear()
+		# Clear removed items (they're now removed from the level file)
+		debug_controller.removed_spawn_points.clear()
+		debug_controller.removed_terrain_tiles.clear()
+		debug_controller.removed_walls.clear()
+		debug_controller.removed_runes.clear()
+	
+	# Update path preview
+	if path_preview:
+		path_preview.update_paths(current_level_data)
+	
+	# Update game submenu
+	if game_submenu:
+		game_submenu.set_level(level_number)
+	
+	# Ensure we're in build phase
+	_start_build_phase()
+	
+	print("GameScene: Level %d hot-reloaded successfully!" % level_number)
+	_show_info_snackbar("Level %d reloaded!" % level_number)
+	
+	# Auto-hide after 2 seconds
+	var tween := create_tween()
+	tween.tween_interval(2.0)
+	tween.tween_callback(func(): _hide_info_snackbar())
+
+
+## Clear all game state for hot-reload
+func _clear_game_state() -> void:
+	# Clear all enemies and stop wave
+	EnemyManager.clear_enemies()
+	
+	# Clear all enemies from container
+	for child in enemies_container.get_children():
+		child.queue_free()
+	
+	# Clear all runes from container
+	for child in runes_container.get_children():
+		child.queue_free()
+	
+	# Clear spawn point markers
+	for child in spawn_points_container.get_children():
+		child.queue_free()
+	
+	# Clear debug markers and fireballs from game_board
+	for child in game_board.get_children():
+		if child.name.begins_with("DebugTerrain_") or child.name.begins_with("DebugSpawn_"):
+			child.queue_free()
+		elif child is Fireball:
+			child.queue_free()
+	
+	# Clear the tile manager (this will also free all tiles)
+	TileManager.clear_grid()
+	
+	# Clear tiles container
+	for child in tiles_container.get_children():
+		child.queue_free()
+	
+	# Disconnect tile occupancy signal temporarily (will reconnect in _initialize_tile_system)
+	if TileManager.occupancy_changed.is_connected(_on_tile_occupancy_changed):
+		TileManager.occupancy_changed.disconnect(_on_tile_occupancy_changed)

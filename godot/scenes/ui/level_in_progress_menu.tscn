@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://dfcx55trbrtpq"]
+[gd_scene load_steps=5 format=3 uid="uid://dfcx55trbrtpq"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_bkqeb"]
 [ext_resource type="PackedScene" uid="uid://dxuiv0flwd2jt" path="res://scenes/ui/game_submenu.tscn" id="2_nbad1"]
 [ext_resource type="PackedScene" uid="uid://dx42pv0iig1xi" path="res://scenes/ui/level_in_progress_submenu.tscn" id="3_bkqeb"]
+[ext_resource type="Script" path="res://scripts/ui/level_in_progress_menu.gd" id="4_script"]
 
 [node name="LevelProgressMenu" type="Control"]
 custom_minimum_size = Vector2(128, 320)
@@ -15,6 +16,7 @@ offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_bkqeb")
+script = ExtResource("4_script")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 visible = false

@@ -252,12 +252,13 @@ func _is_out_of_bounds(grid_pos: Vector2i) -> bool:
 			grid_pos.y < 0 or grid_pos.y >= GameConfig.GRID_ROWS)
 
 
-## Check if there is a wall at the given grid position
+## Check if there is a wall or terrain blocking at the given grid position
 func _has_wall_at(grid_pos: Vector2i) -> bool:
-	# Use TileManager to check for walls
+	# Use TileManager to check for walls and terrain
 	var tile := TileManager.get_tile(grid_pos)
 	if tile:
-		return tile.occupancy == TileBase.OccupancyType.WALL
+		# is_crossable returns false for walls (occupancy) and rock terrain
+		return not tile.is_crossable()
 	return false
 
 
