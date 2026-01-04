@@ -533,3 +533,30 @@ This document tracks decisions made on questions from `iteration-unanswered-ques
 **Status**: ✅ Resolved
 
 ---
+
+### 18. MVP Scope
+
+**Question 18.1**: Which of these improvements are MVP vs post-MVP?
+
+**Decision**: **MVP SCOPE DEFINITION**:
+
+**MVP**:
+- Core rune system changes (multi-use runes, Power Rune, acceleration cap increase)
+- New wall/tile types (Explosive Wall, Mud Tile)
+- Sound effects integration
+- Debug mode config file
+- Fireball status modifiers (speed/power stacks with SFX/VFX)
+- Game victory card (when all levels are cleared)
+
+**Post-MVP**:
+- Auto-scaling mode with heat increases
+- Enemy scrap/drops system
+- Tile upgrades
+- Multi-wave levels
+- Enemy information UI
+- Level select screen
+- Bespoke VFX for status modifiers (start with text display for MVP, bespoke VFX post-MVP)
+
+**Status**: ✅ Resolved
+
+---
