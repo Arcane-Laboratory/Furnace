@@ -34,19 +34,24 @@ var removed_spawn_points: Array[Vector2i] = []
 var removed_terrain_tiles: Array[Vector2i] = []
 var removed_items: Array[Vector2i] = []
 
+## Store spawn rules
+var export_spawn_rules: Array[SpawnEnemyRule] = []
+
 func show_dialog(
 	spawn_points: Array[Vector2i],
 	terrain_tiles: Array[Vector2i] = [],
 	level_data: LevelData = null,
 	p_removed_spawn_points: Array[Vector2i] = [],
 	p_removed_terrain_tiles: Array[Vector2i] = [],
-	p_removed_items: Array[Vector2i] = []
+	p_removed_items: Array[Vector2i] = [],
+	spawn_rules: Array[SpawnEnemyRule] = []
 ) -> void:
 	export_spawn_points = spawn_points
 	export_terrain_tiles = terrain_tiles
 	removed_spawn_points = p_removed_spawn_points
 	removed_terrain_tiles = p_removed_terrain_tiles
 	removed_items = p_removed_items
+	export_spawn_rules = spawn_rules
 	
 	# Pre-fill fields from current level data if available
 	if level_data:
@@ -90,7 +95,8 @@ func _on_export_pressed() -> void:
 		export_terrain_tiles,
 		removed_spawn_points,
 		removed_terrain_tiles,
-		removed_items
+		removed_items,
+		export_spawn_rules
 	)
 	
 	# Copy to clipboard
@@ -121,7 +127,8 @@ func _on_save_pressed() -> void:
 		export_terrain_tiles,
 		removed_spawn_points,
 		removed_terrain_tiles,
-		removed_items
+		removed_items,
+		export_spawn_rules
 	)
 	
 	# Save to file

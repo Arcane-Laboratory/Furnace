@@ -1,33 +1,195 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=4 format=3 uid="uid://sgntad67n5b3"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=6 format=3 uid="uid://c0ynrxe2m0tl"]
 
-[ext_resource type="Script" uid="uid://ijuvyt3lnwhc" path="res://scripts/resources/level_data.gd" id="1"]
-[ext_resource type="Script" uid="uid://c2lkbhx7rwv8g" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
+[ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/spawn_enemy_rule.gd" id="2"]
 
-[sub_resource type="Resource" id="Resource_wave1"]
+[sub_resource type="Resource" id="Resource_rule0"]
 script = ExtResource("2")
-metadata/_custom_type_script = "uid://oi70e4rojnys"
+spawn_point_index = 0
+enemy_type = 0
+spawn_delay = 0.0
+spawn_count = 8
+spawn_time = 60.0
+
+[sub_resource type="Resource" id="Resource_rule1"]
+script = ExtResource("2")
+spawn_point_index = 1
+enemy_type = 0
+spawn_delay = 0.0
+spawn_count = 8
+spawn_time = 60.0
+
+[sub_resource type="Resource" id="Resource_rule2"]
+script = ExtResource("2")
+spawn_point_index = 2
+enemy_type = 0
+spawn_delay = 0.0
+spawn_count = 8
+spawn_time = 60.0
 
 [resource]
 script = ExtResource("1")
 level_number = 9
-level_name = "Level 9 (Final)"
-starting_resources = 300
+level_name = "Level 9"
+starting_resources = 350
 preset_items = Array[Dictionary]([{
 "direction": "south",
-"position": Vector2i(2, 0),
-"type": "power",
+"position": Vector2i(0, 0),
+"type": "wall",
 "uses": 0
 }, {
 "direction": "south",
-"position": Vector2i(6, 3),
-"type": "mud_tile",
+"position": Vector2i(0, 1),
+"type": "wall",
 "uses": 0
 }, {
 "direction": "south",
-"position": Vector2i(10, 0),
-"type": "power",
+"position": Vector2i(0, 2),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(0, 3),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(0, 4),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(0, 5),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(0, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(1, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(2, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(3, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(4, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(5, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(6, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(7, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(8, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(9, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(10, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(11, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(12, 0),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(12, 1),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(12, 2),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(12, 3),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(12, 4),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(12, 5),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(12, 6),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(3, 2),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(3, 3),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(3, 4),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(9, 2),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(9, 3),
+"type": "wall",
+"uses": 0
+}, {
+"direction": "south",
+"position": Vector2i(9, 4),
+"type": "wall",
 "uses": 0
 }])
-spawn_points = Array[Vector2i]([Vector2i(6, 6), Vector2i(0, 6), Vector2i(12, 6), Vector2i(0, 4), Vector2i(12, 4)])
-enemy_waves = Array[ExtResource("2")]([SubResource("Resource_wave1")])
-hint_text = "Warning! This soot swarm is approaching from all sides, and our defenses are scattered everywhere!"
+terrain_blocked = Array[Vector2i]([Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2), Vector2i(0, 3), Vector2i(0, 4), Vector2i(0, 5), Vector2i(0, 6), Vector2i(1, 6), Vector2i(2, 6), Vector2i(3, 6), Vector2i(4, 6), Vector2i(5, 6), Vector2i(6, 6), Vector2i(7, 6), Vector2i(8, 6), Vector2i(9, 6), Vector2i(10, 6), Vector2i(11, 6), Vector2i(12, 6), Vector2i(12, 5), Vector2i(12, 4), Vector2i(12, 3), Vector2i(12, 2), Vector2i(12, 1), Vector2i(12, 0)])
+spawn_points = Array[Vector2i]([Vector2i(1, 5), Vector2i(6, 5), Vector2i(11, 5)])
+spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1"), SubResource("Resource_rule2")])
+difficulty = 5
+hint_text = "The soot swarm is growing stronger. Their numbers are increasing!"

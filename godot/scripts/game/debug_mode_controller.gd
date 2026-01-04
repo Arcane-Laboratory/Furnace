@@ -1,6 +1,6 @@
 extends Node
 class_name DebugModeController
-## Handles all debug-mode functionality: spawn point/terrain placement, level export
+## Handles all debug-mode functionality: spawn point/terrain placement, level export, spawn editing
 
 
 ## Emitted when info snackbar should be shown
@@ -20,6 +20,9 @@ signal structure_removal_requested(grid_pos: Vector2i)
 
 ## Emitted when items unlocked state changes (need to refresh build menu)
 signal items_unlocked_changed
+
+## Emitted when spawn rules change
+signal spawn_rules_changed
 
 
 ## Debug placement mode (for placing spawn points, terrain, etc.)
@@ -41,6 +44,9 @@ var removed_terrain_tiles: Array[Vector2i] = []
 ## Removed original items - walls, runes, etc. (from level data or player-placed)
 var removed_items: Array[Vector2i] = []
 
+## Modified spawn rules (key: spawn_index, value: Array[SpawnEnemyRule])
+var modified_spawn_rules: Dictionary = {}
+
 ## Level export dialog
 var level_export_dialog: LevelExportDialog = null
 
@@ -49,6 +55,9 @@ var debug_fab: Button = null
 
 ## Debug modal
 var debug_modal: DebugModal = null
+
+## Spawn edit modal
+var spawn_edit_modal: SpawnEditModal = null
 
 ## References injected from game_scene
 var ui_layer: CanvasLayer = null
@@ -101,6 +110,95 @@ func handle_removal_click(grid_pos: Vector2i) -> void:
 			_remove_debug_terrain(grid_pos)
 
 
+## Check if a click is on a spawn point and handle it
+func try_handle_spawn_point_click(grid_pos: Vector2i) -> bool:
+	# Check if this position is a spawn point
+	var spawn_index := _get_spawn_point_index_at(grid_pos)
+	if spawn_index < 0:
+		return false
+	
+	# Open spawn edit modal
+	_open_spawn_edit_modal(spawn_index, grid_pos)
+	return true
+
+
+## Get spawn point index at grid position (-1 if none)
+func _get_spawn_point_index_at(grid_pos: Vector2i) -> int:
+	if not current_level_data:
+		return -1
+	
+	# Check original spawn points
+	for i in range(current_level_data.spawn_points.size()):
+		if current_level_data.spawn_points[i] == grid_pos:
+			# Skip if this spawn point was removed
+			if grid_pos in removed_spawn_points:
+				continue
+			return i
+	
+	# Check debug-placed spawn points
+	for i in range(debug_spawn_points.size()):
+		if debug_spawn_points[i] == grid_pos:
+			# Debug spawn points have indices after original ones
+			return current_level_data.spawn_points.size() + i
+	
+	return -1
+
+
+## Open the spawn edit modal for a spawn point
+func _open_spawn_edit_modal(spawn_index: int, spawn_pos: Vector2i) -> void:
+	if not spawn_edit_modal:
+		return
+	
+	# Get rules for this spawn point
+	var rules: Array[SpawnEnemyRule] = []
+	
+	# Check if we have modified rules for this spawn point
+	if modified_spawn_rules.has(spawn_index):
+		rules = modified_spawn_rules[spawn_index]
+	else:
+		# Get rules from level data
+		rules = _get_rules_for_spawn_index(spawn_index)
+	
+	spawn_edit_modal.show_for_spawn_point(spawn_index, spawn_pos, rules)
+
+
+## Get spawn rules for a specific spawn index
+func _get_rules_for_spawn_index(spawn_index: int) -> Array[SpawnEnemyRule]:
+	var rules: Array[SpawnEnemyRule] = []
+	
+	if not current_level_data:
+		return rules
+	
+	for rule in current_level_data.spawn_rules:
+		if rule.spawn_point_index == spawn_index:
+			rules.append(rule)
+	
+	return rules
+
+
+## Get all current spawn rules (including modifications)
+func get_all_spawn_rules() -> Array[SpawnEnemyRule]:
+	var rules: Array[SpawnEnemyRule] = []
+	
+	if not current_level_data:
+		return rules
+	
+	# Get total spawn points count
+	var total_spawns := current_level_data.spawn_points.size() + debug_spawn_points.size()
+	
+	for spawn_index in range(total_spawns):
+		var spawn_rules: Array[SpawnEnemyRule] = []
+		
+		if modified_spawn_rules.has(spawn_index):
+			spawn_rules = modified_spawn_rules[spawn_index]
+		else:
+			spawn_rules = _get_rules_for_spawn_index(spawn_index)
+		
+		rules.append_array(spawn_rules)
+	
+	return rules
+
+
 ## Create debug UI elements
 func _create_debug_ui() -> void:
 	# Create the debug FAB (floating action button) in bottom-left corner
@@ -120,6 +218,9 @@ func _create_debug_ui() -> void:
 	
 	# Create the debug modal
 	_create_debug_modal()
+	
+	# Create the spawn edit modal
+	_create_spawn_edit_modal()
 	
 	# Create the export dialog
 	_create_level_export_dialog()
@@ -150,6 +251,28 @@ func _create_debug_modal() -> void:
 		ui_layer.add_child(debug_modal)
 
 
+## Create the spawn edit modal
+func _create_spawn_edit_modal() -> void:
+	var modal_scene := load("res://scenes/ui/spawn_edit_modal.tscn") as PackedScene
+	if not modal_scene:
+		push_error("DebugModeController: Failed to load spawn_edit_modal.tscn")
+		return
+	
+	spawn_edit_modal = modal_scene.instantiate() as SpawnEditModal
+	if not spawn_edit_modal:
+		push_error("DebugModeController: Failed to instantiate spawn edit modal")
+		return
+	
+	# Connect signals
+	spawn_edit_modal.rules_changed.connect(_on_spawn_rules_changed)
+	spawn_edit_modal.spawn_deleted.connect(_on_spawn_deleted)
+	spawn_edit_modal.closed.connect(_on_spawn_edit_modal_closed)
+	
+	# Add to UI layer so it's on top
+	if ui_layer:
+		ui_layer.add_child(spawn_edit_modal)
+
+
 ## Create the level export dialog
 func _create_level_export_dialog() -> void:
 	var dialog_scene := load("res://scenes/ui/level_export_dialog.tscn") as PackedScene
@@ -178,6 +301,63 @@ func _on_debug_fab_pressed() -> void:
 		debug_modal.show_modal()
 
 
+## Handle spawn rules changed from spawn edit modal
+func _on_spawn_rules_changed(spawn_index: int, rules: Array[SpawnEnemyRule]) -> void:
+	modified_spawn_rules[spawn_index] = rules
+	spawn_rules_changed.emit()
+	print("DebugModeController: Updated spawn rules for spawn point %d (%d rules)" % [spawn_index, rules.size()])
+
+
+## Handle spawn deleted from spawn edit modal
+func _on_spawn_deleted(spawn_index: int) -> void:
+	if not current_level_data:
+		return
+	
+	# Get spawn position
+	var spawn_pos: Vector2i
+	if spawn_index < current_level_data.spawn_points.size():
+		spawn_pos = current_level_data.spawn_points[spawn_index]
+		# Add to removed spawn points
+		if spawn_pos not in removed_spawn_points:
+			removed_spawn_points.append(spawn_pos)
+		# Remove visual marker
+		_remove_spawn_marker_at(spawn_pos)
+	else:
+		# It's a debug-placed spawn point
+		var debug_index := spawn_index - current_level_data.spawn_points.size()
+		if debug_index >= 0 and debug_index < debug_spawn_points.size():
+			spawn_pos = debug_spawn_points[debug_index]
+			debug_spawn_points.remove_at(debug_index)
+			_remove_spawn_marker_at(spawn_pos)
+	
+	# Remove any modified rules for this spawn
+	modified_spawn_rules.erase(spawn_index)
+	spawn_rules_changed.emit()
+	
+	show_info_requested.emit("Spawn point deleted!")
+
+
+## Remove spawn marker at position
+func _remove_spawn_marker_at(spawn_pos: Vector2i) -> void:
+	if not spawn_points_container:
+		return
+	
+	for child in spawn_points_container.get_children():
+		if child is Node2D:
+			var marker_grid_pos := Vector2i(
+				int(child.position.x / GameConfig.TILE_SIZE),
+				int(child.position.y / GameConfig.TILE_SIZE)
+			)
+			if marker_grid_pos == spawn_pos:
+				child.queue_free()
+				return
+
+
+## Handle spawn edit modal closed
+func _on_spawn_edit_modal_closed() -> void:
+	pass  # Nothing needed
+
+
 ## Handle export level requested from debug modal
 func _on_export_level_requested() -> void:
 	if level_export_dialog:
@@ -187,7 +367,8 @@ func _on_export_level_requested() -> void:
 			current_level_data,
 			removed_spawn_points,
 			removed_terrain_tiles,
-			removed_items
+			removed_items,
+			get_all_spawn_rules()
 		)
 
 
@@ -283,6 +464,16 @@ func _place_debug_spawn_point(grid_pos: Vector2i) -> void:
 	
 	# Create visual marker
 	_create_debug_spawn_marker(grid_pos)
+	
+	# Create default spawn rule for new spawn point
+	var spawn_index := current_level_data.spawn_points.size() + debug_spawn_points.size() - 1
+	var default_rule := SpawnEnemyRule.new()
+	default_rule.spawn_point_index = spawn_index
+	default_rule.enemy_type = SpawnEnemyRule.EnemyType.BASIC
+	default_rule.spawn_delay = 0.0
+	default_rule.spawn_count = 6
+	default_rule.spawn_time = 60.0
+	modified_spawn_rules[spawn_index] = [default_rule]
 	
 	print("DebugModeController: Placed debug spawn point at %s" % grid_pos)
 	show_info_requested.emit("Spawn point placed! Click to add more, ESC to finish")

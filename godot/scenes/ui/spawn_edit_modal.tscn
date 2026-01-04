@@ -1,0 +1,126 @@
+[gd_scene load_steps=3 format=3 uid="uid://5tns7l04wkip"]
+
+[ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scripts/ui/spawn_edit_modal.gd" id="2_script"]
+
+[node name="SpawnEditModal" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("2_script")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.5)
+
+[node name="Panel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -140.0
+offset_right = 160.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_theme")
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit Spawn (0, 0)"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HeaderRow" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TypeLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/HeaderRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "Type"
+
+[node name="DelayLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/HeaderRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "Delay"
+
+[node name="CountLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/HeaderRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "Count"
+
+[node name="TimeLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/HeaderRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "Time"
+
+[node name="SpacerLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/HeaderRow"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="EnemyRowList" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="HSeparator2" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="AddEnemyButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 28)
+layout_mode = 2
+text = "Add Enemy"
+
+[node name="CloseButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+text = "Close"
+
+[node name="DeleteSpawnButton" type="Button" parent="Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+text = "Delete Spawn Point"

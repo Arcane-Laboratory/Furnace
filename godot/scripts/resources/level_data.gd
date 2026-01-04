@@ -3,7 +3,7 @@ class_name LevelData
 ## Custom resource for defining level layouts and configurations
 
 
-## Enemy type enum (matches EnemyWaveEntry.EnemyType)
+## Enemy type enum (kept for reference, use SpawnEnemyRule.EnemyType for new code)
 enum EnemyType {
 	BASIC,  # Standard enemy
 	FAST,   # Fast enemy (low health, high speed)
@@ -46,8 +46,9 @@ enum RuneType {
 ## Furnace entry position (where fireball launches from)
 @export var furnace_position: Vector2i = Vector2i(6, 0)  # Top center default
 
-## Enemy wave data (using typed resource entries)
-@export var enemy_waves: Array[EnemyWaveEntry] = []
+## Spawn rules - defines which enemies spawn from each spawn point and when
+## Each rule specifies: spawn_point_index, enemy_type, spawn_delay, spawn_count, spawn_time
+@export var spawn_rules: Array[SpawnEnemyRule] = []
 
 ## Par time for level (optional, for scoring)
 @export var par_time_seconds: float = 60.0
@@ -78,9 +79,9 @@ func is_valid() -> bool:
 		push_warning("Level %d has no spawn points" % level_number)
 		return false
 	
-	# Must have at least one enemy
-	if enemy_waves.is_empty():
-		push_warning("Level %d has no enemies" % level_number)
+	# Must have at least one spawn rule
+	if spawn_rules.is_empty():
+		push_warning("Level %d has no spawn rules" % level_number)
 		return false
 	
 	# Furnace must be within grid bounds
@@ -88,7 +89,30 @@ func is_valid() -> bool:
 		push_warning("Level %d furnace position out of bounds" % level_number)
 		return false
 	
+	# Validate all spawn rules reference valid spawn points
+	for rule in spawn_rules:
+		if rule.spawn_point_index < 0 or rule.spawn_point_index >= spawn_points.size():
+			push_warning("Level %d has spawn rule with invalid spawn_point_index: %d" % [level_number, rule.spawn_point_index])
+			return false
+	
 	return true
+
+
+## Get total number of enemies that will spawn from all rules
+func get_total_enemy_count() -> int:
+	var total := 0
+	for rule in spawn_rules:
+		total += rule.spawn_count
+	return total
+
+
+## Get spawn rules for a specific spawn point index
+func get_rules_for_spawn_point(spawn_index: int) -> Array[SpawnEnemyRule]:
+	var rules: Array[SpawnEnemyRule] = []
+	for rule in spawn_rules:
+		if rule.spawn_point_index == spawn_index:
+			rules.append(rule)
+	return rules
 
 
 ## Get all blocked tiles (terrain + items that block paths)

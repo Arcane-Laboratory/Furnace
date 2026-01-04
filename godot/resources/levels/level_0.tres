@@ -1,17 +1,23 @@
 [gd_resource type="Resource" script_class="LevelData" load_steps=5 format=3 uid="uid://c2d7161eewqll"]
 
 [ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
-[ext_resource type="Script" uid="uid://oi70e4rojnys" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/spawn_enemy_rule.gd" id="2"]
 
-[sub_resource type="Resource" id="Resource_debug1"]
+[sub_resource type="Resource" id="Resource_rule0"]
 script = ExtResource("2")
-metadata/_custom_type_script = "uid://oi70e4rojnys"
+spawn_point_index = 0
+enemy_type = 0
+spawn_delay = 0.0
+spawn_count = 6
+spawn_time = 60.0
 
-[sub_resource type="Resource" id="Resource_debug2"]
+[sub_resource type="Resource" id="Resource_rule1"]
 script = ExtResource("2")
+spawn_point_index = 0
 enemy_type = 1
-delay = 3.0
-metadata/_custom_type_script = "uid://oi70e4rojnys"
+spawn_delay = 3.0
+spawn_count = 4
+spawn_time = 40.0
 
 [resource]
 script = ExtResource("1")
@@ -19,7 +25,7 @@ level_number = 0
 level_name = "Debug Level"
 starting_resources = 1000
 spawn_points = Array[Vector2i]([Vector2i(6, 6)])
-enemy_waves = Array[ExtResource("2")]([SubResource("Resource_debug1"), SubResource("Resource_debug2")])
+spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1")])
 par_time_seconds = 999.0
 preset_items = Array[Dictionary]([])
 hint_text = "[DEBUG] Test level with all items unlocked and invincibility enabled."

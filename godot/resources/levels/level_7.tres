@@ -1,11 +1,23 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=4 format=3 uid="uid://8iopbaa05hx6"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=5 format=3 uid="uid://8iopbaa05hx6"]
 
-[ext_resource type="Script" uid="uid://ijuvyt3lnwhc" path="res://scripts/resources/level_data.gd" id="1"]
-[ext_resource type="Script" uid="uid://c2lkbhx7rwv8g" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
+[ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/spawn_enemy_rule.gd" id="2"]
 
-[sub_resource type="Resource" id="Resource_wave1"]
+[sub_resource type="Resource" id="Resource_rule0"]
 script = ExtResource("2")
-metadata/_custom_type_script = "uid://oi70e4rojnys"
+spawn_point_index = 0
+enemy_type = 0
+spawn_delay = 0.0
+spawn_count = 6
+spawn_time = 60.0
+
+[sub_resource type="Resource" id="Resource_rule1"]
+script = ExtResource("2")
+spawn_point_index = 1
+enemy_type = 0
+spawn_delay = 0.0
+spawn_count = 6
+spawn_time = 60.0
 
 [resource]
 script = ExtResource("1")
@@ -205,5 +217,5 @@ preset_items = Array[Dictionary]([{
 }])
 terrain_blocked = Array[Vector2i]([Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2), Vector2i(0, 3), Vector2i(0, 4), Vector2i(0, 5), Vector2i(0, 6), Vector2i(1, 6), Vector2i(2, 6), Vector2i(3, 6), Vector2i(4, 6), Vector2i(5, 6), Vector2i(8, 6), Vector2i(7, 6), Vector2i(9, 6), Vector2i(10, 6), Vector2i(11, 6), Vector2i(12, 6), Vector2i(12, 5), Vector2i(12, 4), Vector2i(12, 2), Vector2i(12, 3), Vector2i(12, 1), Vector2i(12, 0), Vector2i(6, 6)])
 spawn_points = Array[Vector2i]([Vector2i(1, 5), Vector2i(11, 5)])
-enemy_waves = Array[ExtResource("2")]([SubResource("Resource_wave1")])
-hint_text = "Good news, we found some new technology in the storage room. Bad news, you’ll have to figure out how they work."
+spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1")])
+hint_text = "Good news, we found some new technology in the storage room. Bad news, you'll have to figure out how they work."
