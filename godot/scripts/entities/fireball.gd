@@ -24,6 +24,12 @@ var activated_tiles: Array[Vector2i] = []
 ## Track current grid position for collision detection
 var current_grid_pos: Vector2i = Vector2i(-1, -1)
 
+## Track previous grid position (for portal entry detection)
+var previous_grid_pos: Vector2i = Vector2i(-1, -1)
+
+## Track the last portal destination to prevent infinite teleport loops
+var last_destination_portal: Vector2i = Vector2i(-1, -1)
+
 ## Reference to the AnimatedSprite2D node
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -82,10 +88,16 @@ func _physics_process(delta: float) -> void:
 	# Store previous position for sweep testing
 	var prev_pos := position
 	var prev_grid_pos := current_grid_pos
+	previous_grid_pos = current_grid_pos  # Store for portal entry detection
 	
 	# Calculate next position
 	var next_pos := position + direction * current_speed * delta
 	var next_grid_pos := _world_to_grid(next_pos)
+	
+	# Clear last destination portal if fireball moved to a new tile
+	# This allows the fireball to teleport again after leaving the destination portal
+	if next_grid_pos != current_grid_pos:
+		last_destination_portal = Vector2i(-1, -1)
 	
 	# Check for boundary collision (destroy at grid edges)
 	# Only destroy if we're currently IN bounds and about to go OUT
@@ -109,7 +121,7 @@ func _physics_process(delta: float) -> void:
 	
 	# Check all tiles passed through for activation (sweep test)
 	# This prevents skipping runes at high speeds
-	_check_tiles_activation(tiles_passed, prev_pos, position)
+	_check_tiles_activation(tiles_passed, prev_pos, position, prev_grid_pos)
 	
 	# Check for adjacent explosive walls
 	_check_explosive_walls()
@@ -127,6 +139,8 @@ func launch(start_position: Vector2) -> void:
 	activated_tiles.clear()
 	overlapping_enemies.clear()  # Reset collision tracking
 	current_grid_pos = _world_to_grid(position)
+	previous_grid_pos = current_grid_pos  # Initialize previous position
+	last_destination_portal = Vector2i(-1, -1)  # Reset portal tracking
 	
 	# Start fireball travel sound (looping)
 	AudioManager.start_fireball_travel()
@@ -200,7 +214,7 @@ func _update_current_speed() -> void:
 
 ## Check all tiles passed through for activation (sweep test for high speeds)
 ## Checks if the movement line segment crosses through tile centers
-func _check_tiles_activation(tiles_passed: Array[Vector2i], start_pos: Vector2, end_pos: Vector2) -> void:
+func _check_tiles_activation(tiles_passed: Array[Vector2i], start_pos: Vector2, end_pos: Vector2, prev_grid_pos: Vector2i) -> void:
 	for grid_pos in tiles_passed:
 		if grid_pos in activated_tiles:
 			continue
@@ -380,7 +394,8 @@ func reflect() -> void:
 
 
 ## Teleport the fireball to a new position with a new direction - called by Portal Rune
-func teleport_to(new_position: Vector2, new_direction: Vector2) -> void:
+## destination_grid_pos: Grid position of destination portal (to track and prevent infinite loop)
+func teleport_to(new_position: Vector2, new_direction: Vector2, destination_grid_pos: Vector2i = Vector2i(-1, -1)) -> void:
 	var old_position := position
 	position = new_position
 	current_grid_pos = _world_to_grid(position)
@@ -394,6 +409,13 @@ func teleport_to(new_position: Vector2, new_direction: Vector2) -> void:
 	
 	# Clear activated tiles to allow activation at new location
 	activated_tiles.clear()
+	
+	# Track the destination portal to prevent teleporting back immediately
+	# This prevents infinite teleport loops
+	if destination_grid_pos != Vector2i(-1, -1):
+		last_destination_portal = destination_grid_pos
+		# Also mark it as activated to prevent immediate re-activation
+		activated_tiles.append(destination_grid_pos)
 	
 	# Clear overlapping enemies to allow re-hitting after teleport
 	overlapping_enemies.clear()

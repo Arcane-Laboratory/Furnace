@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c3portal_exit"]
+[gd_scene load_steps=2 format=3 uid="uid://cp6rfrhxitbgc"]
 
-[ext_resource type="Script" uid="uid://cportal_script" path="res://scripts/entities/runes/portal_rune.gd" id="1_portal"]
+[ext_resource type="Script" uid="uid://d1ujc4fwxe0sc" path="res://scripts/entities/runes/portal_rune.gd" id="1_portal"]
 
 [node name="PortalExit" type="Node2D"]
 script = ExtResource("1_portal")
@@ -17,6 +17,7 @@ offset_bottom = 12.0
 color = Color(0.7, 0.3, 0.95, 1)
 
 [node name="PortalRing" type="ColorRect" parent="."]
+visible = false
 offset_left = -8.0
 offset_top = -8.0
 offset_right = 8.0
@@ -24,6 +25,7 @@ offset_bottom = 8.0
 color = Color(0.5, 0.2, 0.7, 1)
 
 [node name="PortalCenter" type="ColorRect" parent="."]
+visible = false
 offset_left = -4.0
 offset_top = -4.0
 offset_right = 4.0
@@ -36,9 +38,10 @@ offset_left = -4.0
 offset_top = 4.0
 offset_right = 4.0
 offset_bottom = 12.0
-color = Color(1.0, 1.0, 1.0, 0.8)
+color = Color(1, 1, 1, 0.8)
 
 [node name="ExitLabel" type="ColorRect" parent="."]
+visible = false
 offset_left = -3.0
 offset_top = -14.0
 offset_right = 3.0

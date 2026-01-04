@@ -34,6 +34,17 @@ func _on_activate(fireball: Node2D) -> void:
 		print("PortalRune: No linked portal!")
 		return
 	
+	# Check if fireball is a Fireball instance
+	if not fireball is Fireball:
+		return
+	
+	var fireball_instance := fireball as Fireball
+	
+	# Prevent infinite teleport loop: don't teleport if the destination portal
+	# is the same as the last portal the fireball teleported to
+	if fireball_instance.last_destination_portal == linked_portal.grid_position:
+		return
+	
 	# Calculate destination position (center of linked portal tile)
 	var destination_position := Vector2(
 		linked_portal.grid_position.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
@@ -41,11 +52,12 @@ func _on_activate(fireball: Node2D) -> void:
 	)
 	
 	# Get fireball's current direction to maintain it through the portal
-	var fireball_direction: Vector2 = fireball.direction if "direction" in fireball else Vector2.DOWN
+	var fireball_direction: Vector2 = fireball_instance.direction if "direction" in fireball_instance else Vector2.DOWN
 	
 	# Teleport fireball, maintaining its current direction
-	if fireball.has_method("teleport_to"):
-		fireball.teleport_to(destination_position, fireball_direction)
+	# Pass the destination portal's grid position so it can track it
+	if fireball_instance.has_method("teleport_to"):
+		fireball_instance.teleport_to(destination_position, fireball_direction, linked_portal.grid_position)
 	
 	# Play activation sound (use accelerate sound for portal teleportation)
 	AudioManager.play_sound_effect("rune-accelerate")
@@ -125,34 +137,21 @@ func _update_direction_visual() -> void:
 			direction_indicator.offset_bottom = 4.0
 
 
-## Update portal visual based on entrance/exit type
+## Update portal visual - use the same visual for both entry and exit portals
 func _update_portal_visual() -> void:
 	var visual := get_node_or_null("RuneVisual") as ColorRect
 	if visual:
-		if is_entrance:
-			# Entrance portal - darker purple
-			visual.color = Color(0.5, 0.15, 0.75, 1.0)
-		else:
-			# Exit portal - lighter purple
-			visual.color = Color(0.7, 0.3, 0.95, 1.0)
+		# Use the same color for both entry and exit portals
+		visual.color = Color(0.6, 0.2, 0.9, 1.0)
 
 
-## Update portal sprite based on direction
+## Update portal sprite - use rune-magic sprite for all portals
 func _update_portal_sprite() -> void:
 	if not sprite:
 		return
 	
-	# Load the appropriate directional sprite
-	var sprite_path: String
-	match direction:
-		Direction.NORTH:
-			sprite_path = "res://assets/sprites/portal-up.png"
-		Direction.SOUTH:
-			sprite_path = "res://assets/sprites/portal-down.png"
-		Direction.EAST:
-			sprite_path = "res://assets/sprites/portal-right.png"
-		Direction.WEST:
-			sprite_path = "res://assets/sprites/portal-left.png"
+	# Use rune-magic sprite for all portals (entry and exit)
+	var sprite_path: String = "res://assets/sprites/rune-magic.png"
 	
 	var texture := load(sprite_path) as Texture2D
 	if texture:
