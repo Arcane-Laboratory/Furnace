@@ -23,12 +23,23 @@ static func export_current_level(
 	var furnace_position: Vector2i = Vector2i(6, 0)
 	var terrain_blocked: Array[Vector2i] = []
 	var rules_to_export: Array[SpawnEnemyRule] = []
+	var allowed_runes: Array[int] = []
+	var difficulty: int = 0
+	var heat_increase_interval: float = 0.0
+	var unlock_all_items: bool = false
+	var par_time_seconds: float = 60.0
 	
 	# Get spawn points and furnace from current level data
 	if TileManager.current_level_data:
 		spawn_points = TileManager.current_level_data.spawn_points.duplicate()
 		furnace_position = TileManager.current_level_data.furnace_position
 		terrain_blocked = TileManager.current_level_data.terrain_blocked.duplicate()
+		# Preserve allowed_runes and other level properties
+		allowed_runes = TileManager.current_level_data.allowed_runes.duplicate()
+		difficulty = TileManager.current_level_data.difficulty
+		heat_increase_interval = TileManager.current_level_data.heat_increase_interval
+		unlock_all_items = TileManager.current_level_data.unlock_all_items
+		par_time_seconds = TileManager.current_level_data.par_time_seconds
 	
 	# Remove items that were deleted
 	for sp in removed_spawn_points:
@@ -100,7 +111,12 @@ static func export_current_level(
 		terrain_blocked,
 		items,
 		hint_text,
-		rules_to_export
+		rules_to_export,
+		allowed_runes,
+		difficulty,
+		heat_increase_interval,
+		unlock_all_items,
+		par_time_seconds
 	)
 
 
@@ -154,7 +170,12 @@ static func _generate_tres_content(
 	terrain_blocked: Array[Vector2i],
 	items: Array[Dictionary],
 	hint_text: String,
-	spawn_rules: Array[SpawnEnemyRule]
+	spawn_rules: Array[SpawnEnemyRule],
+	allowed_runes: Array[int] = [],
+	difficulty: int = 0,
+	heat_increase_interval: float = 0.0,
+	unlock_all_items: bool = false,
+	par_time_seconds: float = 60.0
 ) -> String:
 	# Calculate load_steps based on spawn rule entries
 	var num_rule_entries := spawn_rules.size()
@@ -219,14 +240,23 @@ static func _generate_tres_content(
 		rule_refs.append("SubResource(\"Resource_rule%d\")" % i)
 	content += "spawn_rules = Array[ExtResource(\"2\")]([%s])\n" % ", ".join(rule_refs)
 	
-	# Allowed runes (empty = all available)
-	content += "allowed_runes = Array[int]([])\n"
+	# Allowed runes (preserve from original level data)
+	content += "allowed_runes = Array[int]([%s])\n" % _format_int_array(allowed_runes)
+	
+	# Difficulty
+	content += "difficulty = %d\n" % difficulty
+	
+	# Heat increase interval
+	content += "heat_increase_interval = %.1f\n" % heat_increase_interval
+	
+	# Unlock all items
+	content += "unlock_all_items = %s\n" % ("true" if unlock_all_items else "false")
 	
 	# Hint text
 	content += "hint_text = \"%s\"\n" % _escape_string(hint_text)
 	
-	# Par time
-	content += "par_time_seconds = 60.0\n"
+	# Par time (preserve from original level data)
+	content += "par_time_seconds = %.1f\n" % par_time_seconds
 	
 	return content
 
@@ -239,6 +269,18 @@ static func _format_vector2i_array(arr: Array[Vector2i]) -> String:
 	var parts: Array[String] = []
 	for vec in arr:
 		parts.append("Vector2i(%d, %d)" % [vec.x, vec.y])
+	
+	return ", ".join(parts)
+
+
+## Format an array of ints for .tres output
+static func _format_int_array(arr: Array[int]) -> String:
+	if arr.is_empty():
+		return ""
+	
+	var parts: Array[String] = []
+	for val in arr:
+		parts.append("%d" % val)
 	
 	return ", ".join(parts)
 
