@@ -1,0 +1,157 @@
+[gd_scene load_steps=22 format=3 uid="uid://exqes0vhl7wf"]
+
+[ext_resource type="Script" uid="uid://cxrs4cx311v7r" path="res://scripts/entities/enemies/fast_enemy.gd" id="1_fast_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/ui/enemy_health_bar.tscn" id="2_health_bar"]
+[ext_resource type="Script" path="res://scripts/entities/enemies/enemy_animation_manager.gd" id="3_animation_manager"]
+[ext_resource type="Texture2D" uid="uid://6r3jg4bqo37q" path="res://assets/sprites/enemy-fast-sheet.png" id="3_fast_sprite"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7fxib"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(0, 38, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_61kcl"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(49, 38, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f33u1"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(98, 38, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_forak"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(147, 38, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kpp0f"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(196, 38, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rrvm3"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(245, 38, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_va1sy"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(294, 38, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7mqnj"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(0, 0, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pu1s5"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(49, 0, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8rv7p"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(98, 0, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5c68v"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(147, 0, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v2id8"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(245, 0, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oawy1"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(294, 0, 49, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sk154"]
+atlas = ExtResource("3_fast_sprite")
+region = Rect2(196, 0, 49, 38)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fast"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7fxib")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_61kcl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f33u1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_forak")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kpp0f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rrvm3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_va1sy")
+}],
+"loop": false,
+"name": &"death",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7mqnj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pu1s5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8rv7p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5c68v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v2id8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oawy1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sk154")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2"]
+radius = 12.0
+
+[node name="FastEnemy" type="CharacterBody2D"]
+collision_mask = 0
+script = ExtResource("1_fast_enemy")
+
+[node name="AnimationManager" type="Node2D" parent="."]
+script = ExtResource("3_animation_manager")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="AnimationManager"]
+position = Vector2(1, -10)
+sprite_frames = SubResource("SpriteFrames_fast")
+animation = &"death"
+
+[node name="EnemyVisual" type="ColorRect" parent="."]
+visible = false
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+color = Color(0.2, 0.6, 0.9, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_2")
+
+[node name="HealthBar" parent="." instance=ExtResource("2_health_bar")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 24.0
+offset_bottom = 4.0
