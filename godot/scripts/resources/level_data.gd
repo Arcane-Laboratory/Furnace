@@ -62,6 +62,14 @@ enum RuneType {
 ## Uses enum values for type safety
 @export var allowed_runes: Array[RuneType] = []
 
+## Difficulty knob (0-50) - multiplies enemy health via exponential formula
+## 0 = 1x health (normal), 50 = 100x health (very hard)
+@export_range(0, 50, 1) var difficulty: int = 0
+
+## Heat increase interval (seconds) - how often heat increases by 1 during active phase
+## Set to 0.0 to disable heat increase over time
+@export_range(0.0, 60.0, 0.1) var heat_increase_interval: float = 0.0
+
 
 ## Validate that the level data is properly configured
 func is_valid() -> bool:

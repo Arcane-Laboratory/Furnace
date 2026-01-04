@@ -9,6 +9,7 @@ signal start_pressed
 ## Reference to UI elements (using unique names)
 @onready var money_value: Label = %MoneyValue
 @onready var level_value: Label = %LevelValue
+@onready var heat_value: Label = %HeatValue
 @onready var start_button: Button = %StartButton
 
 ## Track previous resources for animation direction
@@ -36,12 +37,19 @@ func _update_display() -> void:
 		previous_resources = GameManager.resources
 	if level_value:
 		level_value.text = str(GameManager.current_level)
+	# Heat value is set separately via set_heat()
 
 
 ## Set the level display
 func set_level(level: int) -> void:
 	if level_value:
 		level_value.text = str(level)
+
+
+## Set the heat display (difficulty value)
+func set_heat(difficulty: int) -> void:
+	if heat_value:
+		heat_value.text = str(difficulty)
 
 
 ## Set the money display (without animation)

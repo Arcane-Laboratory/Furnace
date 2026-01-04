@@ -52,6 +52,12 @@ var is_paused: bool = false
 ## Level data
 var current_level_data: LevelData = null
 
+## Current heat value (starts at difficulty, increases over time during active phase)
+var current_heat: int = 0
+
+## Timer for heat increase during active phase
+var heat_timer: Timer = null
+
 ## Hover highlight
 var hover_highlight: ColorRect
 var current_hover_cell: Vector2i = Vector2i(-1, -1)
@@ -112,6 +118,7 @@ func _setup_ui_references() -> void:
 		if game_submenu:
 			game_submenu.start_pressed.connect(_on_start_pressed)
 			game_submenu.set_level(GameManager.current_level)
+			# Heat will be set after level data is loaded in _load_level_data()
 		else:
 			push_warning("GameScene: GameSubmenu not found")
 		
@@ -257,6 +264,15 @@ func _load_level_data() -> void:
 	else:
 		# Create default level data for testing
 		current_level_data = _create_default_level_data()
+	
+	# Initialize current heat from difficulty
+	if current_level_data:
+		current_heat = current_level_data.difficulty
+		# Update EnemyManager with initial heat
+		EnemyManager.current_heat = current_heat
+		# Update heat display
+		if game_submenu:
+			game_submenu.set_heat(current_heat)
 
 
 func _create_default_level_data() -> LevelData:
@@ -322,6 +338,8 @@ func _initialize_tile_system() -> void:
 	
 	# Initialize EnemyManager with level data
 	EnemyManager.initialize_wave(current_level_data, enemies_container)
+	# Set initial heat value
+	EnemyManager.current_heat = current_heat
 	
 	# Connect EnemyManager signals
 	EnemyManager.all_enemies_defeated.connect(_on_all_enemies_defeated)
@@ -719,12 +737,13 @@ func _on_enemy_died(enemy: EnemyBase) -> void:
 	
 	# Update soot vanquished stat in level progress menu
 	# Note: EnemyManager already validates death before emitting signal, so we can trust this
-	if level_in_progress_menu and GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
-		var in_progress: Control = null
-		if level_in_progress_menu.has_method("get_in_progress_submenu"):
-			in_progress = level_in_progress_menu.get_in_progress_submenu()
-		if in_progress and in_progress.has_method("add_soot_vanquished"):
-			in_progress.add_soot_vanquished(1)
+	if GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
+		if level_in_progress_menu:
+			var in_progress: Control = null
+			if level_in_progress_menu.has_method("get_in_progress_submenu"):
+				in_progress = level_in_progress_menu.get_in_progress_submenu()
+			if in_progress and in_progress.has_method("add_soot_vanquished"):
+				in_progress.add_soot_vanquished(1)
 
 
 func _input(event: InputEvent) -> void:
@@ -803,10 +822,15 @@ func _toggle_pause() -> void:
 		pause_menu.hide_pause_menu()
 		GameManager.resume_game()
 		is_paused = false
+		# Resume heat timer if in active phase
+		if GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
+			_start_heat_timer()
 	elif GameManager.current_state == GameManager.GameState.BUILD_PHASE or GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
 		GameManager.pause_game()
 		pause_menu.show_pause_menu()
 		is_paused = true
+		# Pause heat timer
+		_stop_heat_timer()
 
 
 func _start_build_phase() -> void:
@@ -817,6 +841,16 @@ func _start_build_phase() -> void:
 	if path_preview:
 		path_preview.set_visible(true)
 		path_preview.update_paths(current_level_data)
+	
+	# Stop heat increase timer
+	_stop_heat_timer()
+	
+	# Reset heat to base difficulty when returning to build phase
+	if current_level_data:
+		current_heat = current_level_data.difficulty
+		EnemyManager.current_heat = current_heat
+		if game_submenu:
+			game_submenu.set_heat(current_heat)
 	
 	# Show build submenu, hide level in progress menu
 	if build_submenu:
@@ -837,6 +871,15 @@ func _start_active_phase() -> void:
 	# Track sparks at phase start for earned calculation
 	sparks_at_phase_start = GameManager.resources
 	
+	# Initialize heat to base difficulty
+	if current_level_data:
+		current_heat = current_level_data.difficulty
+		EnemyManager.current_heat = current_heat
+	
+	# Start heat increase timer if configured
+	if current_level_data and current_level_data.heat_increase_interval > 0.0:
+		_start_heat_timer()
+	
 	# Hide build submenus, show level in progress menu
 	if build_submenu:
 		build_submenu.visible = false
@@ -851,6 +894,9 @@ func _start_active_phase() -> void:
 			level_in_progress_menu.set_level(GameManager.current_level)
 		if level_in_progress_menu.has_method("reset_stats"):
 			level_in_progress_menu.reset_stats()
+		# Set initial heat display
+		if level_in_progress_menu.has_method("set_heat"):
+			level_in_progress_menu.set_heat(current_heat)
 	
 	# Start enemy wave
 	EnemyManager.start_wave()
@@ -939,6 +985,8 @@ func _update_ui() -> void:
 	# This is now just for any other UI elements that need updating
 	if game_submenu:
 		game_submenu.set_level(GameManager.current_level)
+		if current_level_data:
+			game_submenu.set_heat(current_heat)
 
 
 ## Handle tile occupancy changes - update path preview
@@ -1326,21 +1374,18 @@ func _on_fireball_destroyed() -> void:
 
 ## Handle fireball enemy hit signal
 func _on_fireball_enemy_hit(enemy: Node2D, damage: int) -> void:
-	# Don't track damage for dead enemies
+	# Basic validation - fireball already checks enemy was alive before emitting
 	if not is_instance_valid(enemy):
 		return
-	if "health" in enemy and enemy.health <= 0:
-		return
-	if "is_active" in enemy and not enemy.is_active:
-		return
 	
-	# Track damage dealt during active phase
-	if level_in_progress_menu and GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
-		var in_progress: Control = null
-		if level_in_progress_menu.has_method("get_in_progress_submenu"):
-			in_progress = level_in_progress_menu.get_in_progress_submenu()
-		if in_progress and in_progress.has_method("add_damage_dealt"):
-			in_progress.add_damage_dealt(damage)
+	# Track damage dealt during active phase (including killing blows)
+	if GameManager.current_state == GameManager.GameState.ACTIVE_PHASE:
+		if level_in_progress_menu:
+			var in_progress: Control = null
+			if level_in_progress_menu.has_method("get_in_progress_submenu"):
+				in_progress = level_in_progress_menu.get_in_progress_submenu()
+			if in_progress and in_progress.has_method("add_damage_dealt"):
+				in_progress.add_damage_dealt(damage)
 
 
 ## Create drop target overlay for drag-and-drop
@@ -1500,6 +1545,10 @@ func reload_level(level_number: int) -> void:
 	# Update game submenu
 	if game_submenu:
 		game_submenu.set_level(level_number)
+		if current_level_data:
+			current_heat = current_level_data.difficulty
+			EnemyManager.current_heat = current_heat
+			game_submenu.set_heat(current_heat)
 	
 	# Ensure we're in build phase
 	_start_build_phase()
@@ -1513,8 +1562,56 @@ func reload_level(level_number: int) -> void:
 	tween.tween_callback(func(): _hide_info_snackbar())
 
 
+## Start heat increase timer
+func _start_heat_timer() -> void:
+	if not current_level_data or current_level_data.heat_increase_interval <= 0.0:
+		return
+	
+	# Stop existing timer if any
+	_stop_heat_timer()
+	
+	# Create new timer
+	heat_timer = Timer.new()
+	heat_timer.wait_time = current_level_data.heat_increase_interval
+	heat_timer.timeout.connect(_on_heat_timer_timeout)
+	heat_timer.autostart = true
+	add_child(heat_timer)
+
+
+## Stop heat increase timer
+func _stop_heat_timer() -> void:
+	if heat_timer:
+		if is_instance_valid(heat_timer):
+			heat_timer.queue_free()
+		heat_timer = null
+
+
+## Handle heat timer timeout - increase heat by 1
+func _on_heat_timer_timeout() -> void:
+	if GameManager.current_state != GameManager.GameState.ACTIVE_PHASE:
+		_stop_heat_timer()
+		return
+	
+	current_heat += 1
+	
+	# Update EnemyManager with new heat value (affects future spawns)
+	EnemyManager.current_heat = current_heat
+	
+	# Update heat display - use level_in_progress_menu during active phase
+	if level_in_progress_menu and level_in_progress_menu.has_method("set_heat"):
+		level_in_progress_menu.set_heat(current_heat)
+	elif game_submenu:
+		# Fallback to game_submenu if level_in_progress_menu not available
+		game_submenu.set_heat(current_heat)
+	
+	print("GameScene: Heat increased to %d" % current_heat)
+
+
 ## Clear all game state for hot-reload
 func _clear_game_state() -> void:
+	# Stop heat timer
+	_stop_heat_timer()
+	
 	# Clear all enemies and stop wave
 	EnemyManager.clear_enemies()
 	

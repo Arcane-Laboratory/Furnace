@@ -22,8 +22,21 @@ func _ready() -> void:
 	if restart_button:
 		restart_button.pressed.connect(_on_restart_pressed)
 	
+	# Ensure labels are found
+	_ensure_labels_ready()
+	
 	# Initialize display
 	_update_display()
+
+
+## Ensure label references are initialized (handles timing issues)
+func _ensure_labels_ready() -> void:
+	if not soot_value:
+		soot_value = get_node_or_null("%LevelValue") as Label
+	if not sparks_value:
+		sparks_value = get_node_or_null("%MoneyValue") as Label
+	if not heat_value:
+		heat_value = get_node_or_null("%HeatValue") as Label
 
 
 ## Reset all stats to zero
@@ -37,6 +50,7 @@ func reset_stats() -> void:
 ## Add to soot vanquished count
 func add_soot_vanquished(count: int = 1) -> void:
 	soot_vanquished += count
+	_ensure_labels_ready()
 	_update_soot_display()
 
 
@@ -55,6 +69,7 @@ func add_sparks_earned(amount: int) -> void:
 ## Add to damage dealt
 func add_damage_dealt(amount: int) -> void:
 	damage_dealt += amount
+	_ensure_labels_ready()
 	_update_damage_display()
 
 
@@ -67,20 +82,29 @@ func _update_display() -> void:
 
 ## Update soot vanquished display
 func _update_soot_display() -> void:
+	_ensure_labels_ready()
 	if soot_value:
 		soot_value.text = str(soot_vanquished)
+	else:
+		push_warning("LevelInProgressSubmenu: soot_value label not found! Value: %d" % soot_vanquished)
 
 
 ## Update sparks earned display
 func _update_sparks_display() -> void:
+	_ensure_labels_ready()
 	if sparks_value:
 		sparks_value.text = str(sparks_earned)
+	else:
+		push_warning("LevelInProgressSubmenu: sparks_value label not found! Value: %d" % sparks_earned)
 
 
 ## Update damage dealt display
 func _update_damage_display() -> void:
+	_ensure_labels_ready()
 	if heat_value:
 		heat_value.text = str(damage_dealt)
+	else:
+		push_warning("LevelInProgressSubmenu: heat_value label not found! Value: %d" % damage_dealt)
 
 
 ## Set wave progress (0.0 to 1.0)

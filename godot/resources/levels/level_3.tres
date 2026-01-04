@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=9 format=3 uid="uid://rohtxj3yyt53"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=9 format=3 uid="uid://pg3tna2p882r"]
 
 [ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
 [ext_resource type="Script" uid="uid://oi70e4rojnys" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
@@ -56,3 +56,5 @@ enemy_waves = Array[ExtResource("2")]([SubResource("EnemyWaveEntry_1"), SubResou
 par_time_seconds = 120.0
 hint_text = "Tank enemies have high health. Use explosive runes to deal area damage, or acceleration runes to speed up your fireball!"
 allowed_runes = Array[int]([0, 2, 3, 4, 5])
+difficulty = 9
+heat_increase_interval = 2.0

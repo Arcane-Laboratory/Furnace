@@ -12,6 +12,9 @@ signal debug_wave_restarted()  # Emitted in debug mode when wave restarts
 ## Current level data
 var current_level_data: LevelData = null
 
+## Current heat value (set by GameScene, used for health multiplier)
+var current_heat: int = 0
+
 ## All spawned enemies (for tracking)
 var active_enemies: Array[EnemyBase] = []
 
@@ -76,9 +79,17 @@ func _apply_enemy_definition(enemy: EnemyBase, definition: EnemyDefinition, path
 	if not is_instance_valid(enemy):
 		return
 	
+	# Calculate health multiplier from current heat (exponential: 1.15^heat)
+	# Heat starts at difficulty and increases over time during active phase
+	var health_multiplier: float = 1.0
+	health_multiplier = pow(1.15, float(current_heat))
+	
 	# Set enemy stats from definition - this overrides any defaults set in _on_enemy_ready()
-	enemy.health = definition.health
-	enemy.max_health = definition.health
+	# Apply heat multiplier to health
+	var base_health: int = definition.health
+	var adjusted_health: int = int(base_health * health_multiplier)
+	enemy.health = adjusted_health
+	enemy.max_health = adjusted_health
 	enemy.speed = definition.speed
 	
 	# Set enemy path
