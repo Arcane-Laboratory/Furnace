@@ -69,6 +69,9 @@ func set_path(path: Array[Vector2i]) -> void:
 		var start_pos := _grid_to_world(path[0])
 		position = start_pos
 		grid_position = path[0]
+		# Set initial z_index based on Y position for depth sorting
+		# Use multiplier to allow walls to render above enemies at lower Y positions
+		z_index = grid_position.y * 10
 		
 		# Play walk animation when path is set and enemy becomes active
 		if animation_manager:
@@ -83,11 +86,12 @@ func take_damage(amount: int) -> void:
 	if health_bar:
 		health_bar.update_health(health, max_health)
 	
+	# Show floating damage number for all hits, including killing blow
+	FloatingNumberManager.show_number(amount, global_position, Color.RED, null, 1.0, true)
+	
 	if health <= 0:
 		_die()
 	else:
-		# Show floating damage number only if enemy survives
-		FloatingNumberManager.show_number(amount, global_position, Color.RED, null, 1.0, true)
 		_on_damaged(amount)
 
 
@@ -150,6 +154,12 @@ func _physics_process(_delta: float) -> void:
 		velocity = direction * speed
 		move_and_slide()
 		
+		# Update z_index continuously based on current Y position for depth sorting
+		# Higher Y (lower on screen) = higher z_index (renders on top)
+		# Use multiplier to allow walls to render above enemies at lower Y positions
+		var current_grid_y := int(position.y / GameConfig.TILE_SIZE)
+		z_index = current_grid_y * 10
+		
 		# Update sprite flip based on movement direction
 		if animation_manager:
 			animation_manager.set_flip_h(direction.x < 0)
@@ -165,6 +175,10 @@ func _physics_process(_delta: float) -> void:
 		# Update grid position
 		if current_path_index < current_path.size():
 			grid_position = current_path[current_path_index]
+			# Update z_index based on Y position for depth sorting
+			# Higher Y (lower on screen) = higher z_index (renders on top)
+			# Use multiplier to allow walls to render above enemies at lower Y positions
+			z_index = grid_position.y * 10
 
 
 ## Get current grid position (for fireball collision detection)

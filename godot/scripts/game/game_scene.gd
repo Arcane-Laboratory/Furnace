@@ -68,7 +68,9 @@ func _ready() -> void:
 	_load_background()
 	_load_level_data()
 	_initialize_tile_system()
-	_draw_grid()
+	# Hide grid overlay - grid is hidden on background
+	grid_overlay.visible = false
+	# _draw_grid()  # Disabled - grid is hidden
 	_create_hover_highlight()
 	_create_spawn_point_markers()
 	
@@ -369,25 +371,44 @@ func _create_wall_visual(grid_pos: Vector2i) -> Node2D:
 	var visual := Node2D.new()
 	visual.name = "PresetWall_%d_%d" % [grid_pos.x, grid_pos.y]
 	
-	# Create a colored rectangle matching the wall definition
-	var rect := ColorRect.new()
-	var size := Vector2(GameConfig.TILE_SIZE - 4, GameConfig.TILE_SIZE - 4)
-	rect.size = size
-	rect.position = -size / 2.0
-	rect.color = Color(0.5, 0.5, 0.5, 1.0)  # Gray for walls
-	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visual.add_child(rect)
+	# Set z_index based on Y position for Y-sorting (higher Y = higher z_index, renders on top)
+	# Walls should occlude enemies that are higher up on screen (lower Y) than the wall
+	# Enemies use z_index = grid_y * 10, so walls use grid_pos.y * 10 + 5 to render above
+	# This ensures walls at Y=5 (z_index=55) render above enemies at Y=3 (z_index=30)
+	visual.z_index = grid_pos.y * 10 + 5
 	
-	# Add a "W" label
-	var label := Label.new()
-	label.text = "W"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.size = size
-	label.position = -size / 2.0
-	label.add_theme_color_override("font_color", Color.WHITE)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visual.add_child(label)
+	# Load wall sprite
+	var wall_texture := load("res://assets/sprites/wall.png") as Texture2D
+	if wall_texture:
+		var sprite := Sprite2D.new()
+		sprite.texture = wall_texture
+		# Position sprite so bottom aligns with tile bottom (for taller sprites)
+		# Sprite is taller than tile, so offset upward by half the extra height
+		var sprite_height := wall_texture.get_height()
+		var tile_height := GameConfig.TILE_SIZE
+		var offset_y := (sprite_height - tile_height) / 2.0
+		sprite.position = Vector2(0, -offset_y)
+		visual.add_child(sprite)
+	else:
+		# Fallback: Create a colored rectangle matching the wall definition
+		var rect := ColorRect.new()
+		var size := Vector2(GameConfig.TILE_SIZE - 4, GameConfig.TILE_SIZE - 4)
+		rect.size = size
+		rect.position = -size / 2.0
+		rect.color = Color(0.5, 0.5, 0.5, 1.0)  # Gray for walls
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		visual.add_child(rect)
+		
+		# Add a "W" label
+		var label := Label.new()
+		label.text = "W"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.size = size
+		label.position = -size / 2.0
+		label.add_theme_color_override("font_color", Color.WHITE)
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		visual.add_child(label)
 	
 	# Position the visual
 	visual.position = Vector2(
@@ -425,9 +446,12 @@ func _create_rune_visual(grid_pos: Vector2i, rune_type: String, direction: Strin
 		var rune := rune_node as RuneBase
 		rune.set_grid_position(grid_pos)
 		
-		# Set direction
-		var dir_vector := _direction_string_to_vector(direction)
-		if rune.has_method("set_direction"):
+		# Set direction (redirect runes and portal runes use set_direction_by_string)
+		if rune.has_method("set_direction_by_string"):
+			rune.set_direction_by_string(direction)
+		elif rune.has_method("set_direction"):
+			# Fallback for other rune types that might use Vector2 direction
+			var dir_vector := _direction_string_to_vector(direction)
 			rune.set_direction(dir_vector)
 	elif rune_node is Node2D:
 		(rune_node as Node2D).position = Vector2(

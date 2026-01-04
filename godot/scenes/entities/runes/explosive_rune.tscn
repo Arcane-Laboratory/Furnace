@@ -1,14 +1,16 @@
-[gd_scene load_steps=2 format=3 uid="uid://c3explosive_rune"]
+[gd_scene load_steps=3 format=3 uid="uid://c3explosive_rune"]
 
 [ext_resource type="Script" uid="uid://cexplosive_script" path="res://scripts/entities/runes/explosive_rune.gd" id="1_explosive"]
+[ext_resource type="Texture2D" uid="uid://rune_explosion" path="res://assets/sprites/rune-explosion.png" id="2_explosive"]
 
 [node name="ExplosiveRune" type="Node2D"]
-z_index = -1
 script = ExtResource("1_explosive")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_explosive")
 
 [node name="RuneVisual" type="ColorRect" parent="."]
+visible = false
 offset_left = -12.0
 offset_top = -12.0
 offset_right = 12.0
@@ -16,6 +18,7 @@ offset_bottom = 12.0
 color = Color(0.9, 0.3, 0.2, 1)
 
 [node name="ExplosiveIcon" type="ColorRect" parent="."]
+visible = false
 offset_left = -4.0
 offset_top = -4.0
 offset_right = 4.0

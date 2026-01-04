@@ -24,6 +24,8 @@ func _on_rune_ready() -> void:
 	rune_type = "portal"
 	_update_direction_visual()
 	_update_portal_visual()
+	# Up5date sprite after a frame to ensure sprite node is ready
+	call_deferred("_update_portal_sprite")
 
 
 func _on_activate(fireball: Node2D) -> void:
@@ -98,6 +100,7 @@ func set_direction_by_string(dir_string: String) -> void:
 		"west":
 			direction = Direction.WEST
 	_update_direction_visual()
+	_update_portal_sprite()
 
 
 ## Link this portal to another portal
@@ -110,6 +113,10 @@ func link_to(other_portal: PortalRune) -> void:
 func _update_direction_visual() -> void:
 	if not direction_indicator:
 		return
+	
+	# Hide direction indicator
+	direction_indicator.visible = false
+	return
 	
 	# Reset position and set based on direction
 	# Indicator is 8x8 pixels, positioned at edge of rune
@@ -146,6 +153,34 @@ func _update_portal_visual() -> void:
 		else:
 			# Exit portal - lighter purple
 			visual.color = Color(0.7, 0.3, 0.95, 1.0)
+
+
+## Update portal sprite based on direction
+func _update_portal_sprite() -> void:
+	if not sprite:
+		return
+	
+	# Load the appropriate directional sprite
+	var sprite_path: String
+	match direction:
+		Direction.NORTH:
+			sprite_path = "res://assets/sprites/portal-up.png"
+		Direction.SOUTH:
+			sprite_path = "res://assets/sprites/portal-down.png"
+		Direction.EAST:
+			sprite_path = "res://assets/sprites/portal-right.png"
+		Direction.WEST:
+			sprite_path = "res://assets/sprites/portal-left.png"
+	
+	var texture := load(sprite_path) as Texture2D
+	if texture:
+		sprite.texture = texture
+		# Position sprite so bottom aligns with tile bottom (for taller sprites)
+		# Sprite is taller than tile, so offset upward by half the extra height
+		var sprite_height := texture.get_height()
+		var tile_height := GameConfig.TILE_SIZE
+		var offset_y := (sprite_height - tile_height) / 2.0
+		sprite.position = Vector2(0, -offset_y)
 
 
 ## Play teleport effect

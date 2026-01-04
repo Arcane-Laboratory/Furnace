@@ -257,10 +257,16 @@ func _execute_placement(grid_pos: Vector2i, definition: Resource) -> bool:
 			(structure_node as RuneBase).set_grid_position(grid_pos)
 		elif structure_node is Node2D:
 			# For non-rune items (like walls), just set world position
-			(structure_node as Node2D).position = Vector2(
+			var node_2d := structure_node as Node2D
+			node_2d.position = Vector2(
 				grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
 				grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 			)
+			# Set z_index based on Y position for Y-sorting (higher Y = higher z_index, renders on top)
+			# Walls should occlude enemies that are higher up on screen (lower Y) than the wall
+			# Enemies use z_index = grid_y * 10, so walls use grid_pos.y * 10 + 5 to render above
+			# This ensures walls at Y=5 (z_index=55) render above enemies at Y=3 (z_index=30)
+			node_2d.z_index = grid_pos.y * 10 + 5
 	
 	# Update tile occupancy (mark as player-placed)
 	TileManager.set_occupancy(grid_pos, occupancy_type, structure_node, true, definition.item_type)
@@ -434,7 +440,22 @@ func _create_fallback_visual(definition: Resource) -> Node2D:
 	var visual := Node2D.new()
 	visual.name = "PlacedItem_%s" % definition.item_type
 	
-	# Create a colored rectangle as placeholder
+	# Special handling for walls - use wall sprite
+	if definition.item_type == "wall":
+		var wall_texture := load("res://assets/sprites/wall.png") as Texture2D
+		if wall_texture:
+			var sprite := Sprite2D.new()
+			sprite.texture = wall_texture
+			# Position sprite so bottom aligns with tile bottom (for taller sprites)
+			# Sprite is taller than tile, so offset upward by half the extra height
+			var sprite_height := wall_texture.get_height()
+			var tile_height := GameConfig.TILE_SIZE
+			var offset_y := (sprite_height - tile_height) / 2.0
+			sprite.position = Vector2(0, -offset_y)
+			visual.add_child(sprite)
+			return visual
+	
+	# Fallback: Create a colored rectangle as placeholder
 	var rect := ColorRect.new()
 	var size := Vector2(GameConfig.TILE_SIZE - 4, GameConfig.TILE_SIZE - 4)
 	rect.size = size

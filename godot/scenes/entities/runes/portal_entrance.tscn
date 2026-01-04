@@ -3,13 +3,13 @@
 [ext_resource type="Script" uid="uid://cportal_script" path="res://scripts/entities/runes/portal_rune.gd" id="1_portal"]
 
 [node name="PortalEntrance" type="Node2D"]
-z_index = -1
 script = ExtResource("1_portal")
 is_entrance = true
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 
 [node name="RuneVisual" type="ColorRect" parent="."]
+visible = false
 offset_left = -12.0
 offset_top = -12.0
 offset_right = 12.0
@@ -31,6 +31,7 @@ offset_bottom = 4.0
 color = Color(0.1, 0.05, 0.2, 1)
 
 [node name="DirectionIndicator" type="ColorRect" parent="."]
+visible = false
 offset_left = -4.0
 offset_top = 4.0
 offset_right = 4.0

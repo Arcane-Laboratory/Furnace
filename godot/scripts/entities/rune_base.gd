@@ -71,6 +71,15 @@ func set_grid_position(pos: Vector2i) -> void:
 		pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2,
 		pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2
 	)
+	# Set z_index based on Y position for Y-sorting (higher Y = higher z_index, renders on top)
+	# Use negative offset so runes render below enemies (z_index 0), HP bars (z_index 2), and floating numbers
+	z_index = pos.y - 10
+	
+	# Update sprite positioning for taller sprites (portals, etc.)
+	_update_sprite_positioning()
+	
+	# Update sprite rotation if this rune has direction (redirect runes)
+	_update_sprite_rotation_if_needed()
 
 
 ## Get the resource cost for this rune type
@@ -118,3 +127,20 @@ func _on_upgrade(_new_level: int) -> void:
 ## Check if this rune is editable during active phase (override in subclasses)
 func is_editable_in_active_phase() -> bool:
 	return false
+
+
+## Update sprite positioning for taller sprites (override in subclasses if needed)
+func _update_sprite_positioning() -> void:
+	# Base implementation does nothing - subclasses can override
+	# Portal runes handle this in their _update_portal_sprite method
+	# This is called after set_grid_position to ensure sprites are positioned correctly
+	if has_method("_update_portal_sprite"):
+		call("_update_portal_sprite")
+
+
+## Update sprite rotation if this rune has direction (override in subclasses)
+func _update_sprite_rotation_if_needed() -> void:
+	# Base implementation does nothing - subclasses can override
+	# Redirect runes handle this in their _update_sprite_rotation method
+	if has_method("_update_sprite_rotation"):
+		call("_update_sprite_rotation")

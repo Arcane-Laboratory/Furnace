@@ -23,6 +23,9 @@ var _game_font: FontFile
 
 
 func _ready() -> void:
+	# Set high z_index so floating numbers render above all walls, tiles, and enemies
+	z_index = 1000
+	
 	# Load game font
 	_game_font = load("res://theme/Tiny5-Regular.ttf") as FontFile
 	

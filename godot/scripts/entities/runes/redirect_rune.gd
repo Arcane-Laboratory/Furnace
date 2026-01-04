@@ -20,6 +20,8 @@ func _on_rune_ready() -> void:
 	rune_type = "redirect"
 	_update_direction_visual()
 	_update_level_visual()
+	# Update sprite rotation after a frame to ensure sprite node is ready
+	call_deferred("_update_sprite_rotation")
 
 
 func _on_activate(fireball: Node2D) -> void:
@@ -52,6 +54,8 @@ func set_direction_by_string(dir_string: String) -> void:
 		"west":
 			direction = Direction.WEST
 	_update_direction_visual()
+	# Update sprite rotation (deferred to ensure sprite is ready)
+	call_deferred("_update_sprite_rotation")
 
 
 ## Get direction as Vector2
@@ -131,3 +135,29 @@ func _on_upgrade(new_level: int) -> void:
 ## Override: Level 2 redirect runes can be edited during active phase
 func is_editable_in_active_phase() -> bool:
 	return current_level >= 2
+
+
+## Update sprite rotation based on direction
+func _update_sprite_rotation() -> void:
+	# Get sprite node directly from the scene tree
+	var sprite_node := get_node_or_null("Sprite2D") as Sprite2D
+	if not sprite_node:
+		# Try using the sprite from parent class if direct access fails
+		if sprite:
+			sprite_node = sprite
+		else:
+			return
+	
+	# Rotate sprite to face the direction
+	# Sprite asset has base rotation of -90 degrees (90° clockwise) in scene file
+	# Base rotation makes sprite face WEST. Add rotation relative to that.
+	# Base rotation: -90° (sprite faces WEST after base rotation)
+	match direction:
+		Direction.NORTH:
+			sprite_node.rotation_degrees = -90.0 + 90.0  # = 0° (rotate 90° CCW from base to face north)
+		Direction.SOUTH:
+			sprite_node.rotation_degrees = -90.0 + (-90.0)  # = -180° (rotate 90° CW from base to face south)
+		Direction.EAST:
+			sprite_node.rotation_degrees = -90.0 + 180.0  # = 90° (rotate 180° from base to face east)
+		Direction.WEST:
+			sprite_node.rotation_degrees = -90.0  # Base rotation (face west)

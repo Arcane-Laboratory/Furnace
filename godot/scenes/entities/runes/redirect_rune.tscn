@@ -1,14 +1,17 @@
-[gd_scene load_steps=2 format=3 uid="uid://baumibt8wukwt"]
+[gd_scene load_steps=3 format=3 uid="uid://3d72pwnuafob"]
 
-[ext_resource type="Script" path="res://scripts/entities/runes/redirect_rune.gd" id="1_redirect"]
+[ext_resource type="Script" uid="uid://cfu6gvrmq0446" path="res://scripts/entities/runes/redirect_rune.gd" id="1_redirect"]
+[ext_resource type="Texture2D" uid="uid://ddapil5bet0bk" path="res://assets/sprites/rune-redirect.png" id="2_redirect"]
 
 [node name="RedirectRune" type="Node2D"]
-z_index = -1
 script = ExtResource("1_redirect")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+rotation = -1.5707964
+texture = ExtResource("2_redirect")
 
 [node name="RuneVisual" type="ColorRect" parent="."]
+visible = false
 offset_left = -12.0
 offset_top = -12.0
 offset_right = 12.0
@@ -16,6 +19,7 @@ offset_bottom = 12.0
 color = Color(0.9, 0.8, 0.2, 1)
 
 [node name="DirectionIndicator" type="ColorRect" parent="."]
+visible = false
 offset_left = -4.0
 offset_top = 4.0
 offset_right = 4.0

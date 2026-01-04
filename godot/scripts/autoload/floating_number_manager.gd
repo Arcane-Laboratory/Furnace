@@ -26,6 +26,8 @@ func _ready() -> void:
 	# Create container for floating numbers (will be added to current scene)
 	_container = Node2D.new()
 	_container.name = "FloatingNumberContainer"
+	# Set high z_index so floating numbers render above all walls, tiles, and enemies
+	_container.z_index = 1000
 	
 	# Try to add container immediately if scene is ready
 	call_deferred("_ensure_container_in_tree")
@@ -37,6 +39,8 @@ func _ensure_container_in_tree() -> void:
 	if not is_instance_valid(_container):
 		_container = Node2D.new()
 		_container.name = "FloatingNumberContainer"
+		# Set high z_index so floating numbers render above all walls, tiles, and enemies
+		_container.z_index = 1000
 		# Clear pool and active numbers since their nodes were freed with the old container
 		_pool.clear()
 		_active_numbers.clear()

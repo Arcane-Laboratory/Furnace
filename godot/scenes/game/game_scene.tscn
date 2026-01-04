@@ -1,22 +1,22 @@
 [gd_scene load_steps=6 format=3 uid="uid://b06ob7kxsjkag"]
 
-[ext_resource type="Script" uid="uid://c0rix0gyi2o0x" path="res://scripts/game/game_scene.gd" id="1_game"]
+[ext_resource type="Script" uid="uid://bvxxnk05lkk4q" path="res://scripts/game/game_scene.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="2_pause"]
 [ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_ydf3n"]
-[ext_resource type="StyleBox" uid="uid://dlbfo6wh0pcbr" path="res://style_box_9p_large.tres" id="3_p0de3"]
-[ext_resource type="Script" uid="uid://cjysgd6un04nh" path="res://scripts/game/path_preview.gd" id="3_path_preview"]
+[ext_resource type="StyleBox" path="res://style_box_9p_large.tres" id="3_p0de3"]
+[ext_resource type="Script" uid="uid://bkx4rum0dc8ux" path="res://scripts/game/path_preview.gd" id="3_path_preview"]
 
 [node name="GameScene" type="Node2D"]
 script = ExtResource("1_game")
 
 [node name="BaseBackground" type="ColorRect" parent="."]
-z_index = -3
+z_index = -100
 offset_right = 640.0
 offset_bottom = 360.0
 color = Color(0.12, 0.12, 0.14, 1)
 
 [node name="Background" type="Sprite2D" parent="."]
-z_index = -3
+z_index = -100
 texture_filter = 1
 position = Vector2(320, 180)
 
