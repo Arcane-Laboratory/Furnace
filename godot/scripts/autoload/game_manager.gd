@@ -31,9 +31,6 @@ func set_state(new_state: GameState) -> void:
 
 
 func add_resources(amount: int) -> void:
-	if amount > 0:
-		# Play pickup spark sound when resources are gained
-		AudioManager.play_sound_effect("pickup-spark")
 	resources += amount
 	resources_changed.emit(resources)
 
