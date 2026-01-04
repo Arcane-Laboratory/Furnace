@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=5 format=3 uid="uid://dqmm3aga5hyk5"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=5 format=3 uid="uid://c2d7161eewqll"]
 
 [ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
 [ext_resource type="Script" uid="uid://oi70e4rojnys" path="res://scripts/resources/enemy_wave_entry.gd" id="2"]
@@ -22,3 +22,4 @@ spawn_points = Array[Vector2i]([Vector2i(6, 6)])
 enemy_waves = Array[ExtResource("2")]([SubResource("Resource_debug1"), SubResource("Resource_debug2")])
 par_time_seconds = 999.0
 hint_text = "[DEBUG] Test level with all items unlocked and invincibility enabled."
+heat_increase_interval = 4.0

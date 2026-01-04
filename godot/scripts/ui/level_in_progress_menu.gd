@@ -27,6 +27,12 @@ func set_level(level: int) -> void:
 		game_submenu.set_level(level)
 
 
+## Set the heat display
+func set_heat(heat: int) -> void:
+	if game_submenu:
+		game_submenu.set_heat(heat)
+
+
 ## Reset all active phase stats
 func reset_stats() -> void:
 	if in_progress_submenu and in_progress_submenu.has_method("reset_stats"):
