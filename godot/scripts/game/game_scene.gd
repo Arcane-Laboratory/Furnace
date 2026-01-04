@@ -377,7 +377,7 @@ func _create_preset_structures() -> void:
 				tile.structure = wall_visual
 	
 	# Create wall visuals for terrain_blocked (immovable walls/terrain)
-	if current_level_data and current_level_data.has("terrain_blocked"):
+	if current_level_data and current_level_data.terrain_blocked.size() > 0:
 		for terrain_pos in current_level_data.terrain_blocked:
 			var wall_visual := _create_wall_visual(terrain_pos)
 			if wall_visual:
