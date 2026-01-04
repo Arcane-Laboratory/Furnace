@@ -1,11 +1,229 @@
-[gd_scene load_steps=6 format=3 uid="uid://b06ob7kxsjkag"]
+[gd_scene load_steps=35 format=3 uid="uid://b06ob7kxsjkag"]
 
 [ext_resource type="Script" uid="uid://c0rix0gyi2o0x" path="res://scripts/game/game_scene.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="2_pause"]
 [ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_ydf3n"]
 [ext_resource type="StyleBox" uid="uid://dlbfo6wh0pcbr" path="res://style_box_9p_large.tres" id="3_p0de3"]
 [ext_resource type="Script" uid="uid://cjysgd6un04nh" path="res://scripts/game/path_preview.gd" id="3_path_preview"]
-[ext_resource type="Script" path="res://scripts/game/furnace_animation.gd" id="4_furnace_anim"]
+[ext_resource type="Texture2D" path="res://assets/sprites/furnace-furnace-sheet.png" id="3_furnace_sprite"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f0"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 0, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f1"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 94, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f2"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 188, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f3"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 282, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f4"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 376, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f5"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 470, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f6"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 564, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f7"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 658, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f8"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 752, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f9"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 846, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f10"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 940, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f11"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1034, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f12"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1128, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f13"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1222, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f14"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1316, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f15"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1410, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f16"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1504, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f17"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1598, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f18"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1692, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f19"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1786, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f20"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1880, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f21"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 1974, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f22"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 2068, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f23"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 2162, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f24"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 2256, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f25"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 2350, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f26"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 2444, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f27"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 2538, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f28"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 2632, 492, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f29"]
+atlas = ExtResource("3_furnace_sprite")
+region = Rect2(0, 2726, 492, 94)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_furnace"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f9")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f10")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f11")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f12")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f13")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f14")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f15")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f16")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f17")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f18")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f19")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f20")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f21")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f22")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f23")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f24")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f25")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f26")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f27")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f28")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f29")
+}],
+"loop": true,
+"name": &"furnace_loop",
+"speed": 20.0
+}]
 
 [node name="GameScene" type="Node2D"]
 script = ExtResource("1_game")
@@ -21,12 +239,12 @@ z_index = -100
 texture_filter = 1
 position = Vector2(320, 180)
 
-[node name="FurnaceAnimation" type="Node2D" parent="."]
+[node name="FurnaceAnimation" type="AnimatedSprite2D" parent="."]
 z_index = -99
 position = Vector2(320, 47)
-script = ExtResource("4_furnace_anim")
-
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="FurnaceAnimation"]
+sprite_frames = SubResource("SpriteFrames_furnace")
+animation = &"furnace_loop"
+autoplay = true
 
 [node name="GameBoard" type="Node2D" parent="."]
 position = Vector2(40, 96)
