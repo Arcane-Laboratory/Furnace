@@ -373,6 +373,16 @@ func _create_preset_structures() -> void:
 			if tile:
 				tile.structure = wall_visual
 	
+	# Create wall visuals for terrain_blocked (immovable walls/terrain)
+	for terrain_pos in current_level_data.terrain_blocked:
+		var wall_visual := _create_wall_visual(terrain_pos)
+		if wall_visual:
+			runes_container.add_child(wall_visual)
+			# Update tile to reference this structure
+			var tile := TileManager.get_tile(terrain_pos)
+			if tile:
+				tile.structure = wall_visual
+	
 	# Create preset rune visuals
 	for rune_data in current_level_data.preset_runes:
 		var rune_pos: Vector2i = rune_data.get("position", Vector2i.ZERO)

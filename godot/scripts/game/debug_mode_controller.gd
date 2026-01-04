@@ -281,15 +281,28 @@ func _place_debug_spawn_point(grid_pos: Vector2i) -> void:
 
 ## Create a visual marker for debug spawn point
 func _create_debug_spawn_marker(grid_pos: Vector2i) -> void:
-	var marker := ColorRect.new()
+	# Use the proper spawn point marker scene
+	var marker_scene := load("res://scenes/tiles/spawn_point_marker.tscn") as PackedScene
+	if not marker_scene:
+		push_error("DebugModeController: Failed to load spawn_point_marker.tscn")
+		return
+	
+	var marker_node: Node = marker_scene.instantiate()
+	if not marker_node:
+		push_error("DebugModeController: Failed to instantiate spawn point marker")
+		return
+	
+	var marker: Node2D = marker_node as Node2D
+	if not marker:
+		push_error("DebugModeController: Spawn point marker is not a Node2D")
+		marker_node.queue_free()
+		return
+	
 	marker.name = "DebugSpawn_%d_%d" % [grid_pos.x, grid_pos.y]
-	marker.size = Vector2(GameConfig.TILE_SIZE - 4, GameConfig.TILE_SIZE - 4)
 	marker.position = Vector2(
-		grid_pos.x * GameConfig.TILE_SIZE + 2,
-		grid_pos.y * GameConfig.TILE_SIZE + 2
+		grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+		grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 	)
-	marker.color = Color(1.0, 0.5, 0.0, 0.6)  # Orange
-	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	# Add to spawn points container
 	if spawn_points_container:
@@ -329,19 +342,43 @@ func _place_debug_terrain(grid_pos: Vector2i) -> void:
 
 ## Create a visual marker for debug terrain
 func _create_debug_terrain_marker(grid_pos: Vector2i) -> void:
-	var marker := ColorRect.new()
-	marker.name = "DebugTerrain_%d_%d" % [grid_pos.x, grid_pos.y]
-	marker.size = Vector2(GameConfig.TILE_SIZE - 4, GameConfig.TILE_SIZE - 4)
-	marker.position = Vector2(
-		grid_pos.x * GameConfig.TILE_SIZE + 2,
-		grid_pos.y * GameConfig.TILE_SIZE + 2
+	# Use the same wall visual as preset walls
+	var visual := Node2D.new()
+	visual.name = "DebugTerrain_%d_%d" % [grid_pos.x, grid_pos.y]
+	
+	# Set z_index based on Y position for Y-sorting (same as preset walls)
+	visual.z_index = grid_pos.y * 10 + 5
+	
+	# Load wall sprite
+	var wall_texture := load("res://assets/sprites/wall.png") as Texture2D
+	if wall_texture:
+		var sprite := Sprite2D.new()
+		sprite.texture = wall_texture
+		# Position sprite so bottom aligns with tile bottom (for taller sprites)
+		var sprite_height := wall_texture.get_height()
+		var tile_height := GameConfig.TILE_SIZE
+		var offset_y := (sprite_height - tile_height) / 2.0
+		sprite.position = Vector2(0, -offset_y)
+		visual.add_child(sprite)
+	else:
+		# Fallback: Create a colored rectangle
+		var rect := ColorRect.new()
+		var size := Vector2(GameConfig.TILE_SIZE - 4, GameConfig.TILE_SIZE - 4)
+		rect.size = size
+		rect.position = -size / 2.0
+		rect.color = Color(0.4, 0.35, 0.3, 1.0)  # Dark gray/brown for terrain
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		visual.add_child(rect)
+	
+	# Position the visual
+	visual.position = Vector2(
+		grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+		grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
 	)
-	marker.color = Color(0.4, 0.35, 0.3, 0.7)  # Dark gray/brown for terrain
-	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	# Add to game board
 	if game_board:
-		game_board.add_child(marker)
+		game_board.add_child(visual)
 
 
 ## Remove a spawn point (right-click) - handles both debug-placed and original
