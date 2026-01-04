@@ -1,38 +1,33 @@
 [gd_scene load_steps=4 format=3 uid="uid://qe5w22j4tunx"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_ybj1t"]
-[ext_resource type="Script" uid="uid://bsku6m1ik0xko" path="res://scripts/ui/game_submenu.gd" id="2_lt872"]
+[ext_resource type="Script" path="res://scripts/ui/help_snackbar.gd" id="2_snackbar"]
 [ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="3_giyex"]
 
-[node name="help_snackbar" type="Control"]
-custom_minimum_size = Vector2(128, 76)
+[node name="HelpSnackbar" type="Control"]
+custom_minimum_size = Vector2(160, 76)
 layout_mode = 3
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -64.0
-offset_top = -40.0
-offset_right = 64.0
-offset_bottom = 36.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 168.0
+offset_bottom = 84.0
 theme = ExtResource("1_ybj1t")
-script = ExtResource("2_lt872")
+script = ExtResource("2_snackbar")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 visible = false
-custom_minimum_size = Vector2(128, 80)
+custom_minimum_size = Vector2(160, 80)
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 160.0
+offset_bottom = 76.0
 color = Color(0.19376665, 0.13948467, 0.17494023, 1)
 
 [node name="NinePatchRect" type="NinePatchRect" parent="."]
-layout_mode = 0
-offset_right = 128.0
-offset_bottom = 64.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 texture = ExtResource("3_giyex")
 patch_margin_left = 6
 patch_margin_top = 4
@@ -41,13 +36,9 @@ patch_margin_bottom = 4
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -64.0
-offset_right = 64.0
-offset_bottom = 64.0
-grow_horizontal = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 8
