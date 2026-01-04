@@ -91,7 +91,7 @@ texture = ExtResource("4_ubhyq")
 
 [node name="Label" type="Label" parent="CenterContainer/MarginContainer2/VBoxContainer/MoneyRow"]
 layout_mode = 2
-text = "Sparks Earned"
+text = "Sparks Used"
 
 [node name="HeatRow" type="HBoxContainer" parent="CenterContainer/MarginContainer2/VBoxContainer"]
 layout_mode = 2
