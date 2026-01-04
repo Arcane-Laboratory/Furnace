@@ -36,6 +36,7 @@ script = ExtResource("3_path_preview")
 position = Vector2(208, 0)
 
 [node name="FurnaceSprite" type="ColorRect" parent="GameBoard/FurnaceEntry"]
+visible = false
 offset_left = -16.0
 offset_top = -24.0
 offset_right = 16.0
