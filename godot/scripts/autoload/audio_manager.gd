@@ -54,6 +54,9 @@ var pending_track_path: String = ""  # Track to play after fade out completes
 var pending_fade_in: bool = true
 var is_transition: bool = false  # Track if we're transitioning between tracks
 
+# Current track path (stored because duplicated streams have empty resource_path)
+var current_track_path: String = ""
+
 
 func _ready() -> void:
 	# Create audio players
@@ -99,9 +102,8 @@ func play_music(track_path: String, fade_in: bool = true) -> void:
 		return
 	
 	# If same track is already playing, don't restart
-	if music_player.stream and music_player.stream.resource_path == track_path:
-		if music_player.playing:
-			return
+	if current_track_path == track_path and music_player.playing:
+		return
 	
 	# Load the audio stream
 	var stream: AudioStream = load(track_path)
@@ -122,7 +124,7 @@ func play_music(track_path: String, fade_in: bool = true) -> void:
 	
 	# No music playing - start with fade-in
 	is_transition = false
-	_start_music(stream, fade_in)
+	_start_music(stream, fade_in, track_path)
 
 
 ## Stop music with optional fade out
@@ -130,8 +132,9 @@ func stop_music(fade_out: bool = true) -> void:
 	if not music_player.playing:
 		return
 	
-	# Clear any pending track when stopping
+	# Clear any pending track and current track path when stopping
 	pending_track_path = ""
+	current_track_path = ""
 	
 	if fade_out:
 		_fade_out_music()
@@ -334,11 +337,15 @@ func _fade_in_music() -> void:
 
 
 ## Start playing music (internal helper)
-func _start_music(stream: AudioStream, fade_in: bool) -> void:
+func _start_music(stream: AudioStream, fade_in: bool, track_path: String = "") -> void:
 	music_player.stream = stream
 	
+	# Store the original track path (duplicated streams have empty resource_path)
+	if not track_path.is_empty():
+		current_track_path = track_path
+	
 	# Set looping based on track type
-	_set_stream_looping(stream)
+	_set_stream_looping()
 	
 	if fade_in:
 		# Set starting volume and prepare tween before playing
@@ -382,27 +389,31 @@ func _on_fade_out_complete() -> void:
 	if not pending_track_path.is_empty():
 		var stream: AudioStream = load(pending_track_path)
 		var should_fade: bool = pending_fade_in
-		var _track_path: String = pending_track_path  # Stored for potential future logging
+		var track_path: String = pending_track_path  # Store path before clearing
 		pending_track_path = ""  # Clear before starting
 		
 		if stream:
 			# Duplicate stream to avoid modifying shared resources
 			stream = stream.duplicate()
-			# For transitions, use fade-in
-			_start_music(stream, should_fade)
+			# For transitions, use fade-in (pass original track_path for looping detection)
+			_start_music(stream, should_fade, track_path)
+	else:
+		# No pending track - music was just stopped, clear current track path
+		current_track_path = ""
 
 
 ## Set looping on audio stream based on track path
-func _set_stream_looping(stream: AudioStream) -> void:
+## Uses current_track_path since duplicated streams have empty resource_path
+func _set_stream_looping() -> void:
+	var stream: AudioStream = music_player.stream
 	if not stream:
 		return
 	
-	var stream_path: String = stream.resource_path
-	
 	# Gameplay and main menu themes should loop
+	# Use stored current_track_path since duplicated streams have empty resource_path
 	var should_loop: bool = (
-		stream_path == gameplay_theme_path or 
-		stream_path == main_menu_theme_path
+		current_track_path == gameplay_theme_path or 
+		current_track_path == main_menu_theme_path
 	)
 	
 	# Set looping based on stream type
@@ -415,13 +426,13 @@ func _set_stream_looping(stream: AudioStream) -> void:
 
 
 ## Handle music finished signal - restart looping tracks
+## Uses current_track_path since duplicated streams have empty resource_path
 func _on_music_finished() -> void:
 	if not music_player.stream:
 		return
 	
-	var stream_path: String = music_player.stream.resource_path
-	
 	# Only restart if this is a looping track (gameplay or main menu)
-	if stream_path == gameplay_theme_path or stream_path == main_menu_theme_path:
+	# Use stored current_track_path since duplicated streams have empty resource_path
+	if current_track_path == gameplay_theme_path or current_track_path == main_menu_theme_path:
 		# Restart the track (it will loop automatically if stream looping is set)
 		music_player.play()
