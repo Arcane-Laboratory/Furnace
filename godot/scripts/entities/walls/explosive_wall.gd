@@ -12,6 +12,8 @@ var was_fireball_adjacent_last_frame: bool = false
 
 func _ready() -> void:
 	add_to_group("explosive_walls")
+	# Update sprite position after a frame to ensure sprite node is ready
+	call_deferred("_update_sprite_position")
 
 
 func _process(delta: float) -> void:
@@ -45,6 +47,9 @@ func set_grid_position(pos: Vector2i) -> void:
 	)
 	# Set z_index for depth sorting (same as regular walls)
 	z_index = pos.y * 10 + 5
+	
+	# Position sprite so bottom aligns with tile bottom (for taller sprites)
+	_update_sprite_position()
 
 
 func check_fireball_adjacent(fireball_pos: Vector2i) -> bool:
@@ -99,6 +104,18 @@ func explode() -> void:
 	
 	if enemies_hit > 0:
 		print("ExplosiveWall: Hit %d enemies for %d damage each" % [enemies_hit, GameConfig.explosive_wall_damage])
+
+
+func _update_sprite_position() -> void:
+	## Position sprite so bottom aligns with tile bottom (for taller sprites)
+	var sprite := get_node_or_null("Sprite2D") as Sprite2D
+	if not sprite or not sprite.texture:
+		return
+	
+	var sprite_height := sprite.texture.get_height()
+	var tile_height := GameConfig.TILE_SIZE
+	var offset_y := (sprite_height - tile_height) / 2.0
+	sprite.position = Vector2(0, -offset_y)
 
 
 func _play_explosion_effect() -> void:
