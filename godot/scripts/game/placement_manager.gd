@@ -135,7 +135,7 @@ func can_place_at(grid_pos: Vector2i) -> bool:
 		if grid_pos == tile_in_front_of_furnace:
 			return false
 	
-	if GameManager.resources < definition.cost:
+	if not GameManager.infinite_money and GameManager.resources < definition.cost:
 		return false
 	
 	# Check if this would block all paths (only for path-blocking items)
@@ -219,7 +219,7 @@ func try_place_item(grid_pos: Vector2i) -> bool:
 			return false
 	
 	# Check if player has enough money
-	if GameManager.resources < definition.cost:
+	if not GameManager.infinite_money and GameManager.resources < definition.cost:
 		placement_failed.emit("Not enough money!")
 		return false
 	
