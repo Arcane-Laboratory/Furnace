@@ -109,4 +109,5 @@ func _animate_currency_change(delta: int) -> void:
 
 ## Handle start button pressed
 func _on_start_button_pressed() -> void:
+	AudioManager.play_ui_click()
 	start_pressed.emit()

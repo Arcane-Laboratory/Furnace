@@ -32,4 +32,5 @@ func show_item_details(definition: BuildableItemDefinition) -> void:
 
 ## Handle close button pressed
 func _on_close_pressed() -> void:
+	AudioManager.play_ui_click()
 	close_requested.emit()

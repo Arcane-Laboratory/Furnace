@@ -23,8 +23,10 @@ func _ready() -> void:
 
 
 func _on_retry_pressed() -> void:
+	AudioManager.play_ui_click()
 	SceneManager.goto_game()
 
 
 func _on_menu_pressed() -> void:
+	AudioManager.play_ui_click()
 	SceneManager.goto_menu()

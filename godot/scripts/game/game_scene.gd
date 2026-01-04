@@ -720,6 +720,7 @@ func _on_all_enemies_defeated() -> void:
 # Called when enemy reaches furnace
 func _on_furnace_destroyed() -> void:
 	print("GameScene: Furnace destroyed - DEFEAT!")
+	AudioManager.play_sound_effect("furnace-death")
 	lose_level()
 
 
@@ -924,6 +925,9 @@ func _launch_fireball() -> void:
 	if not fireball:
 		print("GameScene: Failed to spawn fireball (may already be active)")
 		return
+	
+	# Play fireball spawn sound
+	AudioManager.play_sound_effect("fireball-spawn")
 
 
 func _on_start_pressed() -> void:
@@ -1009,6 +1013,7 @@ func win_level() -> void:
 
 ## Called when furnace is destroyed
 func lose_level() -> void:
+	AudioManager.play_sound_effect("level-failed")
 	GameManager.end_game(false)
 
 
@@ -1345,17 +1350,18 @@ func _on_upgrade_requested(grid_pos: Vector2i) -> void:
 
 ## Handle placement failed signal
 func _on_placement_failed(reason: String) -> void:
+	AudioManager.play_sound_effect("invalid-action")
 	_show_error_snackbar(reason)
 
 
 ## Handle placement succeeded signal
 func _on_placement_succeeded(_item_type: String, _grid_pos: Vector2i) -> void:
-	# Placement successful - could add sound effect here
-	pass
+	AudioManager.play_sound_effect("structure-buy")
 
 
 ## Handle item sold signal
 func _on_item_sold(_item_type: String, _grid_pos: Vector2i, _refund_amount: int) -> void:
+	AudioManager.play_sound_effect("structure-sell")
 	# Item sold - could add sound effect here
 	pass
 

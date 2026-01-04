@@ -245,4 +245,5 @@ func _create_drag_preview() -> Control:
 
 ## Handle details button press
 func _on_details_pressed() -> void:
+	AudioManager.play_ui_click()
 	details_requested.emit(item_type)

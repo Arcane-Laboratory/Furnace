@@ -28,6 +28,9 @@ func _on_activate(fireball: Node2D) -> void:
 				enemy.take_damage(GameConfig.explosive_damage)
 				enemies_hit += 1
 	
+	# Play activation sound
+	AudioManager.play_sound_effect("rune-generic")
+	
 	# Play explosion effect
 	_play_explosion_effect()
 	

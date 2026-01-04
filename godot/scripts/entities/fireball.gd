@@ -128,6 +128,9 @@ func launch(start_position: Vector2) -> void:
 	overlapping_enemies.clear()  # Reset collision tracking
 	current_grid_pos = _world_to_grid(position)
 	
+	# Start fireball travel sound (looping)
+	AudioManager.start_fireball_travel()
+	
 	# Reset sprite scale to base (power stacks affect scale)
 	_update_power_scale()
 	
@@ -401,6 +404,9 @@ func teleport_to(new_position: Vector2, new_direction: Vector2) -> void:
 ## Destroy the fireball
 func _destroy() -> void:
 	is_active = false
+	
+	# Stop fireball travel sound
+	AudioManager.stop_fireball_travel()
 	
 	# Clean up collision tracking
 	overlapping_enemies.clear()

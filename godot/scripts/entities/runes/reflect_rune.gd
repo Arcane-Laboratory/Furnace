@@ -35,6 +35,9 @@ func _on_activate(fireball: Node2D) -> void:
 	is_on_cooldown = true
 	cooldown_timer = GameConfig.reflect_rune_cooldown
 	
+	# Play activation sound
+	AudioManager.play_sound_effect("rune-generic")
+	
 	# Visual feedback (optional - flash the rune)
 	_play_activation_effect()
 

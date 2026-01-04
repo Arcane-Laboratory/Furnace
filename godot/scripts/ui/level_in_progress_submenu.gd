@@ -115,4 +115,5 @@ func set_wave_progress(progress: float) -> void:
 
 ## Handle restart button pressed
 func _on_restart_pressed() -> void:
+	AudioManager.play_ui_click()
 	restart_requested.emit()

@@ -13,6 +13,9 @@ func _on_activate(fireball: Node2D) -> void:
 	if fireball.has_method("add_speed_stack"):
 		fireball.add_speed_stack(GameConfig.acceleration_speed_increase, global_position)
 	
+	# Play activation sound
+	AudioManager.play_sound_effect("rune-accelerate")
+	
 	_play_activation_effect()
 
 

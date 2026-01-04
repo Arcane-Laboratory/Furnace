@@ -13,6 +13,9 @@ func _on_activate(fireball: Node2D) -> void:
 	if fireball.has_method("add_power_stack"):
 		fireball.add_power_stack(global_position)
 	
+	# Play activation sound
+	AudioManager.play_sound_effect("rune-generic")
+	
 	_play_activation_effect()
 
 

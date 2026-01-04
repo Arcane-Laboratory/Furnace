@@ -19,13 +19,16 @@ func _ready() -> void:
 
 
 func _on_start_pressed() -> void:
+	AudioManager.play_ui_click()
 	SceneManager.goto_game()
 
 
 func _on_settings_pressed() -> void:
+	AudioManager.play_ui_click()
 	# Placeholder - settings not implemented yet
 	pass
 
 
 func _on_quit_pressed() -> void:
+	AudioManager.play_ui_click()
 	get_tree().quit()

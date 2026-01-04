@@ -22,11 +22,13 @@ func hide_pause_menu() -> void:
 
 
 func _on_resume_pressed() -> void:
+	AudioManager.play_ui_click()
 	hide_pause_menu()
 	GameManager.resume_game()
 
 
 func _on_menu_pressed() -> void:
+	AudioManager.play_ui_click()
 	hide_pause_menu()
 	get_tree().paused = false
 	SceneManager.goto_menu()

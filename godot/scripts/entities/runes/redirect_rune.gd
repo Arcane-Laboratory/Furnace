@@ -40,6 +40,9 @@ func _on_activate(fireball: Node2D) -> void:
 	# Fireball should have a set_direction method
 	if fireball.has_method("set_direction"):
 		fireball.set_direction(new_direction)
+	
+	# Play activation sound
+	AudioManager.play_sound_effect("rune-generic")
 
 
 ## Set direction using string (for UI interaction)

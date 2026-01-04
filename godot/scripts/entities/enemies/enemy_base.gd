@@ -86,6 +86,9 @@ func take_damage(amount: int) -> void:
 	
 	health -= amount
 	
+	# Play damage sound (burn sound)
+	AudioManager.play_sound_effect("burn")
+	
 	# Update health bar if present
 	if health_bar:
 		health_bar.update_health(health, max_health)
@@ -111,6 +114,9 @@ func _die() -> void:
 	# Prevent multiple death calls
 	if health <= 0 and not is_active:
 		return
+	
+	# Play death sound
+	AudioManager.play_sound_effect("enemy-death")
 	
 	health = 0
 	is_active = false

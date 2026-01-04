@@ -9,8 +9,8 @@
   - Reflect rune: Uses cooldown system, infinite uses ✅
   - Both runes remain active after use ✅
 
-### 🟡 1.2: Implement Power Rune
-- **Status**: 🟡 IMPLEMENTED - PENDING QA VERIFICATION
+### ✅ 1.2: Implement Power Rune
+- **Status**: ✅ COMPLETE & QA VERIFIED
 - **Files Created**:
   - `godot/scripts/entities/runes/power_rune.gd` ✅
   - Power rune scene exists ✅
@@ -20,17 +20,17 @@
   - Added to placement manager ✅
   - Added to UI menus ✅
   - Fireball power stack system implemented ✅
-- **QA Status**: ⏳ Not yet verified by QA
+- **QA Status**: ✅ Verified by QA
 
-### 🟡 1.3: Update Acceleration Rune to Use Stacking System
-- **Status**: 🟡 IMPLEMENTED - PENDING QA VERIFICATION
+### ✅ 1.3: Update Acceleration Rune to Use Stacking System
+- **Status**: ✅ COMPLETE & QA VERIFIED
 - **Details**:
   - Speed stacks implemented in fireball ✅
   - `add_speed_stack()` method exists ✅
   - `remove_speed_stack()` method exists ✅
   - Stack loss on enemy hit (1 per hit) ✅
   - Speed cap updated to 5000.0 ✅
-- **QA Status**: ⏳ Not yet verified by QA
+- **QA Status**: ✅ Verified by QA
 
 ### ✅ 1.4: Add Fireball Status Modifiers (Speed/Power Stacks) with SFX/VFX
 - **Status**: ✅ COMPLETE (VFX), ❌ INCOMPLETE (SFX)
@@ -63,8 +63,8 @@
   - Fixed: Only explodes once per fireball pass ✅
   - Fixed: Doesn't damage dead enemies ✅
 
-### 🟡 2.2: Implement Mud Tile
-- **Status**: 🟡 IMPLEMENTED - PENDING QA VERIFICATION
+### ✅ 2.2: Implement Mud Tile
+- **Status**: ✅ COMPLETE & QA VERIFIED
 - **Files Created**:
   - `godot/scripts/entities/tiles/mud_tile.gd` ✅
   - Mud tile scene exists ✅
@@ -75,7 +75,7 @@
   - Added to UI menus ✅
   - Enemy slow effect (50%) implemented ✅
   - Mud tile detection in enemy movement ✅
-- **QA Status**: ⏳ Not yet verified by QA
+- **QA Status**: ✅ Verified by QA
 
 ---
 
@@ -143,35 +143,36 @@
 
 ## Summary
 
-### ✅ Completed & QA Verified (Phase 1 & 2)
+### ✅ Completed & QA Verified (Phases 1 & 2)
 - Multi-use runes (Explosive, Reflect) ✅
-- Explosive Wall (fully implemented with fixes) ✅
+- Power Rune ✅
+- Acceleration Rune stacking system ✅
+- Explosive Wall ✅
+- Mud Tile ✅
 - Status modifier VFX (text display) ✅
-
-### 🟡 Implemented - Pending QA Verification
-- Power Rune (implementation complete, QA pending)
-- Acceleration Rune stacking system (implementation complete, QA pending)
-- Mud Tile (implementation complete, QA pending)
 
 ### ❌ Remaining Work
 
-**Phase 3: Sound Effects** (HIGH PRIORITY)
+**Phase 3: Sound Effects Integration** (HIGH PRIORITY)
 - Extend AudioManager with sound effect system
 - Create sound effect config resource
 - Integrate all sound effects at appropriate points
 - **Estimated Time**: 4-6 hours
+- **Impact**: Will significantly improve game feel
 
 **Phase 4: Debug Mode Config** (MEDIUM PRIORITY)
 - Implement config file system
 - Update GameConfig to read from config
 - **Estimated Time**: 1-2 hours
+- **Impact**: Improves developer experience
 
-**Phase 5: Game Victory Card** (MEDIUM PRIORITY)
+**Phase 5: Game Victory Card** (MEDIUM PRIORITY - MVP Requirement)
 - Implement level completion tracking
 - Update game over screen for victory
 - **Estimated Time**: 2-3 hours
+- **Impact**: Completes MVP requirements
 
-**Phase 1.4: Sound Effects for Status Modifiers** (LOW PRIORITY - part of Phase 3)
+**Phase 1.4: Sound Effects for Status Modifiers** (Part of Phase 3)
 - Add SFX for stack gain/loss
 - Add SFX for rune activation
 
@@ -183,6 +184,7 @@
    - This is the largest remaining feature
    - Will significantly improve game feel
    - Follows the existing sound-effects-integration.plan.md
+   - Includes Phase 1.4 SFX work
 
 2. **Complete Phase 4: Debug Mode Config** (quick win)
    - Simple implementation

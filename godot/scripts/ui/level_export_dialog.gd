@@ -73,6 +73,7 @@ func hide_dialog() -> void:
 
 
 func _on_export_pressed() -> void:
+	AudioManager.play_ui_click()
 	var level_name := level_name_input.text.strip_edges()
 	if level_name.is_empty():
 		level_name = "New Level"
@@ -104,6 +105,7 @@ func _on_export_pressed() -> void:
 
 
 func _on_save_pressed() -> void:
+	AudioManager.play_ui_click()
 	var level_name := level_name_input.text.strip_edges()
 	if level_name.is_empty():
 		level_name = "New Level"
@@ -143,5 +145,6 @@ func _on_save_pressed() -> void:
 
 
 func _on_cancel_pressed() -> void:
+	AudioManager.play_ui_click()
 	cancelled.emit()
 	hide_dialog()

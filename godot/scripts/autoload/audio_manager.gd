@@ -12,6 +12,40 @@ var defeat_theme_path: String = ""  # To be added
 var music_player: AudioStreamPlayer
 var sfx_player: AudioStreamPlayer
 
+# Sound effect system
+var sound_effects: Dictionary = {
+	"rune-accelerate": "res://assets/audio/rune-accelerate.wav",
+	"rune-generic": "res://assets/audio/rune-generic.wav",
+	"burn": "res://assets/audio/burn.wav",
+	"fireball-spawn": "res://assets/audio/fireball-spawn.wav",
+	"enemy-death": "res://assets/audio/enemy-death.wav",
+	"furnace-death": "res://assets/audio/furnace-death.wav",
+	"level-failed": "res://assets/audio/level-failed.wav",
+	"click": "res://assets/audio/click.wav",
+	"structure-sell": "res://assets/audio/structure-sell.wav",
+	"structure-buy": "res://assets/audio/structure-buy.wav",
+	"pickup-spark": "res://assets/audio/pickup-spark.wav",
+	"invalid-action": "res://assets/audio/invalid-action.wav",
+	"fireball-travel": "res://assets/audio/fireball-travel.wav"
+}
+
+# Sound effect volume multipliers (designer-tunable via config resource)
+var sound_volumes: Dictionary = {}
+
+# Sound effect config resource (loaded from project)
+@export var sound_config: Resource = null
+
+# Pool of AudioStreamPlayers for rapid succession sounds (prevents cutting off)
+var sfx_pool: Array[AudioStreamPlayer] = []
+var pool_size: int = 8  # Support up to 8 simultaneous sounds
+
+# Fireball travel sound (looping) - dedicated player
+var fireball_travel_player: AudioStreamPlayer = null
+
+# Pitch modulation settings (to prevent repetitive sounds)
+var pitch_modulation_range: float = 0.15  # ±15% pitch variation
+var use_pitch_modulation: bool = true  # Can be disabled if needed
+
 # Fade transition settings
 var fade_duration: float = 1.0  # seconds for transitions
 var initial_fade_duration: float = 0.1  # seconds for initial playback from silence
@@ -28,6 +62,23 @@ func _ready() -> void:
 	
 	add_child(music_player)
 	add_child(sfx_player)
+	
+	# Create fireball travel player (for looping sound)
+	fireball_travel_player = AudioStreamPlayer.new()
+	add_child(fireball_travel_player)
+	
+	# Create SFX pool for rapid succession sounds
+	for i in range(pool_size):
+		var player := AudioStreamPlayer.new()
+		sfx_pool.append(player)
+		add_child(player)
+	
+	# Initialize sound volumes with defaults (1.0 for all)
+	for effect_name in sound_effects.keys():
+		sound_volumes[effect_name] = 1.0
+	
+	# Load sound config resource if it exists
+	_load_sound_config()
 	
 	# Connect to finished signal for looping
 	music_player.finished.connect(_on_music_finished)
@@ -88,7 +139,23 @@ func stop_music(fade_out: bool = true) -> void:
 		music_player.stop()
 
 
-## Play one-shot sound effect
+## Load sound effect config resource
+func _load_sound_config() -> void:
+	# Try to load config resource
+	var config_path := "res://resources/sound_effect_config.tres"
+	if ResourceLoader.exists(config_path):
+		sound_config = load(config_path) as SoundEffectConfig
+		if sound_config:
+			# Update volumes from config
+			for effect_name in sound_effects.keys():
+				var volume: float = sound_config.get_volume(effect_name)
+				if volume >= 0.0:  # Valid volume
+					sound_volumes[effect_name] = volume
+		else:
+			push_warning("AudioManager: Sound config resource exists but is not a SoundEffectConfig")
+
+
+## Play one-shot sound effect (legacy method - use play_sound_effect instead)
 func play_sfx(sfx_path: String) -> void:
 	if sfx_path.is_empty():
 		push_warning("AudioManager: Empty SFX path provided")
@@ -101,6 +168,113 @@ func play_sfx(sfx_path: String) -> void:
 	
 	sfx_player.stream = stream
 	sfx_player.play()
+
+
+## Play sound effect by name with volume control and pitch modulation
+func play_sound_effect(effect_name: String) -> void:
+	if not sound_effects.has(effect_name):
+		push_warning("AudioManager: Unknown sound effect: %s" % effect_name)
+		return
+	
+	var sfx_path: String = sound_effects[effect_name]
+	if sfx_path.is_empty():
+		push_warning("AudioManager: Empty SFX path for effect: %s" % effect_name)
+		return
+	
+	# Load the audio stream
+	var stream: AudioStream = load(sfx_path)
+	if not stream:
+		push_warning("AudioManager: Failed to load SFX: %s" % sfx_path)
+		return
+	
+	# Get volume multiplier (default to 1.0 if not set)
+	var volume_multiplier: float = sound_volumes.get(effect_name, 1.0)
+	
+	# Find an available player from the pool
+	var player: AudioStreamPlayer = _get_available_sfx_player()
+	if not player:
+		# All players busy, use main sfx_player (may cut off previous sound)
+		player = sfx_player
+	
+	# Set stream
+	player.stream = stream
+	
+	# Apply volume multiplier
+	var base_volume_db: float = 0.0  # Full volume
+	var final_volume_db: float = base_volume_db + linear_to_db(volume_multiplier)
+	player.volume_db = final_volume_db
+	
+	# Apply randomized pitch modulation to prevent repetitive sounds
+	if use_pitch_modulation:
+		var pitch_variation: float = randf_range(-pitch_modulation_range, pitch_modulation_range)
+		player.pitch_scale = 1.0 + pitch_variation
+	else:
+		player.pitch_scale = 1.0
+	
+	# Play the sound
+	player.play()
+
+
+## Get an available SFX player from the pool
+func _get_available_sfx_player() -> AudioStreamPlayer:
+	for player in sfx_pool:
+		if not player.playing:
+			return player
+	return null  # All players busy
+
+
+## Set volume multiplier for a specific sound effect (designer-tunable)
+func set_sound_volume(effect_name: String, volume_multiplier: float) -> void:
+	if not sound_effects.has(effect_name):
+		push_warning("AudioManager: Unknown sound effect: %s" % effect_name)
+		return
+	
+	# Clamp volume to reasonable range (0.0 to 2.0)
+	volume_multiplier = clamp(volume_multiplier, 0.0, 2.0)
+	sound_volumes[effect_name] = volume_multiplier
+
+
+## Get volume multiplier for a specific sound effect
+func get_sound_volume(effect_name: String) -> float:
+	return sound_volumes.get(effect_name, 1.0)
+
+
+## Play UI click sound (convenience method)
+func play_ui_click() -> void:
+	play_sound_effect("click")
+
+
+## Start fireball travel sound (looping)
+func start_fireball_travel() -> void:
+	if not fireball_travel_player:
+		return
+	
+	var sfx_path: String = sound_effects.get("fireball-travel", "")
+	if sfx_path.is_empty():
+		return
+	
+	var stream: AudioStream = load(sfx_path)
+	if not stream:
+		push_warning("AudioManager: Failed to load fireball-travel sound")
+		return
+	
+	# Set looping
+	if stream is AudioStreamWAV:
+		(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+	
+	# Get volume multiplier
+	var volume_multiplier: float = sound_volumes.get("fireball-travel", 1.0)
+	var final_volume_db: float = linear_to_db(volume_multiplier)
+	
+	fireball_travel_player.stream = stream
+	fireball_travel_player.volume_db = final_volume_db
+	fireball_travel_player.play()
+
+
+## Stop fireball travel sound
+func stop_fireball_travel() -> void:
+	if fireball_travel_player and fireball_travel_player.playing:
+		fireball_travel_player.stop()
 
 
 ## Play victory theme

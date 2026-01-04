@@ -146,6 +146,7 @@ func get_grid_pos() -> Vector2i:
 
 ## Handle sell button press
 func _on_sell_button_pressed() -> void:
+	AudioManager.play_ui_click()
 	if current_grid_pos != Vector2i(-1, -1):
 		sell_requested.emit(current_grid_pos)
 	hide_tooltip()
@@ -153,6 +154,7 @@ func _on_sell_button_pressed() -> void:
 
 ## Handle direction button press
 func _on_direction_pressed(direction: String) -> void:
+	AudioManager.play_ui_click()
 	if current_grid_pos == Vector2i(-1, -1):
 		return
 	
@@ -166,6 +168,7 @@ func _on_direction_pressed(direction: String) -> void:
 
 ## Handle upgrade button press
 func _on_upgrade_button_pressed() -> void:
+	AudioManager.play_ui_click()
 	if current_grid_pos == Vector2i(-1, -1):
 		return
 	

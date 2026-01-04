@@ -84,35 +84,42 @@ func _populate_level_list() -> void:
 
 
 func _on_export_pressed() -> void:
+	AudioManager.play_ui_click()
 	export_level_requested.emit()
 	hide_modal()
 
 
 func _on_go_to_level_pressed() -> void:
+	AudioManager.play_ui_click()
 	main_menu.visible = false
 	level_submenu.visible = true
 
 
 func _on_restart_level_pressed() -> void:
+	AudioManager.play_ui_click()
 	restart_level_requested.emit()
 	hide_modal()
 
 
 func _on_place_spawn_pressed() -> void:
+	AudioManager.play_ui_click()
 	place_spawn_point_requested.emit()
 	hide_modal()
 
 
 func _on_place_terrain_pressed() -> void:
+	AudioManager.play_ui_click()
 	place_terrain_requested.emit()
 	hide_modal()
 
 
 func _on_back_pressed() -> void:
+	AudioManager.play_ui_click()
 	main_menu.visible = true
 	level_submenu.visible = false
 
 
 func _on_level_selected(level_number: int) -> void:
+	AudioManager.play_ui_click()
 	go_to_level_requested.emit(level_number)
 	hide_modal()
