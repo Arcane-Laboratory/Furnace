@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://dx42pv0iig1xi"]
+[gd_scene load_steps=11 format=3 uid="uid://dx42pv0iig1xi"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_xtru7"]
 [ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="2_utswl"]
@@ -8,7 +8,8 @@
 [ext_resource type="Texture2D" uid="uid://blugxvg6vsan5" path="res://resources/ui_assets/lvl.png" id="6_sj312"]
 [ext_resource type="Texture2D" uid="uid://b6g6hi3j00ebv" path="res://resources/ui_assets/spark.png" id="7_kncp7"]
 [ext_resource type="Texture2D" uid="uid://cpcubwevvr3qb" path="res://resources/ui_assets/heat.png" id="8_5flt0"]
-[ext_resource type="Script" path="res://scripts/ui/level_in_progress_submenu.gd" id="9_script"]
+[ext_resource type="Script" uid="uid://bm3vyx42r32vr" path="res://scripts/ui/level_in_progress_submenu.gd" id="9_script"]
+[ext_resource type="PackedScene" uid="uid://q6vu7kf32cel" path="res://scenes/ui/stats_display.tscn" id="10_sj312"]
 
 [node name="InProgressSubmenu" type="Control"]
 custom_minimum_size = Vector2(128, 240)
@@ -104,6 +105,7 @@ tint_over = Color(1, 0.6725376, 0.3336057, 1)
 tint_progress = Color(0.93271756, 0.40183282, 5.77569e-06, 1)
 
 [node name="MarginContainer2" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 4
 theme_override_constants/margin_top = 4
@@ -192,5 +194,8 @@ texture = ExtResource("8_5flt0")
 [node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer2/VBoxContainer/HeatRow"]
 layout_mode = 2
 text = "Damage Dealt"
+
+[node name="StatsDisplay" parent="CenterContainer/VBoxContainer" instance=ExtResource("10_sj312")]
+layout_mode = 2
 
 [editable path="CenterContainer/VBoxContainer/MenuLabel"]

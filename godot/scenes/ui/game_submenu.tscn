@@ -1,11 +1,11 @@
 [gd_scene load_steps=9 format=3 uid="uid://dxuiv0flwd2jt"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_fa1kw"]
-[ext_resource type="Script" path="res://scripts/ui/game_submenu.gd" id="2_submenu"]
+[ext_resource type="Script" uid="uid://bsku6m1ik0xko" path="res://scripts/ui/game_submenu.gd" id="2_submenu"]
 [ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="3_3m0a8"]
 [ext_resource type="Texture2D" uid="uid://blugxvg6vsan5" path="res://resources/ui_assets/lvl.png" id="3_j16vh"]
 [ext_resource type="Texture2D" uid="uid://b6g6hi3j00ebv" path="res://resources/ui_assets/spark.png" id="4_3m0a8"]
-[ext_resource type="Texture2D" path="res://resources/ui_assets/9p_button.png" id="4_llnak"]
+[ext_resource type="Texture2D" uid="uid://bpmkcy3kxrgmx" path="res://resources/ui_assets/9p_button.png" id="4_llnak"]
 [ext_resource type="StyleBox" uid="uid://biprx6rkh4548" path="res://style_box_9p_small.tres" id="5_lcajh"]
 [ext_resource type="Texture2D" uid="uid://cpcubwevvr3qb" path="res://resources/ui_assets/heat.png" id="5_llnak"]
 
