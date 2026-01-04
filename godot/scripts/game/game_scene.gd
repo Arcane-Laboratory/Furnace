@@ -62,6 +62,10 @@ var has_shown_level_hint: bool = false
 
 var is_paused: bool = false
 
+## Saved player-placed tile data for soft restart (preserves placements after defeat)
+## Array of dictionaries with keys: position (Vector2i), item_type (String), direction (String, optional), level (int, optional)
+var saved_player_tiles: Array = []
+
 ## Level data
 var current_level_data: LevelData = null
 
@@ -270,8 +274,8 @@ func _on_level_progress_pause_pressed() -> void:
 
 ## Handle restart requested from level in progress menu
 func _on_level_progress_restart_requested() -> void:
-	# Restart the current level
-	SceneManager.reload_current_scene()
+	# Use soft restart to preserve player-placed tiles
+	soft_restart_level()
 
 
 ## Setup the victory screen overlay
@@ -327,7 +331,8 @@ func _on_victory_continue() -> void:
 
 ## Handle victory screen restart button
 func _on_victory_restart() -> void:
-	SceneManager.reload_current_scene()
+	# Use soft restart to preserve player-placed tiles
+	soft_restart_level()
 
 
 ## Handle defeat screen main menu button
@@ -337,7 +342,8 @@ func _on_defeat_menu() -> void:
 
 ## Handle defeat screen restart button
 func _on_defeat_restart() -> void:
-	SceneManager.reload_current_scene()
+	# Use soft restart to preserve player-placed tiles
+	soft_restart_level()
 
 
 
@@ -1986,6 +1992,229 @@ func _on_heat_timer_timeout() -> void:
 		game_submenu.set_heat(current_heat)
 	
 	print("GameScene: Heat increased to %d" % current_heat)
+
+
+## Save the current player-placed tile state for restoration after restart
+func _save_player_placed_tiles() -> void:
+	saved_player_tiles.clear()
+	
+	for x in range(GameConfig.GRID_COLUMNS):
+		for y in range(GameConfig.GRID_ROWS):
+			var grid_pos := Vector2i(x, y)
+			var tile := TileManager.get_tile(grid_pos)
+			
+			if not tile or not tile.is_player_placed:
+				continue
+			
+			if tile.occupancy == TileBase.OccupancyType.EMPTY:
+				continue
+			
+			var tile_data := {
+				"position": grid_pos,
+				"item_type": tile.placed_item_type,
+			}
+			
+			# Save direction if this is a redirect rune
+			if tile.structure is RedirectRune:
+				var redirect := tile.structure as RedirectRune
+				var dir_str: String
+				match redirect.direction:
+					RedirectRune.Direction.NORTH:
+						dir_str = "north"
+					RedirectRune.Direction.SOUTH:
+						dir_str = "south"
+					RedirectRune.Direction.EAST:
+						dir_str = "east"
+					RedirectRune.Direction.WEST:
+						dir_str = "west"
+				tile_data["direction"] = dir_str
+			
+			# Save current level if upgraded
+			if tile.structure is RuneBase:
+				var rune := tile.structure as RuneBase
+				if rune.current_level > 1:
+					tile_data["level"] = rune.current_level
+			
+			# Save portal links - we need to track paired portals
+			if tile.structure is PortalRune:
+				var portal := tile.structure as PortalRune
+				tile_data["is_entrance"] = portal.is_entrance
+				if portal.linked_portal and is_instance_valid(portal.linked_portal):
+					tile_data["linked_position"] = portal.linked_portal.grid_position
+			
+			saved_player_tiles.append(tile_data)
+	
+	print("GameScene: Saved %d player-placed tiles" % saved_player_tiles.size())
+
+
+## Restore player-placed tiles from saved state
+func _restore_player_placed_tiles() -> void:
+	if saved_player_tiles.is_empty():
+		return
+	
+	# Track portals for linking after all are placed
+	var portal_links: Dictionary = {}  # entrance_pos -> exit_pos
+	
+	for tile_data in saved_player_tiles:
+		var grid_pos: Vector2i = tile_data["position"]
+		var item_type: String = tile_data["item_type"]
+		var direction: String = tile_data.get("direction", "")
+		var level: int = tile_data.get("level", 1)
+		
+		# Get item definition
+		var definition := GameConfig.get_item_definition(item_type)
+		if not definition:
+			push_warning("GameScene: Failed to find definition for saved item: %s" % item_type)
+			continue
+		
+		# Skip if tile is not buildable (preset items may have been placed there)
+		if not TileManager.is_buildable(grid_pos):
+			continue
+		
+		# Create structure node
+		var structure_node: Node = null
+		
+		# For portals, use entrance or exit scene based on saved data
+		if item_type == "portal":
+			var is_entrance: bool = tile_data.get("is_entrance", true)
+			var scene_path: String = definition.scene_path if is_entrance else definition.paired_scene_path
+			var scene := load(scene_path) as PackedScene
+			if scene:
+				structure_node = scene.instantiate()
+			
+			# Track portal links
+			if tile_data.has("linked_position"):
+				if is_entrance:
+					portal_links[grid_pos] = tile_data["linked_position"]
+		elif not definition.scene_path.is_empty():
+			var scene := load(definition.scene_path) as PackedScene
+			if scene:
+				structure_node = scene.instantiate()
+		
+		# Fallback to basic visual
+		if not structure_node and placement_manager:
+			structure_node = placement_manager._create_fallback_visual(definition)
+		
+		if not structure_node:
+			continue
+		
+		# Add to scene
+		runes_container.add_child(structure_node)
+		
+		# Set position and properties
+		if structure_node is RuneBase:
+			var rune := structure_node as RuneBase
+			rune.set_grid_position(grid_pos)
+			
+			# Set direction for redirect runes
+			if not direction.is_empty() and rune.has_method("set_direction_by_string"):
+				rune.set_direction_by_string(direction)
+			
+			# Apply upgrades if level > 1
+			while rune.current_level < level and rune.can_upgrade():
+				rune.upgrade()
+		elif structure_node is Node2D:
+			var node_2d := structure_node as Node2D
+			node_2d.position = Vector2(
+				grid_pos.x * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0,
+				grid_pos.y * GameConfig.TILE_SIZE + GameConfig.TILE_SIZE / 2.0
+			)
+			node_2d.z_index = grid_pos.y * 10 + 5
+		
+		# Determine occupancy type
+		var occupancy_type: TileBase.OccupancyType
+		if item_type == "wall" or item_type == "explosive_wall":
+			occupancy_type = TileBase.OccupancyType.WALL
+		else:
+			occupancy_type = TileBase.OccupancyType.RUNE
+		
+		# Register with TileManager (marked as player-placed)
+		TileManager.set_occupancy(grid_pos, occupancy_type, structure_node, true, item_type)
+	
+	# Link portal pairs
+	for entrance_pos in portal_links.keys():
+		var exit_pos: Vector2i = portal_links[entrance_pos]
+		
+		var entrance_tile := TileManager.get_tile(entrance_pos)
+		var exit_tile := TileManager.get_tile(exit_pos)
+		
+		if entrance_tile and entrance_tile.structure is PortalRune:
+			if exit_tile and exit_tile.structure is PortalRune:
+				var entrance_portal := entrance_tile.structure as PortalRune
+				var exit_portal := exit_tile.structure as PortalRune
+				entrance_portal.link_to(exit_portal)
+	
+	print("GameScene: Restored %d player-placed tiles" % saved_player_tiles.size())
+
+
+## Soft restart - reset game state but preserve player-placed tiles
+## Used after defeat to let players make minor adjustments
+func soft_restart_level() -> void:
+	print("GameScene: Soft restarting level (preserving player placements)...")
+	
+	# Save current player placements before clearing
+	_save_player_placed_tiles()
+	
+	# Calculate how much the player spent on saved tiles for resource adjustment
+	var spent_on_tiles: int = 0
+	for tile_data in saved_player_tiles:
+		var item_type: String = tile_data["item_type"]
+		var definition := GameConfig.get_item_definition(item_type)
+		if definition:
+			spent_on_tiles += definition.cost
+			# Add upgrade costs
+			var level: int = tile_data.get("level", 1)
+			if level > 1 and definition.upgrade_cost > 0:
+				spent_on_tiles += definition.upgrade_cost * (level - 1)
+	
+	# Clear game state (enemies, fireballs, etc.)
+	_clear_game_state()
+	
+	# Reset hint flag so it shows again
+	has_shown_level_hint = false
+	
+	# Reinitialize tile system (creates fresh tiles)
+	_initialize_tile_system()
+	
+	# Recreate spawn point markers
+	_create_spawn_point_markers()
+	
+	# Restore player-placed tiles BEFORE resetting resources
+	_restore_player_placed_tiles()
+	
+	# Reset resources to starting amount minus what was spent on restored tiles
+	if current_level_data and current_level_data.starting_resources > 0:
+		GameManager.resources = current_level_data.starting_resources - spent_on_tiles
+	else:
+		GameManager.resources = GameConfig.get_level_resources(GameManager.current_level) - spent_on_tiles
+	GameManager.resources_changed.emit(GameManager.resources)
+	
+	# Update build menu
+	_update_build_menu()
+	
+	# Update placement manager with level data
+	if placement_manager:
+		placement_manager.set_level_data(current_level_data)
+	
+	# Update path preview
+	if path_preview:
+		path_preview.update_paths(current_level_data)
+	
+	# Update game submenu
+	if game_submenu:
+		game_submenu.set_level(GameManager.current_level)
+		if current_level_data:
+			current_heat = current_level_data.difficulty
+			EnemyManager.current_heat = current_heat
+			game_submenu.set_heat(current_heat)
+	
+	# Clear saved tiles (they've been restored)
+	saved_player_tiles.clear()
+	
+	# Ensure we're in build phase
+	_start_build_phase()
+	
+	print("GameScene: Soft restart complete!")
 
 
 ## Clear all game state for hot-reload
