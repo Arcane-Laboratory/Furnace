@@ -207,10 +207,36 @@ create_itch_zip() {
     fi
 }
 
+# Check debug mode is disabled
+check_debug_mode() {
+    print_info "Checking debug mode status..."
+    
+    local config_file="godot/scripts/autoload/game_config.gd"
+    
+    if [ ! -f "$config_file" ]; then
+        print_error "Game config file not found: $config_file"
+        exit 1
+    fi
+    
+    # Check if debug_mode is set to true
+    if grep -q "var debug_mode: bool = true" "$config_file"; then
+        print_error "Debug mode is enabled in $config_file"
+        print_error "Cannot export with debug_mode = true"
+        print_error "Please set debug_mode = false before exporting"
+        exit 1
+    fi
+    
+    print_success "Debug mode is disabled"
+}
+
 # Main execution
 main() {
     print_info "=== Godot Web Export Script ==="
     print_info "Exporting for itch.io HTML5 deployment"
+    echo ""
+    
+    # Check debug mode is disabled
+    check_debug_mode
     echo ""
     
     # Find Godot executable
