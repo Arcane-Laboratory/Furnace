@@ -153,6 +153,9 @@ func _play_explosion_effect() -> void:
 	
 	# Play explosion sound effect
 	AudioManager.play_sound_effect("rune-explosive")
+	
+	# Screen shake
+	ScreenShakeManager.shake()
 
 
 ## Handle explosion animation finished

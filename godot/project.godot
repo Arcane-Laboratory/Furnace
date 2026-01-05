@@ -26,6 +26,7 @@ EnemyManager="*res://scripts/autoload/enemy_manager.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 FloatingNumberManager="*res://scripts/autoload/floating_number_manager.gd"
 FireballManager="*res://scripts/autoload/fireball_manager.gd"
+ScreenShakeManager="*res://scripts/autoload/screen_shake_manager.gd"
 
 [display]
 
