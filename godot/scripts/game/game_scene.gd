@@ -36,7 +36,7 @@ var sparks_at_phase_start: int = 0
 var placement_manager: PlacementManager = null
 
 ## Error snackbar for showing placement errors
-var error_snackbar: Control = null
+var error_snackbar: ErrorSnackbar = null
 
 ## Info snackbar for showing portal placement messages
 var info_snackbar: Control = null
@@ -1465,28 +1465,15 @@ func _show_tile_tooltip_active_phase(grid_pos: Vector2i, structure: Node) -> voi
 
 ## Create the error snackbar
 func _create_error_snackbar() -> void:
-	# Create a simple error snackbar (can be replaced with scene later)
-	error_snackbar = PanelContainer.new()
-	error_snackbar.name = "ErrorSnackbar"
+	var error_scene := load("res://scenes/ui/error_snackbar.tscn") as PackedScene
+	if not error_scene:
+		push_warning("GameScene: Failed to load error_snackbar.tscn")
+		return
 	
-	var label := Label.new()
-	label.name = "Label"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	error_snackbar.add_child(label)
-	
-	# Style
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.8, 0.2, 0.2, 0.9)
-	style.set_corner_radius_all(4)
-	style.set_content_margin_all(8)
-	error_snackbar.add_theme_stylebox_override("panel", style)
-	
-	# Position at bottom center
-	error_snackbar.anchors_preset = Control.PRESET_CENTER_BOTTOM
-	error_snackbar.position = Vector2(GameConfig.VIEWPORT_WIDTH / 2.0 - 100, GameConfig.VIEWPORT_HEIGHT - 50)
-	error_snackbar.custom_minimum_size = Vector2(200, 30)
-	error_snackbar.visible = false
+	error_snackbar = error_scene.instantiate() as ErrorSnackbar
+	if not error_snackbar:
+		push_warning("GameScene: Failed to instantiate error snackbar")
+		return
 	
 	# Add to UI layer
 	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
@@ -1598,20 +1585,7 @@ func _show_error_snackbar(message: String) -> void:
 	if not error_snackbar:
 		return
 	
-	var label := error_snackbar.get_node_or_null("Label") as Label
-	if label:
-		label.text = message
-	
-	error_snackbar.visible = true
-	
-	# Auto-hide after 2 seconds
-	var tween := create_tween()
-	tween.tween_interval(2.0)
-	tween.tween_property(error_snackbar, "modulate:a", 0.0, 0.3)
-	tween.tween_callback(func(): 
-		error_snackbar.visible = false
-		error_snackbar.modulate.a = 1.0
-	)
+	error_snackbar.show_error(message)
 
 
 ## Create the sell tooltip
