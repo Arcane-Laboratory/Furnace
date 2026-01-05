@@ -11,6 +11,7 @@ class_name SoundEffectConfig
 @export_range(0.0, 2.0, 0.1) var enemy_death_volume: float = 1.0
 @export_range(0.0, 2.0, 0.1) var furnace_death_volume: float = 1.0
 @export_range(0.0, 2.0, 0.1) var level_failed_volume: float = 1.0
+@export_range(0.0, 2.0, 0.1) var level_clear_volume: float = 1.0
 @export_range(0.0, 2.0, 0.1) var click_volume: float = 1.0
 @export_range(0.0, 2.0, 0.1) var structure_sell_volume: float = 1.0
 @export_range(0.0, 2.0, 0.1) var structure_buy_volume: float = 1.0
@@ -36,6 +37,8 @@ func get_volume(effect_name: String) -> float:
 			return furnace_death_volume
 		"level-failed":
 			return level_failed_volume
+		"level-clear":
+			return level_clear_volume
 		"click":
 			return click_volume
 		"structure-sell":

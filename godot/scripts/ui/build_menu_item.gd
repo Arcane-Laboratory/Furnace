@@ -128,7 +128,7 @@ func configure(type: String, display_name: String, cost: int, icon_color: Color)
 	if menu_rune:
 		var cost_label := menu_rune.get_node_or_null("ColorRect/Label") as Label
 		if cost_label:
-			cost_label.text = "$%d" % cost
+			cost_label.text = "%d" % cost
 		
 		# Try to load and display rune sprite instead of just color
 		var sprite_path := _get_rune_sprite_path(type)
@@ -159,24 +159,27 @@ func configure(type: String, display_name: String, cost: int, icon_color: Color)
 				texture_rect.visible = true
 				texture_rect.show()
 				
-				# Hide ColorRect completely when showing sprite
+				# Make ColorRect transparent but keep it visible so the cost Label shows
 				if icon_rect:
-					icon_rect.visible = false
-					# Ensure ColorRect is behind TextureRect in draw order
-					var color_rect_index := icon_rect.get_index()
-					var texture_rect_index := texture_rect.get_index()
-					if color_rect_index > texture_rect_index:
-						menu_rune.move_child(icon_rect, 0)  # Move ColorRect to back
+					icon_rect.color.a = 0.0  # Transparent background
+					icon_rect.visible = true  # Keep visible for the Label child
+					# Ensure the cost Label renders on top of the TextureRect
+					if cost_label:
+						cost_label.z_index = 10  # Render above the sprite
 		else:
 			# No sprite available, use color fallback
 			if icon_rect:
-				icon_rect.color = icon_color
-				icon_rect.visible = true  # Show ColorRect again
+				icon_rect.color = icon_color  # This sets full opacity with the icon_color
+				icon_rect.visible = true  # Show ColorRect
+				# Reset Label z_index to normal
+				var fallback_cost_label := icon_rect.get_node_or_null("Label") as Label
+				if fallback_cost_label:
+					fallback_cost_label.z_index = 0
 			
 			# Hide TextureRect if it exists
-			var texture_rect := menu_rune.get_node_or_null("TextureRect") as TextureRect
-			if texture_rect:
-				texture_rect.visible = false
+			var existing_texture_rect := menu_rune.get_node_or_null("TextureRect") as TextureRect
+			if existing_texture_rect:
+				existing_texture_rect.visible = false
 
 
 ## Set selection state with visual feedback
