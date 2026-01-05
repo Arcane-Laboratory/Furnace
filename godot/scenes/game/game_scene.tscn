@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://b06ob7kxsjkag"]
+[gd_scene load_steps=42 format=3 uid="uid://b06ob7kxsjkag"]
 
 [ext_resource type="Script" uid="uid://bvxxnk05lkk4q" path="res://scripts/game/game_scene.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="2_pause"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://ca8c2y1y2nhgc" path="res://scripts/game/furnace_animation.gd" id="4_furnace_anim"]
 [ext_resource type="PackedScene" path="res://scenes/effects/dust_particles.tscn" id="6_dust_particles"]
 [ext_resource type="PackedScene" uid="uid://baujltxcquipb" path="res://scenes/effects/bloom_overlay.tscn" id="7_bloom_overlay"]
+[ext_resource type="Texture2D" path="res://assets/sprites/blast-deck-bg-full.png" id="8_bg"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_f0"]
 atlas = ExtResource("3_furnace_sprite")
@@ -242,6 +243,7 @@ color = Color(0.12, 0.12, 0.14, 1)
 z_index = -100
 texture_filter = 1
 position = Vector2(320, 180)
+texture = ExtResource("8_bg")
 
 [node name="FurnaceAnimation" type="AnimatedSprite2D" parent="."]
 z_index = -99
