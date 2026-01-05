@@ -18,6 +18,10 @@ var current_level_data: LevelData = null
 ## Currently selected item type (empty string if none selected)
 var selected_item_type: String = ""
 
+## Debounce cooldown to prevent rapid selection changes (especially on mobile)
+var _selection_cooldown: float = 0.0
+const SELECTION_DEBOUNCE_TIME: float = 0.1  # 100ms debounce
+
 ## Reference to grid containers
 @onready var grid_container_1: GridContainer = $VBoxContainer/CenterContainer/GridContainer
 @onready var grid_container_2: GridContainer = $VBoxContainer/CenterContainer2/GridContainer
@@ -27,6 +31,12 @@ var selected_item_type: String = ""
 func _ready() -> void:
 	# Wait for level data to be set, then populate
 	call_deferred("_populate_menu")
+
+
+func _process(delta: float) -> void:
+	# Decrement selection cooldown
+	if _selection_cooldown > 0.0:
+		_selection_cooldown -= delta
 
 
 ## Set level data and refresh menu
@@ -226,6 +236,11 @@ func _update_menu_item_selection_visuals() -> void:
 
 ## Handle item selection from menu item click
 func _on_item_selected(item_type: String) -> void:
+	# Debounce to prevent rapid selection changes on mobile
+	if _selection_cooldown > 0.0:
+		return
+	_selection_cooldown = SELECTION_DEBOUNCE_TIME
+	
 	# Toggle selection: clicking same item deselects, clicking different item selects
 	if selected_item_type == item_type:
 		# Deselect

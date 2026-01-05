@@ -21,6 +21,10 @@ var item_icon_color: Color = Color.WHITE
 ## Selection state
 var is_selected: bool = false
 
+## Debounce cooldown to prevent rapid inputs (especially on mobile)
+var _input_cooldown: float = 0.0
+const INPUT_DEBOUNCE_TIME: float = 0.15  # 150ms debounce
+
 ## Reference to UI elements
 @onready var menu_rune: Control = $VBoxContainer/MenuRune
 @onready var name_label: Label = $VBoxContainer/Label
@@ -42,6 +46,12 @@ func _ready() -> void:
 	
 	# Create selection border (drawn behind content)
 	_create_selection_border()
+
+
+func _process(delta: float) -> void:
+	# Decrement input cooldown
+	if _input_cooldown > 0.0:
+		_input_cooldown -= delta
 
 
 ## Setup child controls to pass clicks through to parent
@@ -83,7 +93,13 @@ func _create_selection_border() -> void:
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# Debounce to prevent rapid inputs on mobile
+		if _input_cooldown > 0.0:
+			return
+		_input_cooldown = INPUT_DEBOUNCE_TIME
 		item_selected.emit(item_type)
+		# Mark input as handled to prevent further propagation
+		accept_event()
 
 
 ## Get sprite path for a rune type
@@ -254,5 +270,9 @@ func _create_drag_preview() -> Control:
 
 ## Handle details button press
 func _on_details_pressed() -> void:
+	# Debounce to prevent rapid inputs on mobile
+	if _input_cooldown > 0.0:
+		return
+	_input_cooldown = INPUT_DEBOUNCE_TIME
 	AudioManager.play_ui_click()
 	details_requested.emit(item_type)
