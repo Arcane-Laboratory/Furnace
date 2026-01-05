@@ -1279,6 +1279,12 @@ func lose_level() -> void:
 	# Stop heat timer
 	_stop_heat_timer()
 	
+	# Clear all enemies so they don't continue attacking after defeat
+	EnemyManager.clear_enemies()
+	
+	# Clear all fireballs
+	FireballManager.clear_all_fireballs()
+	
 	# Get stats from active phase
 	var stats := _get_active_phase_stats()
 	
