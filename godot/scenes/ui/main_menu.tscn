@@ -1,11 +1,11 @@
 [gd_scene load_steps=30 format=3 uid="uid://btk68wmm8weex"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_fe2o3"]
-[ext_resource type="Script" uid="uid://dples3oy7jk7k" path="res://scripts/ui/main_menu.gd" id="1_menu"]
-[ext_resource type="StyleBox" path="res://style_box_9p_fullscreen.tres" id="3_1g8jr"]
-[ext_resource type="Texture2D" uid="uid://cnoxany01jqqv" path="res://assets/sprites/title-bg.png" id="3_uhagc"]
-[ext_resource type="Script" uid="uid://b41scntp1y6hc" path="res://scripts/ui/title_background.gd" id="4_btxxm"]
-[ext_resource type="Texture2D" uid="uid://cr3jk73e4bv1y" path="res://assets/sprites/wordmark.png" id="4_wordmark"]
+[ext_resource type="Script" uid="uid://da74dc6nxpp8r" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="StyleBox" uid="uid://daxtmlmajhs7f" path="res://style_box_9p_fullscreen.tres" id="3_1g8jr"]
+[ext_resource type="Texture2D" uid="uid://b3sqp3dytwxfg" path="res://assets/sprites/title-bg.png" id="3_uhagc"]
+[ext_resource type="Script" uid="uid://bayim05yho730" path="res://scripts/ui/title_background.gd" id="4_btxxm"]
+[ext_resource type="Texture2D" uid="uid://spiafhe5dwmh" path="res://assets/sprites/wordmark.png" id="4_wordmark"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_a4ium"]
 atlas = ExtResource("3_uhagc")
