@@ -33,6 +33,12 @@ var is_active: bool = false
 ## Reference to animation manager (if present)
 @onready var animation_manager: EnemyAnimationManager = $AnimationManager
 
+## Tween for flash effect (to allow cancellation)
+var flash_tween: Tween = null
+
+## Shader material for white flash effect (created on demand)
+var flash_material: ShaderMaterial = null
+
 
 func _ready() -> void:
 	# Configure collision layers so enemies don't collide with each other
@@ -104,9 +110,51 @@ func take_damage(amount: int) -> void:
 
 ## Called when enemy takes damage (override for visual feedback)
 func _on_damaged(_amount: int) -> void:
-	# Flash red or play hit animation
+	# Flash white when hit
+	_flash_white()
 	# Health bar is already updated in take_damage()
-	pass
+
+
+## Flash the sprite white briefly when hit
+func _flash_white() -> void:
+	if not animation_manager or not animation_manager.animated_sprite:
+		return
+	
+	var sprite := animation_manager.animated_sprite as AnimatedSprite2D
+	if not sprite:
+		return
+	
+	# Cancel any existing flash tween
+	if flash_tween and flash_tween.is_valid():
+		flash_tween.kill()
+		# Reset shader parameter
+		if flash_material:
+			flash_material.set_shader_parameter("flash_amount", 0.0)
+	
+	# Load shader material if not already loaded
+	if not flash_material:
+		var shader := load("res://shaders/white_flash.gdshader") as Shader
+		if not shader:
+			push_warning("EnemyBase: Failed to load white_flash shader")
+			return
+		
+		flash_material = ShaderMaterial.new()
+		flash_material.shader = shader
+		flash_material.set_shader_parameter("flash_amount", 0.0)
+		sprite.material = flash_material
+	
+	# Create a tween to flash white then fade out
+	flash_tween = create_tween()
+	# Flash in over 0.05 seconds
+	flash_tween.tween_method(
+		func(amount: float): flash_material.set_shader_parameter("flash_amount", amount),
+		0.0, 1.0, 0.05
+	)
+	# Then fade out over 0.15 seconds
+	flash_tween.tween_method(
+		func(amount: float): flash_material.set_shader_parameter("flash_amount", amount),
+		1.0, 0.0, 0.15
+	)
 
 
 ## Handle enemy death

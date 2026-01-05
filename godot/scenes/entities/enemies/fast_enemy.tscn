@@ -133,7 +133,7 @@ script = ExtResource("3_animation_manager")
 position = Vector2(1, -10)
 sprite_frames = SubResource("SpriteFrames_fast")
 animation = &"walk"
-frame_progress = 0.756847
+frame_progress = 0.21570583
 
 [node name="EnemyVisual" type="ColorRect" parent="."]
 visible = false
