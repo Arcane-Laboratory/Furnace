@@ -541,17 +541,25 @@ func _place_debug_terrain(grid_pos: Vector2i) -> void:
 
 
 ## Get a random wooden wall texture for terrain walls (same as preset walls)
+## Uses weighted random selection: wooden-2 (80%), wooden-1 (15%), wooden-4 (3%), wooden-3 (2%)
 func _get_random_wooden_wall_texture() -> Texture2D:
 	var wooden_wall_paths := [
-		"res://assets/sprites/wooden_walls/wooden-1.png",
-		"res://assets/sprites/wooden_walls/wooden-2.png",
-		"res://assets/sprites/wooden_walls/wooden-3.png",
-		"res://assets/sprites/wooden_walls/wooden-4.png"
+		"res://assets/sprites/wooden_walls/wooden-1.png",  # 15%
+		"res://assets/sprites/wooden_walls/wooden-2.png",  # 80%
+		"res://assets/sprites/wooden_walls/wooden-3.png",  # 2%
+		"res://assets/sprites/wooden_walls/wooden-4.png"   # 3%
 	]
 	
-	# Randomly select one of the wooden wall textures
-	var random_index := randi() % wooden_wall_paths.size()
-	return load(wooden_wall_paths[random_index]) as Texture2D
+	# Weighted random selection: [15, 80, 2, 3] = 100 total
+	var random_value := randi() % 100
+	if random_value < 15:
+		return load(wooden_wall_paths[0]) as Texture2D  # wooden-1: 0-14 (15%)
+	elif random_value < 95:
+		return load(wooden_wall_paths[1]) as Texture2D  # wooden-2: 15-94 (80%)
+	elif random_value < 97:
+		return load(wooden_wall_paths[2]) as Texture2D  # wooden-3: 95-96 (2%)
+	else:
+		return load(wooden_wall_paths[3]) as Texture2D  # wooden-4: 97-99 (3%)
 
 
 ## Create a visual marker for debug terrain
