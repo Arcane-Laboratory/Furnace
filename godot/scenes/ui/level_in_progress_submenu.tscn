@@ -1,22 +1,20 @@
-[gd_scene load_steps=11 format=3 uid="uid://dx42pv0iig1xi"]
+[gd_scene load_steps=9 format=3 uid="uid://dx42pv0iig1xi"]
 
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_xtru7"]
 [ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="2_utswl"]
 [ext_resource type="PackedScene" uid="uid://d3lefgipylt8o" path="res://scenes/ui/menu_label.tscn" id="3_pmnrq"]
+[ext_resource type="Texture2D" uid="uid://dxkxsn2emngq6" path="res://resources/ui_assets/9p_small_transparent.png" id="6_border"]
 [ext_resource type="Script" uid="uid://bm3vyx42r32vr" path="res://scripts/ui/level_in_progress_submenu.gd" id="9_script"]
 [ext_resource type="PackedScene" uid="uid://q6vu7kf32cel" path="res://scenes/ui/stats_display.tscn" id="10_sj312"]
-[ext_resource type="Texture2D" path="res://resources/ui_assets/9p_small_transparent.png" id="6_border"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.05, 0.05, 0.05, 1)
-corner_radius_left_top = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
-bg_color = Color(0.93, 0.4, 0.0, 1)
-corner_radius_left_top = 2
+bg_color = Color(0.93, 0.4, 0, 1)
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
@@ -70,7 +68,7 @@ theme_override_constants/margin_bottom = 8
 
 [node name="Button" type="Button" parent="MarginContainer2"]
 layout_mode = 2
-text = "Restart Level"
+text = "Retry Level"
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 0
@@ -116,7 +114,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
-max_value = 100.0
 show_percentage = false
 
 [node name="BorderOverlay" type="NinePatchRect" parent="CenterContainer/VBoxContainer/MarginContainer/ProgressBarContainer"]
@@ -126,7 +123,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 texture = ExtResource("6_border")
 patch_margin_left = 6
 patch_margin_top = 6
