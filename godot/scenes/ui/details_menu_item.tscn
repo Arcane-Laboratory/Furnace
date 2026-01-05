@@ -3,7 +3,7 @@
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_wedh3"]
 [ext_resource type="PackedScene" uid="uid://dequ5qkc8ctjx" path="res://scenes/entities/runes/menu_rune.tscn" id="2_bvdbp"]
 [ext_resource type="StyleBox" uid="uid://biprx6rkh4548" path="res://style_box_9p_small.tres" id="3_bvdbp"]
-[ext_resource type="Script" uid="uid://7xh48phfy3uu" path="res://scripts/ui/details_menu_item.gd" id="4_script"]
+[ext_resource type="Script" path="res://scripts/ui/details_menu_item.gd" id="4_script"]
 
 [node name="DetailsSubmenuItem" type="Control"]
 custom_minimum_size = Vector2(48, 60)
