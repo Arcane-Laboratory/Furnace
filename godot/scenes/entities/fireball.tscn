@@ -72,6 +72,7 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_collision"]
 
 [node name="Fireball" type="Node2D"]
+z_index = 200
 script = ExtResource("1_fireball")
 
 [node name="SmokeParticles" type="GPUParticles2D" parent="."]
