@@ -128,7 +128,7 @@ func configure(type: String, display_name: String, cost: int, icon_color: Color)
 	if menu_rune:
 		var cost_label := menu_rune.get_node_or_null("ColorRect/Label") as Label
 		if cost_label:
-			cost_label.text = "$%d" % cost
+			cost_label.text = "%d" % cost
 		
 		# Try to load and display rune sprite instead of just color
 		var sprite_path := _get_rune_sprite_path(type)
