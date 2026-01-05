@@ -6,9 +6,9 @@ var shake_tween: Tween = null
 var original_offset: Vector2 = Vector2.ZERO
 
 
-func shake(intensity: float = 2.2, duration: float = 0.2) -> void:
+func shake(intensity: float = 1.5, duration: float = 0.2) -> void:
 	## Trigger a screen shake effect
-	## intensity: Maximum pixel offset for the shake (reduced from 3.0 for subtler effect)
+	## intensity: Maximum pixel offset for the shake (reduced for subtler effect)
 	## duration: How long the shake lasts in seconds
 	
 	# Cancel any existing shake

@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://ovjfps8pvtlo"]
 
-[ext_resource type="Script" uid="uid://chv04itcroap2" path="res://scripts/ui/victory_screen.gd" id="1_he7n2"]
+[ext_resource type="Script" path="res://scripts/ui/final_victory_screen.gd" id="1_he7n2"]
 [ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="2_ixqhj"]
 [ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="3_gi0p0"]
 
@@ -79,4 +79,4 @@ custom_minimum_size = Vector2(140, 24)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-text = "Restart Level"
+text = "Free Play"

@@ -77,3 +77,33 @@ func resume_game() -> void:
 func end_game(won: bool) -> void:
 	game_won = won
 	set_state(GameState.GAME_OVER)
+
+
+## Get the highest level number available (excluding level 0 which is debug)
+## Scans the levels directory to find all level_N.tres files
+func get_max_level() -> int:
+	var max_level: int = 1
+	var dir := DirAccess.open("res://resources/levels/")
+	if not dir:
+		push_warning("GameManager: Could not open levels directory")
+		return max_level
+	
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		# Match pattern level_N.tres (but not level_0.tres)
+		if file_name.begins_with("level_") and file_name.ends_with(".tres"):
+			var num_str := file_name.substr(6, file_name.length() - 11)  # Extract number between "level_" and ".tres"
+			if num_str.is_valid_int():
+				var level_num := int(num_str)
+				if level_num > 0 and level_num > max_level:
+					max_level = level_num
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	
+	return max_level
+
+
+## Check if the given level is the final level (highest numbered level)
+func is_final_level(level: int) -> bool:
+	return level == get_max_level()
