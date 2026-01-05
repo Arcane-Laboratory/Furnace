@@ -479,14 +479,31 @@ func is_in_portal_exit_mode() -> bool:
 	return is_placing_portal_exit
 
 
+## Get a random metal wall texture for player-placed walls
+func _get_random_metal_wall_texture() -> Texture2D:
+	var metal_wall_paths := [
+		"res://assets/sprites/metal_walls/metal-1.png",
+		"res://assets/sprites/metal_walls/metal-2.png",
+		"res://assets/sprites/metal_walls/metal-3.png",
+		"res://assets/sprites/metal_walls/metal-4.png",
+		"res://assets/sprites/metal_walls/metal-5.png",
+		"res://assets/sprites/metal_walls/metal-6.png",
+		"res://assets/sprites/metal_walls/metal-7.png"
+	]
+	
+	# Randomly select one of the metal wall textures
+	var random_index := randi() % metal_wall_paths.size()
+	return load(metal_wall_paths[random_index]) as Texture2D
+
+
 ## Create a fallback visual for items without a scene
 func _create_fallback_visual(definition: Resource) -> Node2D:
 	var visual := Node2D.new()
 	visual.name = "PlacedItem_%s" % definition.item_type
 	
-	# Special handling for walls - use wall sprite
+	# Special handling for walls - use random metal wall sprite for player-placed walls
 	if definition.item_type == "wall" or definition.item_type == "explosive_wall":
-		var wall_texture := load("res://assets/sprites/wall.png") as Texture2D
+		var wall_texture := _get_random_metal_wall_texture()
 		if wall_texture:
 			var sprite := Sprite2D.new()
 			sprite.texture = wall_texture

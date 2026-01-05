@@ -611,6 +611,20 @@ func _create_preset_structures() -> void:
 		_link_portal_pairs_legacy(all_portals)
 
 
+## Get a random wooden wall texture for preset/terrain walls
+func _get_random_wooden_wall_texture() -> Texture2D:
+	var wooden_wall_paths := [
+		"res://assets/sprites/wooden_walls/wooden-1.png",
+		"res://assets/sprites/wooden_walls/wooden-2.png",
+		"res://assets/sprites/wooden_walls/wooden-3.png",
+		"res://assets/sprites/wooden_walls/wooden-4.png"
+	]
+	
+	# Randomly select one of the wooden wall textures
+	var random_index := randi() % wooden_wall_paths.size()
+	return load(wooden_wall_paths[random_index]) as Texture2D
+
+
 ## Create a visual for a preset wall
 func _create_wall_visual(grid_pos: Vector2i) -> Node2D:
 	var visual := Node2D.new()
@@ -622,8 +636,8 @@ func _create_wall_visual(grid_pos: Vector2i) -> Node2D:
 	# This ensures walls at Y=5 (z_index=55) render above enemies at Y=3 (z_index=30)
 	visual.z_index = grid_pos.y * 10 + 5
 	
-	# Load wall sprite
-	var wall_texture := load("res://assets/sprites/wall.png") as Texture2D
+	# Load random wooden wall sprite for preset/terrain walls
+	var wall_texture := _get_random_wooden_wall_texture()
 	if wall_texture:
 		var sprite := Sprite2D.new()
 		sprite.texture = wall_texture

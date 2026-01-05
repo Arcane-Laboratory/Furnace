@@ -540,17 +540,31 @@ func _place_debug_terrain(grid_pos: Vector2i) -> void:
 	show_info_requested.emit("Terrain placed! Click to add more, ESC to finish")
 
 
+## Get a random wooden wall texture for terrain walls (same as preset walls)
+func _get_random_wooden_wall_texture() -> Texture2D:
+	var wooden_wall_paths := [
+		"res://assets/sprites/wooden_walls/wooden-1.png",
+		"res://assets/sprites/wooden_walls/wooden-2.png",
+		"res://assets/sprites/wooden_walls/wooden-3.png",
+		"res://assets/sprites/wooden_walls/wooden-4.png"
+	]
+	
+	# Randomly select one of the wooden wall textures
+	var random_index := randi() % wooden_wall_paths.size()
+	return load(wooden_wall_paths[random_index]) as Texture2D
+
+
 ## Create a visual marker for debug terrain
 func _create_debug_terrain_marker(grid_pos: Vector2i) -> void:
-	# Use the same wall visual as preset walls
+	# Use the same wall visual as preset walls (random wooden wall)
 	var visual := Node2D.new()
 	visual.name = "DebugTerrain_%d_%d" % [grid_pos.x, grid_pos.y]
 	
 	# Set z_index based on Y position for Y-sorting (same as preset walls)
 	visual.z_index = grid_pos.y * 10 + 5
 	
-	# Load wall sprite
-	var wall_texture := load("res://assets/sprites/wall.png") as Texture2D
+	# Load random wooden wall sprite (same as preset walls)
+	var wall_texture := _get_random_wooden_wall_texture()
 	if wall_texture:
 		var sprite := Sprite2D.new()
 		sprite.texture = wall_texture
