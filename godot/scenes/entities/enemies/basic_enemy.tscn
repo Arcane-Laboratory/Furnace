@@ -1,8 +1,8 @@
 [gd_scene load_steps=29 format=3 uid="uid://pdd6wlnjdpmf"]
 
-[ext_resource type="Script" path="res://scripts/entities/enemies/basic_enemy.gd" id="1_basic_enemy"]
+[ext_resource type="Script" uid="uid://bowt6ycco050t" path="res://scripts/entities/enemies/basic_enemy.gd" id="1_basic_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/ui/enemy_health_bar.tscn" id="2_health_bar"]
-[ext_resource type="Script" path="res://scripts/entities/enemies/enemy_animation_manager.gd" id="3_animation_manager"]
+[ext_resource type="Script" uid="uid://c0uufcc3eipv3" path="res://scripts/entities/enemies/enemy_animation_manager.gd" id="3_animation_manager"]
 [ext_resource type="Texture2D" uid="uid://cm8qlf6w4ce2d" path="res://assets/sprites/basic-enemy-animations.png" id="3_sicxa"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ksprm"]
@@ -206,6 +206,12 @@ shape = SubResource("CircleShape2D_2")
 
 [node name="HealthBar" parent="." instance=ExtResource("2_health_bar")]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 24.0
-offset_bottom = 4.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -12.0
+offset_top = -20.0
+offset_right = 12.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0

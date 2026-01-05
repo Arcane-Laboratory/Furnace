@@ -1,8 +1,8 @@
-[gd_scene load_steps=25 format=3 uid="uid://hrimlnulcmv7"]
+[gd_scene load_steps=25 format=3 uid="uid://bpqck0rddoyik"]
 
-[ext_resource type="Script" uid="uid://slsjs1f5yctu" path="res://scripts/entities/enemies/tank_enemy.gd" id="1_tank_enemy"]
+[ext_resource type="Script" path="res://scripts/entities/enemies/tank_enemy.gd" id="1_tank_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/ui/enemy_health_bar.tscn" id="2_health_bar"]
-[ext_resource type="Script" path="res://scripts/entities/enemies/enemy_animation_manager.gd" id="3_animation_manager"]
+[ext_resource type="Script" uid="uid://c0uufcc3eipv3" path="res://scripts/entities/enemies/enemy_animation_manager.gd" id="3_animation_manager"]
 [ext_resource type="Texture2D" uid="uid://xwtp7vwfwm1g" path="res://assets/sprites/enemy-tanky-sheet.png" id="3_tank_sprite"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_xyb8w"]
@@ -173,6 +173,11 @@ shape = SubResource("CircleShape2D_2")
 
 [node name="HealthBar" parent="." instance=ExtResource("2_health_bar")]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 24.0
-offset_bottom = 4.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -12.0
+offset_top = -47.0
+offset_right = 12.0
+offset_bottom = -43.0
+grow_horizontal = 2
