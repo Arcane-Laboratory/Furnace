@@ -1739,8 +1739,16 @@ func _show_tile_tooltip(grid_pos: Vector2i) -> void:
 	var viewport_size := Vector2(GameConfig.VIEWPORT_WIDTH, GameConfig.VIEWPORT_HEIGHT)
 	var tooltip_pos := tile_tooltip.calculate_best_position(tile_screen_pos, tile_size, viewport_size)
 	
+	# Calculate full refund amount (base cost + upgrade costs)
+	var refund_amount: int = definition.cost
+	if structure is RuneBase:
+		var rune := structure as RuneBase
+		if rune.current_level > 1 and definition.upgrade_cost > 0:
+			# Add all upgrade costs: (current_level - 1) upgrades were made
+			refund_amount += definition.upgrade_cost * (rune.current_level - 1)
+	
 	# Only show sell button for player-placed items (not preset items)
-	tile_tooltip.show_for_tile(grid_pos, definition.cost, tooltip_pos, has_direction, structure, is_player_placed)
+	tile_tooltip.show_for_tile(grid_pos, refund_amount, tooltip_pos, has_direction, structure, is_player_placed)
 
 
 ## Hide the sell tooltip
