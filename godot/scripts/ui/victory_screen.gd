@@ -35,7 +35,7 @@ func show_screen(level: int, stats: Dictionary) -> void:
 		stats_display.set_stats(soot, sparks, damage)
 	
 	# Play victory sound (allowed even when gameplay sounds are muted)
-	AudioManager.play_sound_effect("level-complete")
+	AudioManager.play_sound_effect("level-clear")
 	
 	# Show the overlay
 	show()

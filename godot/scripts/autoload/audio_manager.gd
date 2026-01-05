@@ -21,7 +21,7 @@ var sound_effects: Dictionary = {
 	"fireball-spawn": "res://assets/audio/fireball-spawn.wav",
 	"enemy-death": "res://assets/audio/enemy-death.wav",
 	"furnace-death": "res://assets/audio/furnace-death.wav",
-	"level-complete": "res://assets/audio/level-complete.wav",  # TODO: Add audio file
+	"level-clear": "res://assets/audio/level-clear.wav",
 	"level-failed": "res://assets/audio/level-failed.wav",
 	"click": "res://assets/audio/click.wav",
 	"structure-sell": "res://assets/audio/structure-sell.wav",
@@ -312,7 +312,7 @@ func _is_gameplay_sound(effect_name: String) -> bool:
 	# These sounds should play even when gameplay is muted (UI/feedback sounds)
 	var always_allowed := [
 		"click",
-		"level-complete",
+		"level-clear",
 		"level-failed",
 	]
 	return effect_name not in always_allowed
