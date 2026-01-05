@@ -110,6 +110,11 @@ func _ready() -> void:
 	GameManager.resources_changed.connect(_on_resources_changed)
 	GameManager.state_changed.connect(_on_state_changed)
 	
+	# Connect pause menu signals
+	if pause_menu:
+		pause_menu.retry_requested.connect(_on_pause_menu_retry_requested)
+		pause_menu.restart_requested.connect(_on_pause_menu_restart_requested)
+	
 	# Find and connect to GameSubmenu and BuildSubmenu
 	_setup_ui_references()
 	
@@ -1092,6 +1097,20 @@ func _toggle_pause() -> void:
 		is_paused = true
 		# Pause heat timer
 		_stop_heat_timer()
+
+
+## Handle retry requested from pause menu (soft restart - preserves player placements)
+func _on_pause_menu_retry_requested() -> void:
+	GameManager.resume_game()
+	is_paused = false
+	soft_restart_level()
+
+
+## Handle restart requested from pause menu (full restart - clears everything)
+func _on_pause_menu_restart_requested() -> void:
+	GameManager.resume_game()
+	is_paused = false
+	SceneManager.reload_current_scene()
 
 
 func _start_build_phase() -> void:
