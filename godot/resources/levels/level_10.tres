@@ -100,6 +100,5 @@ spawn_points = Array[Vector2i]([Vector2i(6, 6), Vector2i(0, 6), Vector2i(12, 6)]
 spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1"), SubResource("Resource_rule2"), SubResource("Resource_rule3"), SubResource("Resource_rule4"), SubResource("Resource_rule5"), SubResource("Resource_rule6"), SubResource("Resource_rule7"), SubResource("Resource_rule8"), SubResource("Resource_rule9"), SubResource("Resource_rule10"), SubResource("Resource_rule11")])
 par_time_seconds = 999.0
 hint_text = "The furnace is at full power! Show this final soot swarm your full power and creativity!"
-difficulty = 5
 heat_increase_interval = 1.0
 unlock_all_items = true
