@@ -530,8 +530,15 @@ func try_sell_item(grid_pos: Vector2i) -> bool:
 	if not definition:
 		return false
 	
-	# Calculate refund (100% of cost)
+	# Calculate refund (100% of base cost + all upgrade costs)
 	var refund_amount: int = definition.cost
+	
+	# Add refund for any upgrades (if structure is a rune with upgrades)
+	if structure is RuneBase:
+		var rune := structure as RuneBase
+		if rune.current_level > 1 and definition.upgrade_cost > 0:
+			# Refund all upgrade costs: (current_level - 1) upgrades were made
+			refund_amount += definition.upgrade_cost * (rune.current_level - 1)
 	
 	# Handle portal paired removal - if selling a portal, also remove its linked portal
 	if structure is PortalRune:
