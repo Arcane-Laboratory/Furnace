@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=5 format=3 uid="uid://c2d7161eewqll"]
+[gd_resource type="Resource" script_class="LevelData" load_steps=12 format=3 uid="uid://c2d7161eewqll"]
 
 [ext_resource type="Script" uid="uid://bbkvpakf3hhjq" path="res://scripts/resources/level_data.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/spawn_enemy_rule.gd" id="2"]
@@ -8,26 +8,82 @@ script = ExtResource("2")
 spawn_point_index = 0
 enemy_type = 0
 spawn_delay = 0.0
-spawn_count = 6
+spawn_count = 20
 spawn_time = 60.0
 
 [sub_resource type="Resource" id="Resource_rule1"]
 script = ExtResource("2")
 spawn_point_index = 0
+enemy_type = 0
+spawn_delay = 45.0
+spawn_count = 25
+spawn_time = 75.0
+
+[sub_resource type="Resource" id="Resource_rule2"]
+script = ExtResource("2")
+spawn_point_index = 0
 enemy_type = 1
-spawn_delay = 3.0
-spawn_count = 4
+spawn_delay = 60.0
+spawn_count = 15
+spawn_time = 60.0
+
+[sub_resource type="Resource" id="Resource_rule3"]
+script = ExtResource("2")
+spawn_point_index = 0
+enemy_type = 0
+spawn_delay = 90.0
+spawn_count = 30
+spawn_time = 60.0
+
+[sub_resource type="Resource" id="Resource_rule4"]
+script = ExtResource("2")
+spawn_point_index = 0
+enemy_type = 1
+spawn_delay = 100.0
+spawn_count = 20
+spawn_time = 50.0
+
+[sub_resource type="Resource" id="Resource_rule5"]
+script = ExtResource("2")
+spawn_point_index = 0
+enemy_type = 2
+spawn_delay = 120.0
+spawn_count = 8
 spawn_time = 40.0
+
+[sub_resource type="Resource" id="Resource_rule6"]
+script = ExtResource("2")
+spawn_point_index = 0
+enemy_type = 0
+spawn_delay = 140.0
+spawn_count = 35
+spawn_time = 40.0
+
+[sub_resource type="Resource" id="Resource_rule7"]
+script = ExtResource("2")
+spawn_point_index = 0
+enemy_type = 1
+spawn_delay = 150.0
+spawn_count = 20
+spawn_time = 30.0
+
+[sub_resource type="Resource" id="Resource_rule8"]
+script = ExtResource("2")
+spawn_point_index = 0
+enemy_type = 2
+spawn_delay = 160.0
+spawn_count = 5
+spawn_time = 20.0
 
 [resource]
 script = ExtResource("1")
 level_number = 0
-level_name = "Debug Level"
+level_name = "Free Play"
 starting_resources = 1000
 spawn_points = Array[Vector2i]([Vector2i(6, 6)])
-spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1")])
+spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1"), SubResource("Resource_rule2"), SubResource("Resource_rule3"), SubResource("Resource_rule4"), SubResource("Resource_rule5"), SubResource("Resource_rule6"), SubResource("Resource_rule7"), SubResource("Resource_rule8")])
 par_time_seconds = 999.0
 preset_items = Array[Dictionary]([])
-hint_text = "[DEBUG] Test level with all items unlocked and invincibility enabled."
+hint_text = "Free Play mode! Enemies will slowly ramp up over 3 minutes. All items unlocked."
 heat_increase_interval = 4.0
 unlock_all_items = true

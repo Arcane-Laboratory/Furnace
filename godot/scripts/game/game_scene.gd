@@ -54,6 +54,9 @@ var help_snackbar: HelpSnackbar = null
 ## Victory screen overlay (shown when level is cleared)
 var victory_screen: CanvasLayer = null
 
+## Final victory screen overlay (shown when all levels are cleared)
+var final_victory_screen: CanvasLayer = null
+
 ## Defeat screen overlay (shown when furnace is destroyed)
 var defeat_screen: CanvasLayer = null
 
@@ -134,8 +137,9 @@ func _ready() -> void:
 	# Create drop target for drag-and-drop
 	_create_drop_target()
 	
-	# Create victory and defeat screen overlays
+	# Create victory, final victory, and defeat screen overlays
 	_setup_victory_screen()
+	_setup_final_victory_screen()
 	_setup_defeat_screen()
 	
 	
@@ -307,6 +311,29 @@ func _setup_victory_screen() -> void:
 		victory_screen.restart_pressed.connect(_on_victory_restart)
 
 
+## Setup the final victory screen overlay (shown when all levels are cleared)
+func _setup_final_victory_screen() -> void:
+	var final_victory_scene := load("res://scenes/ui/final_victory_screen.tscn") as PackedScene
+	if not final_victory_scene:
+		push_warning("GameScene: Failed to load final_victory_screen.tscn")
+		return
+	
+	final_victory_screen = final_victory_scene.instantiate() as CanvasLayer
+	if not final_victory_screen:
+		push_warning("GameScene: Failed to instantiate final victory screen")
+		return
+	
+	# Add to scene tree
+	add_child(final_victory_screen)
+	final_victory_screen.hide()
+	
+	# Connect signals
+	if final_victory_screen.has_signal("menu_pressed"):
+		final_victory_screen.menu_pressed.connect(_on_final_victory_menu)
+	if final_victory_screen.has_signal("free_play_pressed"):
+		final_victory_screen.free_play_pressed.connect(_on_final_victory_free_play)
+
+
 ## Setup the defeat screen overlay
 func _setup_defeat_screen() -> void:
 	var defeat_scene := load("res://scenes/ui/defeat_screen.tscn") as PackedScene
@@ -332,13 +359,37 @@ func _setup_defeat_screen() -> void:
 
 ## Handle victory screen continue button
 func _on_victory_continue() -> void:
-	SceneManager.goto_next_level()
+	# Check if this is the final level
+	if GameManager.is_final_level(GameManager.current_level):
+		# Show final victory screen instead of going to next level
+		# First, switch to level 0 (free play/debug level) in the background
+		GameManager.current_level = 0
+		reload_level(0)
+		
+		# Show final victory screen
+		if final_victory_screen and final_victory_screen.has_method("show_screen"):
+			final_victory_screen.show_screen()
+	else:
+		SceneManager.goto_next_level()
 
 
 ## Handle victory screen restart button
 func _on_victory_restart() -> void:
 	# Use soft restart to preserve player-placed tiles
 	soft_restart_level()
+
+
+## Handle final victory screen main menu button
+func _on_final_victory_menu() -> void:
+	SceneManager.goto_menu()
+
+
+## Handle final victory screen free play button
+func _on_final_victory_free_play() -> void:
+	# Player is already on level 0 from when we showed the final victory screen
+	# Just close the modal and let them continue playing
+	# Unmute gameplay sounds since we're resuming play
+	AudioManager.unmute_gameplay_sounds()
 
 
 ## Handle defeat screen main menu button
