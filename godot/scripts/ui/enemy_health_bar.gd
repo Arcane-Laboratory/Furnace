@@ -6,9 +6,6 @@ class_name EnemyHealthBar
 const BAR_WIDTH: int = 24
 const BAR_HEIGHT: int = 4
 
-## Offset above the enemy sprite
-const OFFSET_Y: float = -20.0
-
 ## Current health percentage (0.0 to 1.0)
 var health_percentage: float = 1.0
 
@@ -17,9 +14,12 @@ var enemy: CharacterBody2D
 
 
 func _ready() -> void:
-	# Set size and position
+	# Set size
 	custom_minimum_size = Vector2(BAR_WIDTH, BAR_HEIGHT)
 	size = Vector2(BAR_WIDTH, BAR_HEIGHT)
+	
+	# Set z_index to render above explosion effects (explosion has z_index = 100)
+	z_index = 101
 	
 	# Get reference to parent enemy
 	enemy = get_parent() as CharacterBody2D
@@ -27,14 +27,7 @@ func _ready() -> void:
 	# Initially hide if at full health
 	visible = false
 	
-	# Set initial position
-	_update_position()
-
-
-func _process(_delta: float) -> void:
-	# Keep health bar positioned above enemy
-	if enemy:
-		_update_position()
+	# Position is controlled by scene file anchors/offsets, no need to set programmatically
 
 
 ## Update health bar based on current and max health
@@ -51,16 +44,6 @@ func update_health(current: int, max_hp: int) -> void:
 	queue_redraw()
 
 
-## Update position to stay above enemy
-func _update_position() -> void:
-	if not enemy:
-		return
-	
-	# Position above enemy sprite, centered horizontally
-	position = Vector2(
-		-BAR_WIDTH / 2.0,
-		OFFSET_Y
-	)
 
 
 ## Draw the health bar

@@ -1,8 +1,8 @@
-[gd_scene load_steps=22 format=3 uid="uid://exqes0vhl7wf"]
+[gd_scene load_steps=22 format=3 uid="uid://c7flj174li7nw"]
 
 [ext_resource type="Script" path="res://scripts/entities/enemies/fast_enemy.gd" id="1_fast_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/ui/enemy_health_bar.tscn" id="2_health_bar"]
-[ext_resource type="Script" path="res://scripts/entities/enemies/enemy_animation_manager.gd" id="3_animation_manager"]
+[ext_resource type="Script" uid="uid://c0uufcc3eipv3" path="res://scripts/entities/enemies/enemy_animation_manager.gd" id="3_animation_manager"]
 [ext_resource type="Texture2D" uid="uid://6r3jg4bqo37q" path="res://assets/sprites/enemy-fast-sheet.png" id="3_fast_sprite"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_7fxib"]
@@ -132,7 +132,8 @@ script = ExtResource("3_animation_manager")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="AnimationManager"]
 position = Vector2(1, -10)
 sprite_frames = SubResource("SpriteFrames_fast")
-animation = &"death"
+animation = &"walk"
+frame_progress = 0.756847
 
 [node name="EnemyVisual" type="ColorRect" parent="."]
 visible = false
@@ -152,6 +153,11 @@ shape = SubResource("CircleShape2D_2")
 
 [node name="HealthBar" parent="." instance=ExtResource("2_health_bar")]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 24.0
-offset_bottom = 4.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -12.0
+offset_top = -30.0
+offset_right = 12.0
+offset_bottom = -26.0
+grow_horizontal = 2
