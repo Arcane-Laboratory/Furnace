@@ -12,7 +12,7 @@ scene_path = "res://scenes/entities/runes/redirect_rune.tscn"
 has_direction = true
 max_level = 2
 upgrade_cost = 10
-description = "A rune that redirects the hearthflame. Click on the placed rune to change direction."
+description = "A rune that redirects the hearthflame. Click on the placed rune to change direction.\n\nLevel 2: Can change direction during active phase."
 sprite_overrides = {
 2: "res://assets/sprites/rune-advanced-redirect.png"
 }
