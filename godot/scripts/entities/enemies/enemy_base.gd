@@ -102,6 +102,9 @@ func take_damage(amount: int) -> void:
 	# Show floating damage number for all hits, including killing blow
 	FloatingNumberManager.show_number(amount, global_position, Color.RED, null, 1.0, true)
 	
+	# Flash white for all damage, including killing blow
+	_flash_white()
+	
 	if health <= 0:
 		_die()
 	else:
@@ -110,9 +113,9 @@ func take_damage(amount: int) -> void:
 
 ## Called when enemy takes damage (override for visual feedback)
 func _on_damaged(_amount: int) -> void:
-	# Flash white when hit
-	_flash_white()
+	# Visual feedback is handled in take_damage() (flash white)
 	# Health bar is already updated in take_damage()
+	pass
 
 
 ## Flash the sprite white briefly when hit
@@ -145,15 +148,15 @@ func _flash_white() -> void:
 	
 	# Create a tween to flash white then fade out
 	flash_tween = create_tween()
-	# Flash in over 0.05 seconds
+	# Flash in over 0.10 seconds (doubled from 0.05)
 	flash_tween.tween_method(
 		func(amount: float): flash_material.set_shader_parameter("flash_amount", amount),
-		0.0, 1.0, 0.05
+		0.0, 1.0, 0.10
 	)
-	# Then fade out over 0.15 seconds
+	# Then fade out over 0.30 seconds (doubled from 0.15)
 	flash_tween.tween_method(
 		func(amount: float): flash_material.set_shader_parameter("flash_amount", amount),
-		1.0, 0.0, 0.15
+		1.0, 0.0, 0.30
 	)
 
 
