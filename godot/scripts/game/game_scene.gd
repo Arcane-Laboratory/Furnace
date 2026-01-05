@@ -1051,13 +1051,31 @@ func _input(event: InputEvent) -> void:
 		if is_bulk_placing and GameManager.current_state == GameManager.GameState.BUILD_PHASE:
 			_handle_bulk_placement_drag()
 	
-	# Handle right-click for debug placement mode (right click = remove)
+	# Handle right-click for debug placement mode (right click = remove) or to cancel selection
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		if debug_controller and debug_controller.is_in_placement_mode():
 			var grid_pos := _get_grid_pos_from_mouse()
 			if grid_pos != Vector2i(-1, -1):
 				debug_controller.handle_removal_click(grid_pos)
 			return
+		
+		# Right-click to cancel selection during build phase (same as escape)
+		if GameManager.current_state == GameManager.GameState.BUILD_PHASE:
+			# End any bulk placement in progress
+			_end_bulk_placement()
+			
+			# First, check if we're in portal exit placement mode
+			if placement_manager and placement_manager.is_in_portal_exit_mode():
+				placement_manager.cancel_portal_placement()
+				_hide_tile_tooltip()
+				get_viewport().set_input_as_handled()
+				return
+			# Next, try to cancel any active selection
+			if placement_manager and placement_manager.has_selection():
+				placement_manager.clear_selection()
+				_hide_tile_tooltip()
+				get_viewport().set_input_as_handled()
+				return
 
 
 func _toggle_pause() -> void:
