@@ -80,26 +80,21 @@ func end_game(won: bool) -> void:
 
 
 ## Get the highest level number available (excluding level 0 which is debug)
-## Scans the levels directory to find all level_N.tres files
+## Checks for level files using ResourceLoader.exists() which works in both editor and web builds
+## DirAccess doesn't work reliably in web exports, so we check each level file explicitly
 func get_max_level() -> int:
 	var max_level: int = 1
-	var dir := DirAccess.open("res://resources/levels/")
-	if not dir:
-		push_warning("GameManager: Could not open levels directory")
-		return max_level
 	
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		# Match pattern level_N.tres (but not level_0.tres)
-		if file_name.begins_with("level_") and file_name.ends_with(".tres"):
-			var num_str := file_name.substr(6, file_name.length() - 11)  # Extract number between "level_" and ".tres"
-			if num_str.is_valid_int():
-				var level_num := int(num_str)
-				if level_num > 0 and level_num > max_level:
-					max_level = level_num
-		file_name = dir.get_next()
-	dir.list_dir_end()
+	# Check levels up to a reasonable maximum (e.g., 20)
+	# Start from 1 and work upwards to find the highest existing level
+	for level_num in range(1, 21):  # Check levels 1-20
+		var level_path := "res://resources/levels/level_%d.tres" % level_num
+		if ResourceLoader.exists(level_path):
+			max_level = level_num
+		else:
+			# Once we hit a missing level, we can stop (assuming levels are sequential)
+			# But continue checking in case there are gaps
+			pass
 	
 	return max_level
 

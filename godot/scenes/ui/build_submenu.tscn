@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://d3lefgipylt8o" path="res://scenes/ui/menu_label.tscn" id="2_ljs7x"]
 [ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="3_dvviv"]
 [ext_resource type="PackedScene" uid="uid://cbahjpvjs4v7x" path="res://scenes/ui/build_menu_item.tscn" id="3_h57i6"]
-[ext_resource type="Script" uid="uid://djw3u38vaxjcu" path="res://scripts/ui/build_submenu.gd" id="4_submenu"]
+[ext_resource type="Script" path="res://scripts/ui/build_submenu.gd" id="4_submenu"]
 
 
 [node name="BuildSubmenu" type="Control"]
