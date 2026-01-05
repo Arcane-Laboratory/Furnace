@@ -8,6 +8,7 @@ extends Node2D
 @onready var grid_overlay: Node2D = $GameBoard/GridOverlay
 @onready var path_preview: Node2D = $GameBoard/PathPreview
 @onready var background: Sprite2D = $Background
+@onready var floor: Sprite2D = $Floor
 @onready var game_board: Node2D = $GameBoard
 @onready var tiles_container: Node2D = $GameBoard/Tiles
 @onready var spawn_points_container: Node2D = $GameBoard/SpawnPoints
