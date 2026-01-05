@@ -22,8 +22,8 @@ var current_structure: Node = null
 ## Reference to sell button
 @onready var sell_button: Button = %SellButton
 
-## Reference to preset label (shown for non-sellable items)
-@onready var preset_label: Label = %PresetLabel
+## Reference to lock icon (shown for preset/non-sellable items)
+@onready var lock_icon: Label = %LockIcon
 
 ## Reference to upgrade button (created dynamically if needed)
 var upgrade_button: Button = null
@@ -93,9 +93,9 @@ func show_for_tile(grid_pos: Vector2i, refund_amount: int, screen_pos: Vector2, 
 		sell_button.text = "Sell %d" % refund_amount
 		sell_button.visible = show_sell
 	
-	# Show preset label for non-sellable items (preset items tied to level)
-	if preset_label:
-		preset_label.visible = not show_sell
+	# Show lock icon in header for preset/non-sellable items
+	if lock_icon:
+		lock_icon.visible = not show_sell
 	
 	# Update upgrade button visibility and text
 	_update_upgrade_button(structure, show_upgrade)
