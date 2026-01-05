@@ -935,6 +935,7 @@ func _on_all_enemies_defeated() -> void:
 func _on_furnace_destroyed() -> void:
 	print("GameScene: Furnace destroyed - DEFEAT!")
 	AudioManager.play_sound_effect("furnace-death")
+	ScreenShakeManager.shake()
 	lose_level()
 
 
@@ -1176,6 +1177,9 @@ func _launch_fireball() -> void:
 	
 	# Play fireball spawn sound
 	AudioManager.play_sound_effect("fireball-spawn")
+	
+	# Screen shake
+	ScreenShakeManager.shake()
 
 
 func _on_start_pressed() -> void:
