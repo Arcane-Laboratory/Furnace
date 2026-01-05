@@ -1,0 +1,69 @@
+[gd_scene load_steps=4 format=3 uid="uid://info_snackbar_uid"]
+
+[ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="1_info"]
+[ext_resource type="Script" path="res://scripts/ui/info_snackbar.gd" id="2_info_script"]
+[ext_resource type="Texture2D" uid="uid://nxt4h0uecipk" path="res://resources/ui_assets/9p_small.png" id="3_9patch"]
+
+[node name="InfoSnackbar" type="Control"]
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -100.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 42.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("1_info")
+script = ExtResource("2_info_script")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+visible = false
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 0
+offset_right = 200.0
+offset_bottom = 32.0
+color = Color(0.19376665, 0.13948467, 0.17494023, 1)
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_9patch")
+patch_margin_left = 6
+patch_margin_top = 4
+patch_margin_right = 6
+patch_margin_bottom = 4
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label3" type="Label" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("1_info")
+theme_override_colors/font_color = Color(0.81960785, 0.62352943, 0.24705882, 1)
+text = "Place portal exit (right click to cancel)"
+horizontal_alignment = 1
+autowrap_mode = 2

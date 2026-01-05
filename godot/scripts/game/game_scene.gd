@@ -40,7 +40,7 @@ var placement_manager: PlacementManager = null
 var error_snackbar: ErrorSnackbar = null
 
 ## Info snackbar for showing portal placement messages
-var info_snackbar: Control = null
+var info_snackbar: InfoSnackbar = null
 
 ## Tile tooltip for tile actions (sell, etc.)
 var tile_tooltip: TileTooltip = null
@@ -1575,26 +1575,15 @@ func _create_error_snackbar() -> void:
 
 ## Create the info snackbar (for portal placement messages)
 func _create_info_snackbar() -> void:
-	info_snackbar = PanelContainer.new()
-	info_snackbar.name = "InfoSnackbar"
+	var info_scene := load("res://scenes/ui/info_snackbar.tscn") as PackedScene
+	if not info_scene:
+		push_warning("GameScene: Failed to load info_snackbar.tscn")
+		return
 	
-	var label := Label.new()
-	label.name = "Label"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	info_snackbar.add_child(label)
-	
-	# Style (blue/info color)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.5, 0.8, 0.9)
-	style.set_corner_radius_all(4)
-	style.set_content_margin_all(8)
-	info_snackbar.add_theme_stylebox_override("panel", style)
-	
-	# Position at top center (above game board)
-	info_snackbar.position = Vector2(GameConfig.VIEWPORT_WIDTH / 2.0 - 100, 10)
-	info_snackbar.custom_minimum_size = Vector2(200, 30)
-	info_snackbar.visible = false
+	info_snackbar = info_scene.instantiate() as InfoSnackbar
+	if not info_snackbar:
+		push_warning("GameScene: Failed to instantiate info snackbar")
+		return
 	
 	# Add to UI layer
 	var ui_layer := get_node_or_null("UILayer") as CanvasLayer
@@ -1640,23 +1629,18 @@ func _show_info_snackbar(message: String) -> void:
 	if not info_snackbar:
 		return
 	
-	var label := info_snackbar.get_node_or_null("Label") as Label
-	if label:
-		label.text = message
-	
-	info_snackbar.modulate.a = 1.0
-	info_snackbar.visible = true
+	info_snackbar.show_info(message)
 
 
 ## Hide info snackbar
 func _hide_info_snackbar() -> void:
 	if info_snackbar:
-		info_snackbar.visible = false
+		info_snackbar.hide_snackbar()
 
 
 ## Handle portal placement started
 func _on_portal_placement_started() -> void:
-	_show_info_snackbar("Place portal exit (ESC to cancel)")
+	_show_info_snackbar("Place portal exit (right click to cancel)")
 
 
 ## Handle portal placement completed

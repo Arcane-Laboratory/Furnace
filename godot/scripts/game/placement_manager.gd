@@ -123,6 +123,11 @@ func can_place_at(grid_pos: Vector2i) -> bool:
 	var tile_in_front_of_furnace := Vector2i(furnace_pos.x, 0)  # Top row, same X as furnace
 	var is_rune_in_front_of_furnace_can: bool = (definition.item_type != "wall") and (grid_pos == tile_in_front_of_furnace)
 	
+	# Check if tile is already occupied (always check this, even for furnace exception)
+	var tile := TileManager.get_tile(grid_pos)
+	if tile and (tile.occupancy != TileBase.OccupancyType.EMPTY or (tile.structure and is_instance_valid(tile.structure))):
+		return false
+	
 	# Check if tile is buildable (with exception for runes in front of furnace)
 	# Allow runes to be placed even if tile is marked as non-buildable (e.g., spawn point)
 	if not is_rune_in_front_of_furnace_can:
@@ -203,6 +208,12 @@ func try_place_item(grid_pos: Vector2i) -> bool:
 	var furnace_pos_try := level_data.furnace_position if level_data else Vector2i(6, 0)
 	var tile_in_front_of_furnace_try := Vector2i(furnace_pos_try.x, 0)  # Top row, same X as furnace
 	var is_rune_in_front_of_furnace_try: bool = (definition.item_type != "wall") and (grid_pos == tile_in_front_of_furnace_try)
+	
+	# Check if tile is already occupied (always check this, even for furnace exception)
+	var tile := TileManager.get_tile(grid_pos)
+	if tile and (tile.occupancy != TileBase.OccupancyType.EMPTY or (tile.structure and is_instance_valid(tile.structure))):
+		placement_failed.emit("Cannot build here - tile already occupied")
+		return false
 	
 	# Check if tile is buildable (with exception for runes in front of furnace)
 	# Allow runes to be placed even if tile is marked as non-buildable (e.g., spawn point)
