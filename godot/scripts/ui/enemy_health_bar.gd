@@ -21,6 +21,9 @@ func _ready() -> void:
 	custom_minimum_size = Vector2(BAR_WIDTH, BAR_HEIGHT)
 	size = Vector2(BAR_WIDTH, BAR_HEIGHT)
 	
+	# Set z_index to render above explosion effects (explosion has z_index = 100)
+	z_index = 101
+	
 	# Get reference to parent enemy
 	enemy = get_parent() as CharacterBody2D
 	
