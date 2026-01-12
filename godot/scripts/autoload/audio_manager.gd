@@ -51,8 +51,10 @@ var use_pitch_modulation: bool = true  # Can be disabled if needed
 # Audio mixing/ducking settings
 var enable_audio_ducking: bool = true  # Can be disabled if needed
 var ducking_threshold: int = 3  # Start ducking when this many sounds play simultaneously
-var max_ducking_db: float = -12.0  # Maximum volume reduction in dB when many sounds play
-var ducking_curve: float = 2.0  # Curve factor for ducking (higher = more aggressive)
+var max_ducking_db: float = -20.0  # Maximum volume reduction in dB when many sounds play
+var ducking_curve: float = 2.5  # Curve factor for ducking (higher = more aggressive)
+var sound_culling_threshold: int = 10  # Start culling sounds when this many play simultaneously
+var sound_culling_enabled: bool = true  # Enable sound culling to prevent audio overload
 
 # Gameplay audio muting (for victory/defeat modals)
 var gameplay_sounds_muted: bool = false
@@ -207,6 +209,10 @@ func play_sound_effect(effect_name: String) -> void:
 	# Get volume multiplier (default to 1.0 if not set)
 	var volume_multiplier: float = sound_volumes.get(effect_name, 1.0)
 	
+	# Check if we should cull sounds before playing new one
+	if sound_culling_enabled:
+		_cull_excess_sounds()
+	
 	# Find an available player from the pool
 	var player: AudioStreamPlayer = _get_available_sfx_player()
 	if not player:
@@ -303,6 +309,55 @@ func _update_audio_ducking() -> void:
 	if sfx_player.playing:
 		var base_volume: float = sfx_player.get_meta("base_volume_db", 0.0)
 		sfx_player.volume_db = base_volume + ducking_db
+
+
+## Cull excess sounds when too many are playing simultaneously
+## Stops the quietest/lowest priority sounds to prevent audio overload
+func _cull_excess_sounds() -> void:
+	if not sound_culling_enabled:
+		return
+	
+	var concurrent_count: int = _count_concurrent_sounds()
+	
+	# Only cull if we're at or above the threshold
+	if concurrent_count < sound_culling_threshold:
+		return
+	
+	# Collect all playing sounds with their volumes
+	var playing_sounds: Array[Dictionary] = []
+	
+	for player in sfx_pool:
+		if player.playing:
+			var base_volume: float = player.get_meta("base_volume_db", 0.0)
+			var current_volume: float = player.volume_db
+			playing_sounds.append({
+				"player": player,
+				"base_volume": base_volume,
+				"current_volume": current_volume
+			})
+	
+	if sfx_player.playing:
+		var base_volume: float = sfx_player.get_meta("base_volume_db", 0.0)
+		var current_volume: float = sfx_player.volume_db
+		playing_sounds.append({
+			"player": sfx_player,
+			"base_volume": base_volume,
+			"current_volume": current_volume
+		})
+	
+	# Sort by current volume (quietest first) - these are less noticeable to stop
+	playing_sounds.sort_custom(func(a, b): return a.current_volume < b.current_volume)
+	
+	# Stop the quietest sounds until we're below threshold
+	var sounds_to_stop: int = concurrent_count - sound_culling_threshold + 1
+	for i in range(min(sounds_to_stop, playing_sounds.size())):
+		var sound_data: Dictionary = playing_sounds[i]
+		var player_to_stop: AudioStreamPlayer = sound_data["player"]
+		player_to_stop.stop()
+		
+		# Disconnect finished signal if connected
+		if player_to_stop.finished.is_connected(_on_sfx_finished):
+			player_to_stop.finished.disconnect(_on_sfx_finished)
 
 
 ## Handle SFX finished signal - update ducking when sound ends
