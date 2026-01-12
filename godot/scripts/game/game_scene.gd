@@ -14,6 +14,8 @@ extends Node2D
 @onready var spawn_points_container: Node2D = $GameBoard/SpawnPoints
 @onready var enemies_container: Node2D = $GameBoard/Enemies
 @onready var runes_container: Node2D = $GameBoard/Runes
+@onready var pause_button: Button = $UILayer/TopLeftControls/VBoxContainer/PauseButton
+@onready var clear_board_button: Button = $UILayer/TopLeftControls/VBoxContainer/ClearBoardButton
 
 ## Reference to the game submenu (handles stats display and start button)
 var game_submenu: GameSubmenu = null
@@ -146,6 +148,9 @@ func _ready() -> void:
 	# Create debug controller (only in debug mode)
 	if GameConfig.debug_mode:
 		_setup_debug_controller()
+	
+	# Wire up top-left control buttons
+	_setup_top_left_buttons()
 	
 	_update_ui()
 	_start_build_phase()
@@ -335,6 +340,17 @@ func _setup_final_victory_screen() -> void:
 
 
 ## Setup the defeat screen overlay
+func _setup_top_left_buttons() -> void:
+	## Wire up pause and reset level buttons in top-left corner
+	if pause_button:
+		pause_button.pressed.connect(_on_pause_button_pressed)
+	
+	if clear_board_button:
+		clear_board_button.pressed.connect(_on_clear_board_button_pressed)
+		# Reset level button should only be visible during build phase
+		clear_board_button.visible = (GameManager.current_state == GameManager.GameState.BUILD_PHASE)
+
+
 func _setup_defeat_screen() -> void:
 	var defeat_scene := load("res://scenes/ui/defeat_screen.tscn") as PackedScene
 	if not defeat_scene:
@@ -1173,6 +1189,87 @@ func _toggle_pause() -> void:
 		_stop_heat_timer()
 
 
+## Handle pause button pressed (top-left corner)
+func _on_pause_button_pressed() -> void:
+	AudioManager.play_ui_click()
+	_toggle_pause()
+
+
+## Handle reset level button pressed (top-left corner, build phase only)
+func _on_clear_board_button_pressed() -> void:
+	AudioManager.play_ui_click()
+	_clear_board()
+
+
+## Reset level: Clear all player-placed items and reset resources to starting amount
+func _clear_board() -> void:
+	if GameManager.current_state != GameManager.GameState.BUILD_PHASE:
+		return
+	
+	print("GameScene: Resetting level (removing all player-placed items)...")
+	
+	# Track processed portal positions to avoid double-processing
+	var processed_portals: Array[Vector2i] = []
+	
+	# Iterate through all tiles and clear player-placed items
+	for x in range(GameConfig.GRID_COLUMNS):
+		for y in range(GameConfig.GRID_ROWS):
+			var grid_pos := Vector2i(x, y)
+			var tile := TileManager.get_tile(grid_pos)
+			
+			if not tile or not tile.is_player_placed:
+				continue
+			
+			if tile.occupancy == TileBase.OccupancyType.EMPTY:
+				continue
+			
+			# Skip if this portal was already processed (as a linked portal)
+			if grid_pos in processed_portals:
+				continue
+			
+			# Handle portal paired removal - clear both portals at once
+			if tile.structure is PortalRune:
+				var portal := tile.structure as PortalRune
+				var linked_portal := portal.linked_portal
+				
+				# Mark both portals as processed
+				processed_portals.append(grid_pos)
+				if linked_portal and is_instance_valid(linked_portal):
+					var linked_grid_pos := linked_portal.grid_position
+					processed_portals.append(linked_grid_pos)
+					# Clear the linked portal first
+					TileManager.clear_tile(linked_grid_pos)
+				
+				# Get item type for refund (portal cost covers both entrance and exit)
+				var item_type := tile.placed_item_type
+				var definition := GameConfig.get_item_definition(item_type)
+				
+				if definition:
+					# Portal cost covers both, so refund once
+					# Clear the current portal
+					TileManager.clear_tile(grid_pos)
+			else:
+				# For non-portal items, clear normally
+				TileManager.clear_tile(grid_pos)
+	
+	# Reset resources to starting amount
+	if current_level_data and current_level_data.starting_resources > 0:
+		GameManager.resources = current_level_data.starting_resources
+	else:
+		GameManager.resources = GameConfig.get_level_resources(GameManager.current_level)
+	
+	GameManager.resources_changed.emit(GameManager.resources)
+	
+	# Update build menu
+	_update_build_menu()
+	
+	# Update path preview
+	if path_preview:
+		path_preview.update_paths(current_level_data)
+	
+	print("GameScene: Level reset! Resources reset to %d" % GameManager.resources)
+
+
 ## Handle retry requested from pause menu (soft restart - preserves player placements)
 func _on_pause_menu_retry_requested() -> void:
 	GameManager.resume_game()
@@ -1314,6 +1411,10 @@ func _on_resources_changed(new_amount: int) -> void:
 func _on_state_changed(new_state: GameManager.GameState) -> void:
 	# End bulk placement on any state change
 	_end_bulk_placement()
+	
+	# Update reset level button visibility (only visible in build phase)
+	if clear_board_button:
+		clear_board_button.visible = (new_state == GameManager.GameState.BUILD_PHASE)
 	
 	match new_state:
 		GameManager.GameState.BUILD_PHASE:

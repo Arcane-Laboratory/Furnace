@@ -136,16 +136,6 @@ See `docs/` for:
 - `brainstorm/DEVELOPER_TUNABLE_PARAMETERS.md` - Balance parameters
 - `scope.md` - MVP vs post-MVP features
 
-## What's Left to Implement
-
-- [ ] Fireball physics/collision with walls
-- [ ] Enemy spawning and pathfinding (AStar2D)
-- [ ] Build panel click-to-place functionality
-- [ ] Individual rune behaviors (Portal, Explosive, Acceleration, etc.)
-- [ ] Level content and progression
-- [ ] Art assets and sound effects
-- [ ] Win/lose conditions triggering
-
 ## Team
 
 Built by the Arcane Laboratory team.
