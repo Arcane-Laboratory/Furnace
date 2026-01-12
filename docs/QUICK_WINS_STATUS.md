@@ -31,19 +31,21 @@
    - **Note**: Plan says "explosive rune" but code shows it's explosive wall
    - **Status**: Fixed - screen shake removed from explosive wall explosions
 
-3. **Pause Button**
-   - **Status**: Pause menu exists, but no visible button
-   - **Action**: Add pause button to top-left corner of game scene
-   - **Files to Modify**:
-     - `godot/scenes/game/game_scene.tscn` (add button to UI)
-     - `godot/scripts/game/game_scene.gd` (wire up button)
+3. **Pause Button** ✅ **COMPLETE**
+   - **Status**: ✅ Added pause button to top-left corner
+   - **Action**: ✅ Added TopLeftControls container with PauseButton
+   - **Files Modified**:
+     - `godot/scenes/game/game_scene.tscn` ✅
+     - `godot/scripts/game/game_scene.gd` ✅
+   - **PR**: #48
 
-4. **Clear Board Button**
-   - **Status**: Not implemented
-   - **Action**: Add clear board button to build phase UI
-   - **Files to Modify**:
-     - `godot/scenes/game/game_scene.tscn` (add button)
-     - `godot/scripts/game/game_scene.gd` (implement reset logic)
+4. **Clear Board Button** ✅ **COMPLETE**
+   - **Status**: ✅ Added clear board button to top-left corner (build phase only)
+   - **Action**: ✅ Implemented _clear_board() function
+   - **Files Modified**:
+     - `godot/scenes/game/game_scene.tscn` ✅
+     - `godot/scripts/game/game_scene.gd` ✅
+   - **PR**: #48
 
 5. **Fireball Die Animation**
    - **Status**: Need to check current implementation
@@ -62,10 +64,10 @@
 ## Implementation Priority Order
 
 ### Immediate (Critical Fixes)
-1. ✅ **Remove Screen Shake from Explosive Wall** ✅ **COMPLETE** (Quick fix, 5 min)
-2. ✅ **Add Pause Button** (UI addition, 15-30 min)
+1. ✅ **Remove Screen Shake from Explosive Wall** ✅ **COMPLETE** (Quick fix, 5 min) - PR #47
+2. ✅ **Add Pause Button** ✅ **COMPLETE** (UI addition, 15-30 min) - PR #48
 3. 🔍 **Fix Portal Cost Bug** (Investigate first, then fix, 30-60 min)
-4. ✅ **Add Clear Board Button** (UI + logic, 30-45 min)
+4. ✅ **Add Clear Board Button** ✅ **COMPLETE** (UI + logic, 30-45 min) - PR #48
 
 ### Quick Wins (Visual/Audio)
 5. ✅ **Add Fireball Die Animation** (Visual polish, 15-30 min)
@@ -123,5 +125,9 @@
 ---
 
 **Status**: In Progress  
-**Completed**: ✅ Removed screen shake from explosive wall  
-**Next Action**: Add pause button to top-left corner
+**Completed**: 
+- ✅ Removed screen shake from explosive wall (PR #47)
+- ✅ Added pause button to top-left corner (PR #48)
+- ✅ Added clear board button to top-left corner (PR #48)
+
+**Next Action**: Investigate and fix portal cost bug

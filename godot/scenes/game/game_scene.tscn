@@ -319,7 +319,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 24)
 layout_mode = 2
 theme = ExtResource("3_theme")
-text = "Clear Board"
+text = "Reset Level"
 
 [node name="BottomBar" type="PanelContainer" parent="UILayer"]
 visible = false

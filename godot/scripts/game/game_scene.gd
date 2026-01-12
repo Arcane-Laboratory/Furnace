@@ -341,13 +341,13 @@ func _setup_final_victory_screen() -> void:
 
 ## Setup the defeat screen overlay
 func _setup_top_left_buttons() -> void:
-	## Wire up pause and clear board buttons in top-left corner
+	## Wire up pause and reset level buttons in top-left corner
 	if pause_button:
 		pause_button.pressed.connect(_on_pause_button_pressed)
 	
 	if clear_board_button:
 		clear_board_button.pressed.connect(_on_clear_board_button_pressed)
-		# Clear board button should only be visible during build phase
+		# Reset level button should only be visible during build phase
 		clear_board_button.visible = (GameManager.current_state == GameManager.GameState.BUILD_PHASE)
 
 
@@ -1195,18 +1195,18 @@ func _on_pause_button_pressed() -> void:
 	_toggle_pause()
 
 
-## Handle clear board button pressed (top-left corner, build phase only)
+## Handle reset level button pressed (top-left corner, build phase only)
 func _on_clear_board_button_pressed() -> void:
 	AudioManager.play_ui_click()
 	_clear_board()
 
 
-## Clear all player-placed items and reset resources to starting amount
+## Reset level: Clear all player-placed items and reset resources to starting amount
 func _clear_board() -> void:
 	if GameManager.current_state != GameManager.GameState.BUILD_PHASE:
 		return
 	
-	print("GameScene: Clearing board (removing all player-placed items)...")
+	print("GameScene: Resetting level (removing all player-placed items)...")
 	
 	# Track processed portal positions to avoid double-processing
 	var processed_portals: Array[Vector2i] = []
@@ -1267,7 +1267,7 @@ func _clear_board() -> void:
 	if path_preview:
 		path_preview.update_paths(current_level_data)
 	
-	print("GameScene: Board cleared! Resources reset to %d" % GameManager.resources)
+	print("GameScene: Level reset! Resources reset to %d" % GameManager.resources)
 
 
 ## Handle retry requested from pause menu (soft restart - preserves player placements)
@@ -1412,7 +1412,7 @@ func _on_state_changed(new_state: GameManager.GameState) -> void:
 	# End bulk placement on any state change
 	_end_bulk_placement()
 	
-	# Update clear board button visibility (only visible in build phase)
+	# Update reset level button visibility (only visible in build phase)
 	if clear_board_button:
 		clear_board_button.visible = (new_state == GameManager.GameState.BUILD_PHASE)
 	
