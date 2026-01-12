@@ -48,6 +48,14 @@ var fireball_travel_player: AudioStreamPlayer = null
 var pitch_modulation_range: float = 0.15  # ±15% pitch variation
 var use_pitch_modulation: bool = true  # Can be disabled if needed
 
+# Audio mixing/ducking settings
+var enable_audio_ducking: bool = true  # Can be disabled if needed
+var ducking_threshold: int = 3  # Start ducking when this many sounds play simultaneously
+var max_ducking_db: float = -20.0  # Maximum volume reduction in dB when many sounds play
+var ducking_curve: float = 2.5  # Curve factor for ducking (higher = more aggressive)
+var sound_culling_threshold: int = 10  # Start culling sounds when this many play simultaneously
+var sound_culling_enabled: bool = true  # Enable sound culling to prevent audio overload
+
 # Gameplay audio muting (for victory/defeat modals)
 var gameplay_sounds_muted: bool = false
 
@@ -77,8 +85,12 @@ func _ready() -> void:
 	# Create SFX pool for rapid succession sounds
 	for i in range(pool_size):
 		var player := AudioStreamPlayer.new()
+		player.set_meta("base_volume_db", 0.0)  # Initialize base volume
 		sfx_pool.append(player)
 		add_child(player)
+	
+	# Initialize main sfx_player base volume
+	sfx_player.set_meta("base_volume_db", 0.0)
 	
 	# Initialize sound volumes with defaults (1.0 for all)
 	for effect_name in sound_effects.keys():
@@ -197,6 +209,10 @@ func play_sound_effect(effect_name: String) -> void:
 	# Get volume multiplier (default to 1.0 if not set)
 	var volume_multiplier: float = sound_volumes.get(effect_name, 1.0)
 	
+	# Check if we should cull sounds before playing new one
+	if sound_culling_enabled:
+		_cull_excess_sounds()
+	
 	# Find an available player from the pool
 	var player: AudioStreamPlayer = _get_available_sfx_player()
 	if not player:
@@ -209,7 +225,13 @@ func play_sound_effect(effect_name: String) -> void:
 	# Apply volume multiplier
 	var base_volume_db: float = 0.0  # Full volume
 	var final_volume_db: float = base_volume_db + linear_to_db(volume_multiplier)
-	player.volume_db = final_volume_db
+	
+	# Store base volume for this player (before ducking) so we can restore it
+	player.set_meta("base_volume_db", final_volume_db)
+	
+	# Connect finished signal to update ducking when sound ends (before playing)
+	if not player.finished.is_connected(_on_sfx_finished):
+		player.finished.connect(_on_sfx_finished.bind(player))
 	
 	# Apply randomized pitch modulation to prevent repetitive sounds
 	if use_pitch_modulation:
@@ -218,8 +240,11 @@ func play_sound_effect(effect_name: String) -> void:
 	else:
 		player.pitch_scale = 1.0
 	
-	# Play the sound
+	# Play the sound first (so it's counted in concurrent sounds)
 	player.play()
+	
+	# Now update ducking for all playing sounds (including the one we just started)
+	_update_audio_ducking()
 
 
 ## Get an available SFX player from the pool
@@ -228,6 +253,121 @@ func _get_available_sfx_player() -> AudioStreamPlayer:
 		if not player.playing:
 			return player
 	return null  # All players busy
+
+
+## Count how many SFX sounds are currently playing
+func _count_concurrent_sounds() -> int:
+	var count: int = 0
+	
+	# Count sounds in pool
+	for player in sfx_pool:
+		if player.playing:
+			count += 1
+	
+	# Count main sfx_player if playing
+	if sfx_player.playing:
+		count += 1
+	
+	return count
+
+
+## Calculate ducking amount based on concurrent sound count
+func _calculate_ducking_amount() -> float:
+	if not enable_audio_ducking:
+		return 0.0
+	
+	var concurrent_count: int = _count_concurrent_sounds()
+	
+	# No ducking if below threshold
+	if concurrent_count < ducking_threshold:
+		return 0.0
+	
+	# Calculate ducking amount (more sounds = more ducking)
+	# Formula: ducking increases exponentially with concurrent count
+	var excess_sounds: int = concurrent_count - ducking_threshold + 1
+	var ducking_factor: float = float(excess_sounds) / float(pool_size)
+	ducking_factor = pow(ducking_factor, ducking_curve)  # Apply curve
+	ducking_factor = clamp(ducking_factor, 0.0, 1.0)
+	
+	return max_ducking_db * ducking_factor
+
+
+## Update audio ducking for all currently playing SFX sounds
+func _update_audio_ducking() -> void:
+	if not enable_audio_ducking:
+		return
+	
+	var ducking_db: float = _calculate_ducking_amount()
+	
+	# Apply ducking to all playing sounds in pool
+	for player in sfx_pool:
+		if player.playing:
+			var base_volume: float = player.get_meta("base_volume_db", 0.0)
+			player.volume_db = base_volume + ducking_db
+	
+	# Apply ducking to main sfx_player if playing
+	if sfx_player.playing:
+		var base_volume: float = sfx_player.get_meta("base_volume_db", 0.0)
+		sfx_player.volume_db = base_volume + ducking_db
+
+
+## Cull excess sounds when too many are playing simultaneously
+## Stops the quietest/lowest priority sounds to prevent audio overload
+func _cull_excess_sounds() -> void:
+	if not sound_culling_enabled:
+		return
+	
+	var concurrent_count: int = _count_concurrent_sounds()
+	
+	# Only cull if we're at or above the threshold
+	if concurrent_count < sound_culling_threshold:
+		return
+	
+	# Collect all playing sounds with their volumes
+	var playing_sounds: Array[Dictionary] = []
+	
+	for player in sfx_pool:
+		if player.playing:
+			var base_volume: float = player.get_meta("base_volume_db", 0.0)
+			var current_volume: float = player.volume_db
+			playing_sounds.append({
+				"player": player,
+				"base_volume": base_volume,
+				"current_volume": current_volume
+			})
+	
+	if sfx_player.playing:
+		var base_volume: float = sfx_player.get_meta("base_volume_db", 0.0)
+		var current_volume: float = sfx_player.volume_db
+		playing_sounds.append({
+			"player": sfx_player,
+			"base_volume": base_volume,
+			"current_volume": current_volume
+		})
+	
+	# Sort by current volume (quietest first) - these are less noticeable to stop
+	playing_sounds.sort_custom(func(a, b): return a.current_volume < b.current_volume)
+	
+	# Stop the quietest sounds until we're below threshold
+	var sounds_to_stop: int = concurrent_count - sound_culling_threshold + 1
+	for i in range(min(sounds_to_stop, playing_sounds.size())):
+		var sound_data: Dictionary = playing_sounds[i]
+		var player_to_stop: AudioStreamPlayer = sound_data["player"]
+		player_to_stop.stop()
+		
+		# Disconnect finished signal if connected
+		if player_to_stop.finished.is_connected(_on_sfx_finished):
+			player_to_stop.finished.disconnect(_on_sfx_finished)
+
+
+## Handle SFX finished signal - update ducking when sound ends
+func _on_sfx_finished(player: AudioStreamPlayer) -> void:
+	# Update ducking for remaining sounds
+	_update_audio_ducking()
+	
+	# Disconnect finished signal to avoid memory leaks
+	if player.finished.is_connected(_on_sfx_finished):
+		player.finished.disconnect(_on_sfx_finished)
 
 
 ## Set volume multiplier for a specific sound effect (designer-tunable)
