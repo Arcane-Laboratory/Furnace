@@ -1,8 +1,9 @@
-[gd_scene load_steps=43 format=3 uid="uid://b06ob7kxsjkag"]
+[gd_scene load_steps=44 format=3 uid="uid://b06ob7kxsjkag"]
 
 [ext_resource type="Script" uid="uid://bvxxnk05lkk4q" path="res://scripts/game/game_scene.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://t3stfxka0jty" path="res://scenes/ui/pause_menu.tscn" id="2_pause"]
 [ext_resource type="PackedScene" uid="uid://b3jhhs6h1vujk" path="res://scenes/ui/game_menu.tscn" id="2_ydf3n"]
+[ext_resource type="Theme" uid="uid://brmsm8x6ntpna" path="res://theme/furnace_theme.tres" id="3_theme"]
 [ext_resource type="Texture2D" uid="uid://dvw4j88ndylw6" path="res://assets/sprites/floor.png" id="3_ecdjj"]
 [ext_resource type="Texture2D" uid="uid://c8gx271g5v1gt" path="res://assets/sprites/furnace-furnace-sheet.png" id="3_furnace_sprite"]
 [ext_resource type="StyleBox" path="res://style_box_9p_large.tres" id="3_p0de3"]
@@ -291,6 +292,34 @@ color = Color(0.9, 0.4, 0.1, 1)
 [node name="BloomOverlay" parent="." instance=ExtResource("7_bloom_overlay")]
 
 [node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="TopLeftControls" type="Control" parent="UILayer"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 120.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/TopLeftControls"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PauseButton" type="Button" parent="UILayer/TopLeftControls/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 24)
+layout_mode = 2
+theme = ExtResource("3_theme")
+text = "Pause"
+
+[node name="ClearBoardButton" type="Button" parent="UILayer/TopLeftControls/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 24)
+layout_mode = 2
+theme = ExtResource("3_theme")
+text = "Clear Board"
 
 [node name="BottomBar" type="PanelContainer" parent="UILayer"]
 visible = false
