@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=11 format=3 uid="uid://et4qlarty6t1"]
+
+[ext_resource type="Script" uid="uid://ijuvyt3lnwhc" path="res://scripts/resources/level_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://chwvrska7acvx" path="res://scripts/resources/spawn_enemy_rule.gd" id="2"]
+
+[sub_resource type="Resource" id="Resource_rule0"]
+script = ExtResource("2")
+spawn_delay = 1.0
+spawn_count = 30
+spawn_time = 30.0
+
+[sub_resource type="Resource" id="Resource_rule1"]
+script = ExtResource("2")
+enemy_type = 2
+spawn_delay = 1.0
+spawn_count = 10
+spawn_time = 30.0
+
+[sub_resource type="Resource" id="Resource_rule2"]
+script = ExtResource("2")
+spawn_point_index = 1
+spawn_delay = 1.0
+spawn_count = 30
+spawn_time = 30.0
+
+[sub_resource type="Resource" id="Resource_rule3"]
+script = ExtResource("2")
+spawn_point_index = 1
+enemy_type = 1
+spawn_delay = 10.0
+spawn_count = 10
+spawn_time = 20.0
+
+[sub_resource type="Resource" id="Resource_rule4"]
+script = ExtResource("2")
+spawn_point_index = 1
+enemy_type = 2
+spawn_delay = 20.0
+spawn_count = 2
+spawn_time = 5.0
+
+[sub_resource type="Resource" id="Resource_rule5"]
+script = ExtResource("2")
+spawn_point_index = 2
+spawn_delay = 1.0
+spawn_count = 30
+spawn_time = 30.0
+
+[sub_resource type="Resource" id="Resource_rule6"]
+script = ExtResource("2")
+spawn_point_index = 2
+spawn_delay = 10.0
+spawn_count = 10
+spawn_time = 20.0
+
+[sub_resource type="Resource" id="Resource_rule7"]
+script = ExtResource("2")
+spawn_point_index = 2
+enemy_type = 2
+spawn_delay = 20.0
+spawn_count = 2
+spawn_time = 5.0
+
+[resource]
+script = ExtResource("1")
+level_number = 13
+level_name = "Level 13"
+starting_resources = 1000
+spawn_points = Array[Vector2i]([Vector2i(6, 6), Vector2i(0, 6), Vector2i(12, 6)])
+spawn_rules = Array[ExtResource("2")]([SubResource("Resource_rule0"), SubResource("Resource_rule1"), SubResource("Resource_rule2"), SubResource("Resource_rule3"), SubResource("Resource_rule4"), SubResource("Resource_rule5"), SubResource("Resource_rule6"), SubResource("Resource_rule7")])
+par_time_seconds = 999.0
+hint_text = "The furnace is at full power! Show this final soot swarm your full power and creativity!"
+difficulty = 5
+heat_increase_interval = 2.0
+unlock_all_items = true

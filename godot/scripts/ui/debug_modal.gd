@@ -85,8 +85,11 @@ func _populate_level_list() -> void:
 	for child in level_list.get_children():
 		child.queue_free()
 	
-	# Create buttons for levels 0-10
-	for i in range(11):
+	# Get maximum level number (dynamically detects available levels)
+	var max_level: int = GameManager.get_max_level()
+	
+	# Create buttons for levels 0 through max_level
+	for i in range(max_level + 1):
 		var button := Button.new()
 		button.text = "Level %d" % i
 		button.custom_minimum_size = Vector2(150, 24)
