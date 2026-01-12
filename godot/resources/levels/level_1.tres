@@ -30,7 +30,7 @@ spawn_time = 10.0
 [resource]
 script = ExtResource("1")
 level_number = 1
-level_name = "Level 1 (Final)"
+level_name = "Level 1"
 starting_resources = 50
 spawn_points = Array[Vector2i]([Vector2i(2, 4)])
 furnace_position = Vector2i(6, 0)
