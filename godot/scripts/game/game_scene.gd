@@ -2356,6 +2356,14 @@ func soft_restart_level() -> void:
 	var spent_on_tiles: int = 0
 	for tile_data in saved_player_tiles:
 		var item_type: String = tile_data["item_type"]
+		
+		# Portal cost covers both entrance and exit, so only count entrance portals
+		if item_type == "portal":
+			var is_entrance: bool = tile_data.get("is_entrance", true)
+			if not is_entrance:
+				# Skip exit portals - cost was already counted for entrance
+				continue
+		
 		var definition := GameConfig.get_item_definition(item_type)
 		if definition:
 			spent_on_tiles += definition.cost
