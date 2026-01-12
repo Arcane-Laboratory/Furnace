@@ -2354,15 +2354,38 @@ func soft_restart_level() -> void:
 	
 	# Calculate how much the player spent on saved tiles for resource adjustment
 	var spent_on_tiles: int = 0
+	var processed_portal_positions: Array[Vector2i] = []
+	
 	for tile_data in saved_player_tiles:
 		var item_type: String = tile_data["item_type"]
 		var definition := GameConfig.get_item_definition(item_type)
-		if definition:
-			spent_on_tiles += definition.cost
-			# Add upgrade costs
-			var level: int = tile_data.get("level", 1)
-			if level > 1 and definition.upgrade_cost > 0:
-				spent_on_tiles += definition.upgrade_cost * (level - 1)
+		if not definition:
+			continue
+		
+		# Portal cost covers both entrance and exit, so only count once
+		if item_type == "portal_rune":
+			var is_entrance: bool = tile_data.get("is_entrance", false)
+			var position: Vector2i = tile_data["position"]
+			
+			# Only count cost for entrance portal (skip exit portals)
+			if not is_entrance:
+				continue
+			
+			# Track this portal position to avoid double-counting if somehow both are marked as entrance
+			if position in processed_portal_positions:
+				continue
+			processed_portal_positions.append(position)
+			
+			# Check if there's a linked portal and mark it as processed too
+			var linked_pos: Vector2i = tile_data.get("linked_position", Vector2i(-1, -1))
+			if linked_pos != Vector2i(-1, -1):
+				processed_portal_positions.append(linked_pos)
+		
+		spent_on_tiles += definition.cost
+		# Add upgrade costs
+		var level: int = tile_data.get("level", 1)
+		if level > 1 and definition.upgrade_cost > 0:
+			spent_on_tiles += definition.upgrade_cost * (level - 1)
 	
 	# Clear game state (enemies, fireballs, etc.)
 	_clear_game_state()
